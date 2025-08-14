@@ -20,7 +20,7 @@ O sistema permite:
 ## Funcionalidades
 
 - 📊 **Dashboard Web**: gráficos de consumo detalhados.  
-- 🔌 **Medição de energia**: coleta de dados através da ESP32-CAM.  
+- 🔌 **Medição de energia**: coleta de dados através da ESP32.  
 - ☁️ **Armazenamento em nuvem**: dados salvos no Firebase Realtime Database.  
 - 🔐 **Autenticação**: login e registro de usuários.  
 - 👥 **Controle de usuários**: cada usuário visualiza apenas seus próprios dados.
@@ -29,10 +29,10 @@ O sistema permite:
 
 ## Tecnologias Utilizadas
 
-- **Hardware**: ESP32-CAM  
+- **Hardware**: ESP32 
 - **Frontend**: HTML, CSS, JavaScript  
 - **Backend**: Node.js com Express  
-- **Banco de dados**: Firebase Realtime Database / Firestore  
+- **Banco de dados**: Firebase Realtime Database  
 - **Autenticação**: Firebase Authentication  
 
 ---
