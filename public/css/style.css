@@ -1,0 +1,146 @@
+@import url("https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap");
+
+body {
+  font-family: "Orbitron", sans-serif;
+  background: radial-gradient(
+    circle,
+    rgba(255, 252, 252, 1) 0%,
+    rgba(170, 170, 170, 1) 90%
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 95vh; /* min para evitar problemas no mobile */
+  margin: 0;
+  padding: 1rem;
+}
+img {
+  mix-blend-mode: multiply;
+}
+
+.container {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  transition: box-shadow 0.3s ease;
+}
+
+.container:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12), 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+  display: none;
+}
+.form-section.active {
+  display: block;
+}
+
+h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+  position: relative; /* para o ícone do olho */
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  margin-left: 10px;
+  color: #555;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* mais espaço pro olho */
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+.toggle-password {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 70%;
+  transform: translateY(-50%);
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: #0056b3;
+}
+
+.link {
+  margin-top: 1rem;
+}
+.link a {
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.link a:hover {
+  text-decoration: underline;
+}
+
+/* 🔹 Ajustes para celular */
+@media (max-width: 480px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  .container {
+    padding: 1.5rem;
+    border-radius: 15px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"] {
+    font-size: 0.95rem;
+    padding: 0.65rem 2.2rem 0.65rem 0.65rem;
+  }
+
+  button {
+    font-size: 0.95rem;
+    padding: 0.65rem;
+  }
+
+  .toggle-password {
+    width: 20px;
+    height: 20px;
+    right: 8px;
+  }
+}

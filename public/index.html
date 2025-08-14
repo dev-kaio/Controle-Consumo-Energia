@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+    <html lang="pt-br">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login e Cadastro</title>
+        <link rel="stylesheet" href="./css/style.css">
+      </head>
+      <body style="display: flex; flex-direction: column;">
+        <img src="assets/logo.png" alt="">
+        <div class="container">
+          <div id="login-form" class="form-section active">
+            <h2>Entrar</h2>
+            <form id="formLogin">
+              <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required />
+              </div>
+              <div class="form-group">
+                <label for="login-password">Senha</label>
+                <input type="password" id="login-password" required />
+                <span class="toggle-password" id="toggle-login-password"></span>
+              </div>
+              <p id="mensagem"></p>
+              <button type="submit" id="login-button">Entrar</button>
+            </form>
+            <div class="link">
+              Não tem uma conta?
+              <a href="#" onclick="toggleForms('register')">Cadastre-se</a>
+            </div>
+          </div>
+
+          <div id="register-form" class="form-section">
+            <h2>Cadastrar</h2>
+            <form id="formRegistro">
+              <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" required />
+              </div>
+              <div class="form-group">
+                <label for="register-password">Senha</label>
+                <input type="password" id="register-password" required />
+                <span class="toggle-password" id="toggle-register-password"></span>
+              </div>
+              <p id="mensagem" style="display: none;"></p>
+              <button type="submit" id="register-button">Cadastrar</button>
+            </form>
+            <div class="link">
+              Já tem uma conta?
+              <a href="#" onclick="toggleForms('login')">Fazer Login</a>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function toggleForms(formId) {
+            const loginForm = document.getElementById("login-form");
+            const registerForm = document.getElementById("register-form");
+
+            if (formId === "login") {
+              loginForm.classList.add("active");
+              registerForm.classList.remove("active");
+            } else {
+              loginForm.classList.remove("active");
+              registerForm.classList.add("active");
+            }
+          }
+        </script>
+
+        <script type="module" src="auth/login.js"></script>
+      </body>
+    </html>
+  </body>
+</html>
