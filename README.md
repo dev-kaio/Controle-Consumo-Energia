@@ -6,7 +6,7 @@
 
 ## Descrição do Projeto
 
-O **Controle de Consumo de Energia** é um sistema desenvolvido para monitorar o consumo elétrico de apartamentos utilizando a **ESP32-CAM**.  
+O **Controle de Consumo de Energia** é um sistema desenvolvido para monitorar o consumo elétrico de apartamentos utilizando a **ESP32**.  
 
 O sistema permite:
 
