@@ -7,11 +7,8 @@ import {
 const mensagem = document.getElementById("mensagem");
 const loginForm = document.getElementById("formLogin");
 const registerForm = document.getElementById("formRegistro");
-const passwordInput = document.getElementById("password");
 const registerButton = document.getElementById("register-button");
 const loginButton = document.getElementById("login-button");
-
-const togglePassword = document.getElementById("toggle-password");
 
 async function sendTokenToBackend(idToken, path) {
   const response = await fetch(path, {
@@ -83,10 +80,9 @@ registerForm.addEventListener("submit", async (e) => {
     await sendTokenToBackend(idToken, "/auth/registrar");
 
     mensagem.textContent = "Usuário registrado com sucesso! Logando...";
-    mensagem.style.display = "block";
 
     setTimeout(() => {
-      mensagem.style.display = "none";
+      mensagem.textContent = "";
       window.location.href = "pages/menu.html";
       registerButton.disabled = false;
     }, 2000);
@@ -100,7 +96,6 @@ registerForm.addEventListener("submit", async (e) => {
 const eyeOpenIcon = "./assets/eye-open.png";
 const eyeClosedIcon = "./assets/eye-closed.png";
 
-// Função genérica para ativar o toggle em qualquer campo
 function setupPasswordToggle(toggleId, inputId) {
   const toggle = document.getElementById(toggleId);
   const input = document.getElementById(inputId);

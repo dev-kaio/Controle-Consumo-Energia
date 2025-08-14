@@ -1,21 +1,23 @@
 {
-  "name": "controle-energia",
+  "name": "controle-consumo-energia",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)\r ![Firebase](https://img.shields.io/badge/Firebase-ffca28?style=flat&logo=firebase&logoColor=black)\r ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "kaiolito"
+  ],
+  "author": "dev-kaio",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "firebase": "^12.1.0",
     "firebase-admin": "^13.4.0",
     "node": "^22.18.0",
-    "route": "^0.2.5",
+    "path": "^0.12.7",
     "router": "^2.2.0"
   }
 }

@@ -2,23 +2,24 @@
 
 body {
   font-family: "Orbitron", sans-serif;
-  background: radial-gradient(
-    circle,
-    rgba(255, 252, 252, 1) 0%,
-    rgba(170, 170, 170, 1) 90%
-  );
+  background: rgb(102, 6, 235);
+  background-image: url('../assets/logo.png');
+  background-repeat: no-repeat;
+  background-position: right;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: start;
   min-height: 95vh; /* min para evitar problemas no mobile */
   margin: 0;
   padding: 1rem;
 }
 img {
-  mix-blend-mode: multiply;
+  width: 128px;
+  height: 128px;
 }
 
 .container {
+  margin-left: 15%;
   background-color: #ffffff;
   padding: 2rem;
   border-radius: 20px;
@@ -86,7 +87,7 @@ input[type="email"] {
 button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #007bff;
+  background-color: rgb(102, 6, 235);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -96,14 +97,18 @@ button {
   transition: background-color 0.3s ease;
 }
 button:hover {
-  background-color: #0056b3;
+  background-color: rgb(102, 6, 235, 0.8);
+}
+
+p{
+  color: rgb(102, 6, 235);
 }
 
 .link {
   margin-top: 1rem;
 }
 .link a {
-  color: #007bff;
+  color: rgb(102, 6, 235);
   text-decoration: none;
   cursor: pointer;
 }
@@ -111,7 +116,7 @@ button:hover {
   text-decoration: underline;
 }
 
-/* 🔹 Ajustes para celular */
+/* Ajustes para celular */
 @media (max-width: 480px) {
   body {
     padding: 0.5rem;
@@ -120,6 +125,7 @@ button:hover {
   .container {
     padding: 1.5rem;
     border-radius: 15px;
+    max-width: 70%;
   }
 
   h2 {
