@@ -3,7 +3,7 @@
 body {
   font-family: "Orbitron", sans-serif;
   background: rgb(102, 6, 235);
-  background-image: url('../assets/logo.png');
+  background-image: url("../assets/logo.png");
   background-repeat: no-repeat;
   background-position: right;
   display: flex;
@@ -100,7 +100,7 @@ button:hover {
   background-color: rgb(102, 6, 235, 0.8);
 }
 
-p{
+p {
   color: rgb(102, 6, 235);
 }
 
@@ -117,15 +117,19 @@ p{
 }
 
 /* Ajustes para celular */
-@media (max-width: 480px) {
+@media (max-width: 1490px) {
   body {
     padding: 0.5rem;
+    align-items: center;
+    background-position: top;
+    background-size: 100px 100px;
   }
 
   .container {
     padding: 1.5rem;
     border-radius: 15px;
     max-width: 70%;
+    margin-left: 0;
   }
 
   h2 {

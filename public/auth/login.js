@@ -5,6 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 const mensagem = document.getElementById("mensagem");
+const mensagemL = document.getElementById("mensagemL");
 const loginForm = document.getElementById("formLogin");
 const registerForm = document.getElementById("formRegistro");
 const registerButton = document.getElementById("register-button");
@@ -53,8 +54,12 @@ loginForm.addEventListener("submit", async (e) => {
     window.location.href = "pages/menu.html";
     loginButton.disabled = false;
   } catch (error) {
-    alert(error.message);
-    loginButton.disabled = false;
+    mensagemL.textContent = "Ocorreu um erro, tente novamente.";
+
+    setTimeout(() => {
+      mensagemL.textContent = "";
+      loginButton.disabled = false;
+    }, 2000);
   }
 });
 
@@ -87,8 +92,12 @@ registerForm.addEventListener("submit", async (e) => {
       registerButton.disabled = false;
     }, 2000);
   } catch (error) {
-    alert(error.message);
-    registerButton.disabled = false;
+    mensagem.innerHTML = `Ocorreu um erro. Usuário possivelmente já cadastrado <br> Tente novamente.`;
+
+    setTimeout(() => {
+      mensagem.innerHTML = "";
+      registerButton.disabled = false;
+    }, 2000);
   }
 });
 

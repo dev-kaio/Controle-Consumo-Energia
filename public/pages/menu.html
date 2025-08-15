@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Menu - Palm Energy</title>
+    <link rel="stylesheet" href="../css/menu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <button class="menu-btn" id="menuBtn">☰</button>
+
+    <div class="filter-container">
+    <button class="filter-btn" id="filterBtn">Filtrar</button>
+    <div class="filter-menu" id="filterMenu">
+      <button data-filter="hora">Última Hora</button>
+      <button data-filter="dia">Hoje</button>
+      <button data-filter="semana">Última Semana</button>
+      <button data-filter="mes">Último Mês</button>
+      <button data-filter="ano">Último Ano</button>
+      <button data-filter="inicio">Desde o Início</button>
+    </div>
+  </div>
+
+    <div class="sidebar" id="sidebar">
+      <a href="#">Home</a>
+      <a href="#">Relatórios</a>
+      <a href="#">Configurações</a>
+      <a href="../index.html" id="logout">Sair</a>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="meuGrafico"></canvas>
+    </div>
+  </body>
+  <script type="module" src="../js/grafico.js"></script>
+  <script type="module" src="../js/sidebar.js"></script>
+</html>

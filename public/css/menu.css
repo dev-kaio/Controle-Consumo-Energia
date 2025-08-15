@@ -1,0 +1,162 @@
+body {
+  font-family: "Orbitron", sans-serif;
+  background: rgb(102, 6, 235);
+  background-image: url("../assets/logo.png");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100px 100px;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  min-height: 95vh;
+  margin: 0;
+  padding: 1rem;
+}
+
+img {
+  width: 128px;
+  height: 128px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; /* escondida inicialmente */
+  width: 250px;
+  height: 100%;
+  background-color: rgb(102, 6, 235);
+  color: white;
+  padding-top: 60px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.active {
+  left: 0;
+}
+
+.sidebar a {
+  display: block;
+  padding: 15px 20px;
+  color: white;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Botão do menu */
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  font-size: 24px;
+  background-color: rgb(230, 230, 230);
+  color: rgb(102, 6, 235);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.menu-btn:hover {
+  background-color: rgb(102, 6, 235);
+  color: white;
+}
+
+/* Container central do gráfico */
+.chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 95vh;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* Canvas do gráfico */
+.chart-container canvas {
+  background: rgb(230, 230, 230);
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  max-width: 1800px;
+  width: 100%;
+}
+
+/* Container do filtro */
+.filter-container {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 1100;
+}
+
+/* Botão de filtro */
+.filter-btn {
+  background-color: white;
+  color: rgb(102, 6, 235);
+  border: none;
+  padding: 15px 20px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.filter-btn:hover {
+  background-color: rgb(102, 6, 235);
+  color: white;
+}
+
+/* Menu suspenso */
+.filter-menu {
+  display: none;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.filter-menu button {
+  display: block;
+  padding: 10px 15px;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  color: rgb(102, 6, 235);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filter-menu button:hover {
+  background-color: rgba(102, 6, 235, 0.1);
+}
+
+/* Ajustes para celular */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 150px;
+  }
+
+  .chart-container canvas {
+    max-width: 95%;
+  }
+  body {
+    padding: 0.5rem;
+    align-items: center;
+    background-position: top;
+    background-size: 100px 100px;
+  }
+}
