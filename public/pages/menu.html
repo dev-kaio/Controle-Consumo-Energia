@@ -10,23 +10,31 @@
   <body>
     <button class="menu-btn" id="menuBtn">☰</button>
 
-    <div class="filter-container">
-    <button class="filter-btn" id="filterBtn">Filtrar</button>
-    <div class="filter-menu" id="filterMenu">
-      <button data-filter="hora">Última Hora</button>
-      <button data-filter="dia">Hoje</button>
-      <button data-filter="semana">Última Semana</button>
-      <button data-filter="mes">Último Mês</button>
-      <button data-filter="ano">Último Ano</button>
-      <button data-filter="inicio">Desde o Início</button>
-    </div>
-  </div>
-
     <div class="sidebar" id="sidebar">
       <a href="#">Home</a>
       <a href="#">Relatórios</a>
       <a href="#">Configurações</a>
       <a href="../index.html" id="logout">Sair</a>
+    </div>
+
+    <div class="filter-container">
+      <button class="filter-btn" id="filterBtn">Filtrar</button>
+      <div class="filter-menu" id="filterMenu">
+        <button data-filter="hora">Última Hora</button>
+        <button data-filter="dia">Hoje</button>
+        <button data-filter="semana">Última Semana</button>
+        <button data-filter="mes">Último Mês</button>
+        <button data-filter="ano">Último Ano</button>
+        <button data-filter="inicio">Desde o Início</button>
+        <hr />
+        <div class="custom-range">
+          <label>Início:</label>
+          <input type="date" id="inicioFiltro" />
+          <label>Fim:</label>
+          <input type="date" id="fimFiltro" />
+          <button id="aplicarIntervalo">Aplicar</button>
+        </div>
+      </div>
     </div>
 
     <div class="chart-container">

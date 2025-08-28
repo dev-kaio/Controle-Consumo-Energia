@@ -40,6 +40,9 @@ app.use(express.static(path.join(__dirname, "public")));
 const rotaAuth = require("./routes/auth");
 app.use("/auth", rotaAuth);
 
+const rotaDB = require("./routes/firebase.js")
+app.use("/firebase", rotaDB);
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
