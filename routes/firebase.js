@@ -4,67 +4,72 @@ const admin = require("firebase-admin");
 
 const db = admin.database();
 
+function calcularIntervalo(filtro) {
+  const agora = new Date();
+  let inicio;
+
+  switch (filtro) {
+    case "hora":
+      inicio = new Date(agora.getTime() - 60 * 60 * 1000);
+      break;
+    case "dia":
+      inicio = new Date(agora.setHours(0, 0, 0, 0));
+      break;
+    case "semana":
+      inicio = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case "mes":
+      inicio = new Date(agora.setDate(1));
+      break;
+    case "ano":
+      inicio = new Date(agora.setMonth(0, 1));
+      break;
+    case "inicio":
+      inicio = new Date(0);
+      break;
+    default:
+      return null;
+  }
+
+  return {
+    inicio: inicio.toISOString(),
+    fim: new Date().toISOString(),
+  };
+}
+
 router.get("/consumo", async (req, res) => {
   try {
-    const { periodo, inicio, fim } = req.query;
+    const { filtro, inicio, fim } = req.query;
 
-    const ref = db.ref("Consumo");
-    const snapshot = await ref.once("value");
+    let dataInicio, dataFim;
 
-    if (!snapshot.exists()) {
-      return res.json({ labels: [], valores: [] });
+    if (filtro) {
+      const intervalo = calcularIntervalo(filtro);
+      if (!intervalo) return res.status(400).json({ erro: "Filtro inválido" });
+
+      dataInicio = new Date(intervalo.inicio);
+      dataFim = new Date(intervalo.fim);
+    } else if (inicio && fim) {
+      dataInicio = new Date(inicio);
+      dataFim = new Date(fim);
+    } else {
+      return res.status(400).json({ erro: "Parâmetros inválidos" });
     }
 
-    const dados = snapshot.val();
+    const snapshot = await db.ref("Consumos").once("value");
+    const registros = snapshot.val();
 
-    let inicioPeriodo = 0;
-    let fimPeriodo = Date.now();
+    if (!registros) return res.json([]);
 
-    const agora = new Date();
-
-    switch (periodo) {
-      case "hora":
-        inicioPeriodo = agora.getTime() - 60 * 60 * 1000;
-        break;
-      case "dia":
-        inicioPeriodo = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
-        break;
-      case "semana":
-        inicioPeriodo = agora.getTime() - 7 * 24 * 60 * 60 * 1000;
-        break;
-      case "mes":
-        inicioPeriodo = new Date(agora.getFullYear(), agora.getMonth(), 1).getTime();
-        break;
-      case "ano":
-        inicioPeriodo = new Date(agora.getFullYear(), 0, 1).getTime();
-        break;
-      case "inicio":
-        inicioPeriodo = 0;
-        break;
-      default:
-        if (inicio && fim) {
-          inicioPeriodo = new Date(inicio).getTime();
-          fimPeriodo = new Date(fim).getTime();
-        }
-    }
-
-    let labels = [];
-    let valores = [];
-
-    Object.keys(dados).forEach((horario) => {
-      const item = dados[horario];
-      const ts = item.timestamp;
-
-      if (ts >= inicioPeriodo && ts <= fimPeriodo) {
-        labels.push(horario);
-        valores.push(item.Whora);
-      }
+    const resultado = Object.values(registros).filter((item) => {
+      const data = new Date(item.timestamp);
+      return data >= dataInicio && data <= dataFim;
     });
 
-    return res.json({ labels, valores });
+    res.json(resultado);
   } catch (error) {
-    console.error("Erro ao buscar consumo:", error);
-    return res.status(500).json({ error: "Erro ao buscar consumo" });
+    console.error("Erro ao buscar dados:", error);
+    res.status(500).json({ erro: "Erro ao buscar dados" });
   }
 });
 

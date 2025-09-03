@@ -16,8 +16,16 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "firebase-admin": "^13.5.0",
-    "node": "^22.18.0",
+    "node": "^22.19.0",
     "path": "^0.12.7",
     "router": "^2.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-kaio/Controle-Consumo-Energia.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dev-kaio/Controle-Consumo-Energia/issues"
+  },
+  "homepage": "https://github.com/dev-kaio/Controle-Consumo-Energia#readme"
 }

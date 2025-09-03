@@ -101,7 +101,8 @@ registerForm.addEventListener("submit", async (e) => {
   }
 });
 
-//Ícone em senha
+
+//Visibilidade da senha
 const eyeOpenIcon = "./assets/eye-open.png";
 const eyeClosedIcon = "./assets/eye-closed.png";
 

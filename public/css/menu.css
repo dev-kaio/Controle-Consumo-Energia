@@ -1,6 +1,6 @@
 body {
   font-family: "Orbitron", sans-serif;
-  background: rgb(102, 6, 235);
+  background: #6606eb;
   background-image: url("../assets/logo.png");
   background-repeat: no-repeat;
   background-position: top;
@@ -21,7 +21,8 @@ img {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -250px; /* escondida inicialmente */
+  left: -250px;
+  /* escondida inicialmente */
   width: 250px;
   height: 100%;
   background-color: rgb(102, 6, 235);
@@ -75,8 +76,8 @@ img {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 18%;
-  height: 60vh;
+  margin-top: 5%;
+  height: 80vh;
   padding: 2rem;
   box-sizing: border-box;
   width: 90vw;
@@ -88,6 +89,31 @@ img {
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   padding: 1rem;
+}
+
+.media-consumo-container {
+  margin: 20px auto 0 auto;
+  /* auto nas laterais centraliza horizontalmente */
+  padding: 15px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 350px;
+  /* opcional, limita largura para ficar mais bonito */
+  width: 90%;
+  /* para ser responsivo em telas pequenas */
+}
+
+.media-consumo-container h3 {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.media-consumo-container p {
+  font-size: 24px;
+  font-weight: bold;
+  color: rgb(102, 6, 235);
 }
 
 /* Container do filtro */
@@ -150,6 +176,7 @@ img {
   gap: 5px;
   padding: 10px;
 }
+
 .custom-range label {
   font-size: 0.9rem;
 }
@@ -189,14 +216,27 @@ input[type="datetime-local"]:focus {
 
 /* Ajustes para celular */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 150px;
+  body {
+    padding: 0;
+    align-items: flex-start;
+    background-position: top;
+    background-size: 70px 70px;
+    flex-direction: column;
   }
 
-  body {
+  .chart-container {
+    margin-top: 80px;
+    /* espaço pro menu e filtro */
+    width: 100vw;
+    /* ocupa toda a largura */
+    height: calc(100vh - 120px);
+    /* ocupa quase toda altura */
     padding: 0.5rem;
-    align-items: center;
-    background-position: top;
-    background-size: 100px 100px;
+  }
+
+  .chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 12px;
   }
 }

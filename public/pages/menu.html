@@ -1,46 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menu - Palm Energy</title>
-    <link rel="stylesheet" href="../css/menu.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
-    <button class="menu-btn" id="menuBtn">☰</button>
 
-    <div class="sidebar" id="sidebar">
-      <a href="#">Home</a>
-      <a href="#">Relatórios</a>
-      <a href="#">Configurações</a>
-      <a href="../index.html" id="logout">Sair</a>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu - Palm Energy</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="../css/menu.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 
-    <div class="filter-container">
-      <button class="filter-btn" id="filterBtn">Filtrar</button>
-      <div class="filter-menu" id="filterMenu">
-        <button data-filter="hora">Última Hora</button>
-        <button data-filter="dia">Hoje</button>
-        <button data-filter="semana">Última Semana</button>
-        <button data-filter="mes">Último Mês</button>
-        <button data-filter="ano">Último Ano</button>
-        <button data-filter="inicio">Desde o Início</button>
-        <hr />
-        <div class="custom-range">
-          <label>Início:</label>
-          <input type="date" id="inicioFiltro" />
-          <label>Fim:</label>
-          <input type="date" id="fimFiltro" />
-          <button id="aplicarIntervalo">Aplicar</button>
-        </div>
+<body>
+  <button class="menu-btn" id="menuBtn">☰</button>
+
+  <div class="sidebar" id="sidebar">
+    <a href="#" style="margin-top: 10px;">Home</a>
+    <a href="#">Relatórios</a>
+    <a href="#">Configurações</a>
+    <a href="../index.html" id="logout">Sair</a>
+  </div>
+
+  <div class="filter-container">
+    <button class="filter-btn" id="filterBtn">Filtrar</button>
+    <div class="filter-menu" id="filterMenu">
+      <button data-filter="hora">Última Hora</button>
+      <button data-filter="dia">Hoje</button>
+      <button data-filter="semana">Última Semana</button>
+      <button data-filter="mes">Último Mês</button>
+      <button data-filter="ano">Último Ano</button>
+      <button data-filter="inicio">Desde o Início</button>
+
+      <hr />
+
+      <div class="custom-range">
+        <label>Início:</label>
+        <input type="datetime-local" id="inicioFiltro" />
+        <label>Fim:</label>
+        <input type="datetime-local" id="fimFiltro" />
+        <button id="aplicarIntervalo">Aplicar</button>
       </div>
     </div>
+  </div>
 
-    <div class="chart-container">
-      <canvas id="meuGrafico"></canvas>
-    </div>
-  </body>
-  <script type="module" src="../js/grafico.js"></script>
-  <script type="module" src="../js/sidebar.js"></script>
+  <div class="chart-container">
+    <canvas id="meuGrafico"></canvas>
+  </div>
+
+  <div class="media-consumo-container">
+    <h3 id="tituloMediaConsumo">Média de Consumo</h3>
+    <p id="valorMediaConsumo">--</p>
+  </div>
+
+</body>
+<script type="module" src="../js/grafico.js"></script>
+<script type="module" src="../js/sidebar.js"></script>
+
 </html>
