@@ -30,6 +30,12 @@
       <button data-filter="ano">Último Ano</button>
       <button data-filter="inicio">Desde o Início</button>
 
+      <div class="tipo-selecao" id="tipoSelecionado">
+        <p><strong>Tipos de Dados:</strong></p>
+        <label><input type="checkbox" value="consumo" checked> Consumo</label><br />
+        <label><input type="checkbox" value="autoconsumo" checked> Autoconsumo</label><br />
+        <label><input type="checkbox" value="geracao" checked> Geração</label>
+      </div>
       <hr />
 
       <div class="custom-range">
@@ -46,10 +52,22 @@
     <canvas id="meuGrafico"></canvas>
   </div>
 
-  <div class="media-consumo-container">
-    <h3 id="tituloMediaConsumo">Média de Consumo</h3>
-    <p id="valorMediaConsumo">--</p>
+  <div id="mediaContainer" class="media-consumo-container">
+    <div>
+      <h3 id="tituloMediaConsumo" ></h3>
+      <p id="valorMediaConsumo" style="color: rgb(102, 6, 235);"></p>
+    </div>
+    <div>
+      <h3 id="tituloMediaAutoconsumo"></h3>
+      <p id="valorMediaAutoconsumo" style="color: rgba(0, 166, 90, 0.7);"></p>
+    </div>
+    <div>
+      <h3 id="tituloMediaGeracao"></h3>
+      <p id="valorMediaGeracao" style="color: rgba(243, 156, 18, 0.7);"></p>
+    </div>
+
   </div>
+
 
 </body>
 <script type="module" src="../js/grafico.js"></script>

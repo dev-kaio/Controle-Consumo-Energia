@@ -114,7 +114,6 @@ img {
 .media-consumo-container p {
   font-size: 24px;
   font-weight: bold;
-  color: rgb(102, 6, 235);
 }
 
 /* Container do filtro */
@@ -214,6 +213,18 @@ input[type="datetime-local"]:focus {
 #aplicarIntervalo:hover {
   background: rgb(80, 4, 190);
 }
+
+.tipo-selecao {
+  margin-top: 10px;
+  padding: 10px 0;
+}
+
+.tipo-selecao label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
 
 /* Ajustes para celular */
 @media (max-width: 768px) {

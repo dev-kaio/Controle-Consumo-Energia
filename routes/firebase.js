@@ -37,39 +37,69 @@ function calcularIntervalo(filtro) {
   };
 }
 
+async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim) {
+  let dataInicio, dataFim;
+
+  if (filtro) {
+    const intervalo = calcularIntervalo(filtro);
+    if (!intervalo) throw new Error("Filtro inválido");
+    dataInicio = new Date(intervalo.inicio);
+    dataFim = new Date(intervalo.fim);
+  } else if (inicio && fim) {
+    dataInicio = new Date(inicio);
+    dataFim = new Date(fim);
+  } else {
+    throw new Error("Parâmetros inválidos");
+  }
+
+  const snapshot = await db.ref(tipoFirebase).once("value");
+  const registros = snapshot.val();
+
+  if (!registros) return [];
+
+  const resultado = Object.values(registros)
+    .filter((item) => {
+      const data = new Date(item.timestamp);
+      return data >= dataInicio && data <= dataFim;
+    })
+    .map((item) => ({
+      ...item,
+      tipo: tipoRetorno,
+    }));
+
+  return resultado;
+}
+
 router.get("/consumo", async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
-
-    let dataInicio, dataFim;
-
-    if (filtro) {
-      const intervalo = calcularIntervalo(filtro);
-      if (!intervalo) return res.status(400).json({ erro: "Filtro inválido" });
-
-      dataInicio = new Date(intervalo.inicio);
-      dataFim = new Date(intervalo.fim);
-    } else if (inicio && fim) {
-      dataInicio = new Date(inicio);
-      dataFim = new Date(fim);
-    } else {
-      return res.status(400).json({ erro: "Parâmetros inválidos" });
-    }
-
-    const snapshot = await db.ref("Consumos").once("value");
-    const registros = snapshot.val();
-
-    if (!registros) return res.json([]);
-
-    const resultado = Object.values(registros).filter((item) => {
-      const data = new Date(item.timestamp);
-      return data >= dataInicio && data <= dataFim;
-    });
-
-    res.json(resultado);
+    const dados = await buscarDadosPorTipo("Consumos", "consumo", filtro, inicio, fim);
+    res.json(dados);
   } catch (error) {
-    console.error("Erro ao buscar dados:", error);
-    res.status(500).json({ erro: "Erro ao buscar dados" });
+    console.error("Erro em /consumo:", error);
+    res.status(400).json({ erro: error.message });
+  }
+});
+
+router.get("/autoconsumo", async (req, res) => {
+  try {
+    const { filtro, inicio, fim } = req.query;
+    const dados = await buscarDadosPorTipo("AutoConsumo", "autoconsumo", filtro, inicio, fim);
+    res.json(dados);
+  } catch (error) {
+    console.error("Erro em /autoconsumo:", error);
+    res.status(400).json({ erro: error.message });
+  }
+});
+
+router.get("/geracao", async (req, res) => {
+  try {
+    const { filtro, inicio, fim } = req.query;
+    const dados = await buscarDadosPorTipo("Geracao", "geracao", filtro, inicio, fim);
+    res.json(dados);
+  } catch (error) {
+    console.error("Erro em /geracao:", error);
+    res.status(400).json({ erro: error.message });
   }
 });
 
