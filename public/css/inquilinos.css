@@ -1,0 +1,160 @@
+/* Base */
+body {
+    font-family: "Orbitron", sans-serif;
+    background: #6606eb;
+    background-image: url("../assets/logo.png");
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: 100px 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    margin: 0;
+    min-height: 95vh;
+    color: #fff;
+    margin-top: 10%;
+}
+
+/* Header no topo à esquerda */
+header {
+    position: absolute;
+    /* Ou "fixed", caso queira que fique fixo durante o scroll */
+    top: 0;
+    left: 0;
+    margin: 10px;
+    /* Ajuste a margem se necessário */
+    padding: 10px;
+}
+
+button {
+    background-color: #fff;
+    color: #6606eb;
+    border: none;
+    border-radius: 16px;
+    padding: 5px 15px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+h2 {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+/* Formulário */
+form#formInquilino {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+form#formInquilino input {
+    padding: 10px 14px;
+    border: 1px solid #fff;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+form#formInquilino input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+form#formInquilino input:focus {
+    border-color: #4b00c9;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 6px rgba(102, 6, 235, 0.6);
+}
+
+form#formInquilino button {
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    background-color: #6606eb;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+form#formInquilino button:hover {
+    background-color: #4b00c9;
+}
+
+/* Tabela */
+table#tabelaInquilinos {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 2rem;
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+table#tabelaInquilinos th,
+table#tabelaInquilinos td {
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 14px;
+}
+
+table#tabelaInquilinos thead {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+table#tabelaInquilinos tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+table#tabelaInquilinos tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+table#tabelaInquilinos button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 12px;
+    background-color: #6606eb;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+table#tabelaInquilinos button:hover {
+    background-color: #4b00c9;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+
+    form#formInquilino {
+        width: 100%;
+        padding: 16px;
+    }
+
+    table#tabelaInquilinos {
+        font-size: 12px;
+        overflow-x: auto;
+    }
+
+    table#tabelaInquilinos th,
+    table#tabelaInquilinos td {
+        padding: 8px 10px;
+    }
+}

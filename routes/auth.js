@@ -3,19 +3,16 @@ const router = express.Router();
 const admin = require("firebase-admin");
 
 async function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ error: "Token não fornecido" });
-  }
+  const token = req.headers.authorization?.split("Bearer ")[1];
+  if (!token) return res.status(401).json({ erro: "Token não fornecido" });
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(403).json({ error: "Token inválido ou expirado" });
+  } catch (err) {
+    console.error("Erro ao verificar token:", err);
+    res.status(403).json({ erro: "Token inválido" });
   }
 }
 
@@ -33,4 +30,4 @@ router.post("/registrar", authenticateToken, (req, res) => {
   });
 });
 
-module.exports = router;
+module.exports = { router, authenticateToken };

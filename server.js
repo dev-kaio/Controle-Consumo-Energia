@@ -37,11 +37,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 //Rotas Externas
-const rotaAuth = require("./routes/auth");
-app.use("/auth", rotaAuth);
+const { router: authRouter } = require("./routes/auth");
+app.use("/auth", authRouter);
 
 const rotaDB = require("./routes/firebase")
 app.use("/firebase", rotaDB);
+
+const usuariosRoutes = require("./routes/usuarios");
+app.use("/usuarios", usuariosRoutes);
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));

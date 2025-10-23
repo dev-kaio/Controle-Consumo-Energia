@@ -1,0 +1,10 @@
+firebase.auth().onAuthStateChanged(async (user) => {
+  const snap = await firebase.database().ref(`usuarios/${user.uid}`).once('value');
+  const dados = snap.val();
+  const apt = dados.apartamento;
+
+  const consumoSnap = await firebase.database().ref(`consumo/${apt}`).once('value');
+  const data = consumoSnap.val();
+
+  // monta gráfico usando data
+});

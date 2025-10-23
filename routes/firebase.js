@@ -70,7 +70,9 @@ async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim
   return resultado;
 }
 
-router.get("/consumo", async (req, res) => {
+const { authenticateToken } = require("./auth");
+
+router.get("/consumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
     const dados = await buscarDadosPorTipo("Consumos", "consumo", filtro, inicio, fim);
@@ -81,7 +83,7 @@ router.get("/consumo", async (req, res) => {
   }
 });
 
-router.get("/autoconsumo", async (req, res) => {
+router.get("/autoconsumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
     const dados = await buscarDadosPorTipo("AutoConsumo", "autoconsumo", filtro, inicio, fim);
@@ -92,7 +94,7 @@ router.get("/autoconsumo", async (req, res) => {
   }
 });
 
-router.get("/geracao", async (req, res) => {
+router.get("/geracao", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
     const dados = await buscarDadosPorTipo("Geracao", "geracao", filtro, inicio, fim);

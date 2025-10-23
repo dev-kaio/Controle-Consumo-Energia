@@ -1,34 +1,39 @@
-import { auth } from "./firebaseConfig.js";
+import { auth, db, signOut } from "./firebaseConfig.js";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  ref,
+  get,
+  set,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-const mensagem = document.getElementById("mensagem");
+// const mensagem = document.getElementById("mensagem");
 const mensagemL = document.getElementById("mensagemL");
 const loginForm = document.getElementById("formLogin");
-const registerForm = document.getElementById("formRegistro");
-const registerButton = document.getElementById("register-button");
+// const registerForm = document.getElementById("formRegistro");
+// const registerButton = document.getElementById("register-button");
 const loginButton = document.getElementById("login-button");
 
-async function sendTokenToBackend(idToken, path) {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({}),
-  });
+// async function sendTokenToBackend(idToken, path) {
+//   const response = await fetch(path, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${idToken}`,
+//     },
+//     body: JSON.stringify({}),
+//   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    const message = errorData?.error || "Erro ao comunicar com backend";
-    throw new Error(message);
-  }
+//   if (!response.ok) {
+//     const errorData = await response.json().catch(() => null);
+//     const message = errorData?.error || "Erro ao comunicar com backend";
+//     throw new Error(message);
+//   }
 
-  return response.json();
-}
+//   return response.json();
+// }
 
 // Login
 loginForm.addEventListener("submit", async (e) => {
@@ -46,60 +51,95 @@ loginForm.addEventListener("submit", async (e) => {
       password
     );
     const user = userCredential.user;
+    const uid = user.uid;
+    const token = await user.getIdToken();
+    localStorage.setItem("token", token);
 
-    const idToken = await user.getIdToken();
+    const userRef = ref(db, `Usuarios/${uid}`);
+    const snapshot = await get(userRef);
+    if (!snapshot.exists()) {
+      mensagemL.textContent = "Usuário não encontrado no banco de dados.";
+      await signOut(auth);
+      return;
+    }
 
-    await sendTokenToBackend(idToken, "/auth/login");
+    const dados = snapshot.val();
+    
+    localStorage.setItem("tipoUsuario", dados.tipo);
+    localStorage.setItem("apartamentoId", dados.apartamentoId || "");
 
-    window.location.href = "pages/menu.html";
-    loginButton.disabled = false;
+
+    if (!dados || !dados.tipo) {
+      mensagemL.textContent = "Usuário sem permissão configurada.";
+      setTimeout(() => {
+        mensagemL.textContent = "";
+        signOut();
+      }, 2000);
+      return;
+    }
+
+    // Redireciona de acordo com o tipo
+    if (dados.tipo === "dono") {
+      window.location.href = "pages/menu.html";
+    } else if (dados.tipo === "inquilino") {
+      if (!dados.ativo) {
+        mensagemL.textContent = "Usuário inativo. Fale com o administrador.";
+        signOut();
+        return;
+      }
+      window.location.href = "pages/menu-inquilino.html";
+    } else {
+      mensagemL.textContent = "Tipo de usuário desconhecido.";
+      signOut();
+    }
   } catch (error) {
-    mensagemL.textContent = "Ocorreu um erro, tente novamente.";
+    console.error("Erro no login:", error.code, error.message);
+    mensagemL.textContent = error.message || "Ocorreu um erro, tente novamente.";
 
     setTimeout(() => {
       mensagemL.textContent = "";
       loginButton.disabled = false;
-    }, 2000);
+    }, 3000);
   }
 });
 
 // Registro
-registerForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+// registerForm.addEventListener("submit", async (e) => {
+//   e.preventDefault();
 
-  registerButton.disabled = true;
+//   registerButton.disabled = true;
 
-  const email = document.getElementById("register-email").value;
-  const password = document.getElementById("register-password").value;
+//   const email = document.getElementById("register-email").value;
+//   const password = document.getElementById("register-password").value;
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const user = userCredential.user;
+//   try {
+//     const userCredential = await createUserWithEmailAndPassword(
+//       auth,
+//       email,
+//       password
+//     );
+//     const user = userCredential.user;
 
-    const idToken = await user.getIdToken();
+//     const idToken = await user.getIdToken();
 
-    await sendTokenToBackend(idToken, "/auth/registrar");
+//     await sendTokenToBackend(idToken, "/auth/registrar");
 
-    mensagem.textContent = "Usuário registrado com sucesso! Logando...";
+//     mensagem.textContent = "Usuário registrado com sucesso! Logando...";
 
-    setTimeout(() => {
-      mensagem.textContent = "";
-      window.location.href = "pages/menu.html";
-      registerButton.disabled = false;
-    }, 2000);
-  } catch (error) {
-    mensagem.innerHTML = `Ocorreu um erro. Usuário possivelmente já cadastrado <br> Tente novamente.`;
+//     setTimeout(() => {
+//       mensagem.textContent = "";
+//       window.location.href = "pages/menu.html";
+//       registerButton.disabled = false;
+//     }, 2000);
+//   } catch (error) {
+//     mensagem.innerHTML = `Ocorreu um erro. Usuário possivelmente já cadastrado <br> Tente novamente.`;
 
-    setTimeout(() => {
-      mensagem.innerHTML = "";
-      registerButton.disabled = false;
-    }, 2000);
-  }
-});
+//     setTimeout(() => {
+//       mensagem.innerHTML = "";
+//       registerButton.disabled = false;
+//     }, 2000);
+//   }
+// });
 
 
 //Visibilidade da senha
@@ -122,4 +162,4 @@ function setupPasswordToggle(toggleId, inputId) {
 }
 
 setupPasswordToggle("toggle-login-password", "login-password");
-setupPasswordToggle("toggle-register-password", "register-password");
+//setupPasswordToggle("toggle-register-password", "register-password");

@@ -6,7 +6,7 @@ btnLogout.addEventListener("click", Sair);
 async function Sair() {
   try {
     await signOut();
-    // Limpar localStorage, session, etc
+    localStorage.clear();
   } catch (error) {
     console.log("Erro ao deslogar.");
   }
@@ -190,6 +190,7 @@ async function buscarDadosSeparados(params, tiposSelecionados = getTiposSelecion
   };
 
   const dadosTotais = {};
+  const token = localStorage.getItem("token");
 
   for (let tipo of tiposSelecionados) {
     const endpoint = tipoParaEndpoint[tipo];
@@ -197,7 +198,10 @@ async function buscarDadosSeparados(params, tiposSelecionados = getTiposSelecion
     const url = `/firebase/${endpoint}?${queryString}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       if (!response.ok) throw new Error(`Erro ao buscar ${tipo}`);
       const data = await response.json();
       dadosTotais[tipo] = data;
@@ -211,6 +215,13 @@ async function buscarDadosSeparados(params, tiposSelecionados = getTiposSelecion
 }
 
 async function buscarDados(params) {
+  const tipoUsuario = localStorage.getItem("tipoUsuario");
+  const apartamentoId = localStorage.getItem("apartamentoId");
+
+  if (tipoUsuario === "inquilino" && apartamentoId) {
+    params.apartamentoId = apartamentoId;
+  }
+
   const tiposSelecionados = getTiposSelecionados();
 
   const dadosPorTipo = await buscarDadosSeparados(params, tiposSelecionados);
