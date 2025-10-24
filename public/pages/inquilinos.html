@@ -24,6 +24,32 @@
         <button type="submit">Cadastrar</button>
     </form>
 
+    <div id="modalEditar" style="display: none;">
+        <div class="modal-conteudo">
+            <span class="fechar" id="fecharEditar">&times;</span>
+            <form id="formEditarInquilino">
+                <h2>Editar Inquilino</h2>
+                <input type="hidden" id="editarId">
+                <input type="text" id="editarNome" placeholder="Nome">
+                <input type="email" id="editarEmail" placeholder="Email">
+                <input type="text" id="editarApartamento" placeholder="Apartamento">
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="alterarSenha" style="display: none;">
+        <div class="modal-conteudo">
+            <span class="fechar" id="fecharAlterarSenha">&times;</span>
+            <form id="formAlterarSenha">
+                <h2>Alterar Senha</h2>
+                <h3>Informe o email para redefinição da senha</h3>
+                <input type="email" id="alterarSenhaEmail" placeholder="Email para redefinição">
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </div>
+
     <table id="tabelaInquilinos">
         <thead>
             <tr>

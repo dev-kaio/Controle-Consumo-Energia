@@ -1,6 +1,6 @@
 import { getDatabase } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -26,4 +26,40 @@ async function signOut() {
   }
 }
 
-export { app, auth, db, signOut };
+async function verificarToken() {
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const tokenResult = await user.getIdTokenResult(true); // Força a renovação do token
+        const expirationTime = tokenResult.expirationTime;
+
+        // Verifica se o token expirou
+        if (Date.now() >= expirationTime) {
+          console.log("Token expirado, redirecionando...");
+          signOutAndRedirect();
+        }
+      } catch (error) {
+        console.error("Erro ao verificar o token:", error);
+        signOutAndRedirect();
+      }
+    } else {
+      signOutAndRedirect();
+    }
+  });
+}
+
+function signOutAndRedirect() {
+  firebaseSignOut(getAuth())
+    .then(() => {
+      window.location.href = "/index.html";
+    })
+    .catch(error => {
+      console.error("Erro ao deslogar:", error);
+      window.location.href = "/index.html";
+    });
+}
+
+
+export { app, auth, db, signOut, verificarToken };

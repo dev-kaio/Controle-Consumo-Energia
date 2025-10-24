@@ -64,9 +64,9 @@ loginForm.addEventListener("submit", async (e) => {
     }
 
     const dados = snapshot.val();
-    
+
     localStorage.setItem("tipoUsuario", dados.tipo);
-    localStorage.setItem("apartamentoId", dados.apartamentoId || "");
+    localStorage.setItem("apartamentoId", dados.apartamento || "");
 
 
     if (!dados || !dados.tipo) {
@@ -87,7 +87,7 @@ loginForm.addEventListener("submit", async (e) => {
         signOut();
         return;
       }
-      window.location.href = "pages/menu-inquilino.html";
+      window.location.href = `pages/menu-inquilino.html/${dados.apartamento}`;
     } else {
       mensagemL.textContent = "Tipo de usuário desconhecido.";
       signOut();

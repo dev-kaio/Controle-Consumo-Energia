@@ -1,10 +1,31 @@
-firebase.auth().onAuthStateChanged(async (user) => {
-  const snap = await firebase.database().ref(`usuarios/${user.uid}`).once('value');
-  const dados = snap.val();
-  const apt = dados.apartamento;
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-  const consumoSnap = await firebase.database().ref(`consumo/${apt}`).once('value');
-  const data = consumoSnap.val();
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu do Inquilino</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Adicione seu CSS aqui -->
+</head>
 
-  // monta gráfico usando data
-});
+<body>
+  <h1>Detalhes do Apartamento</h1>
+
+  <!-- Mensagem de erro -->
+  <div id="mensagem" style="color: red;"></div>
+
+  <!-- Informações do apartamento -->
+  <h2 id="apartamento-nome">Carregando...</h2>
+  <p id="apartamento-descricao"></p>
+  <p id="apartamento-preco"></p>
+
+  <!-- Mais informações (exemplo) -->
+  <p><strong>Localização:</strong> <span id="apartamento-localizacao"></span></p>
+
+  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script>
+  <script src="menu-inquilino.js"></script>
+</body>
+
+</html>
