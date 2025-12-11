@@ -37,7 +37,7 @@ function calcularIntervalo(filtro) {
   };
 }
 
-async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim) {
+async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim, apartamentoId) {
   let dataInicio, dataFim;
 
   if (filtro) {
@@ -52,30 +52,58 @@ async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim
     throw new Error("Parâmetros inválidos");
   }
 
-  const snapshot = await db.ref(tipoFirebase).once("value");
-  const registros = snapshot.val();
+  if (apartamentoId) {
+    const snapshot = await db.ref(`/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`).once("value");
+    const registros = snapshot.val();
+    if (!registros) return [];
 
-  if (!registros) return [];
+    return Object.values(registros)
+      .filter((item) => {
+        const data = new Date(item.timestamp);
+        return data >= dataInicio && data <= dataFim;
+      })
+      .map((item) => ({
+        ...item,
+        tipo: tipoRetorno,
+        apartamentoId,
+      }));
+  }
 
-  const resultado = Object.values(registros)
-    .filter((item) => {
-      const data = new Date(item.timestamp);
-      return data >= dataInicio && data <= dataFim;
-    })
-    .map((item) => ({
-      ...item,
-      tipo: tipoRetorno,
-    }));
+  const snapshotTodos = await db.ref(`/${tipoFirebase}/Apartamentos`).once("value");
+  const todosApartamentos = snapshotTodos.val();
 
-  return resultado;
+  if (!todosApartamentos) return [];
+
+  const resultadoGeral = [];
+
+  // Percorre cada apartamento
+  for (const [apartKey, apartData] of Object.entries(todosApartamentos)) {
+    const registros = apartData[tipoFirebase];
+    if (!registros) continue;
+
+    const filtrados = Object.values(registros)
+      .filter((item) => {
+        const data = new Date(item.timestamp);
+        return data >= dataInicio && data <= dataFim;
+      })
+      .map((item) => ({
+        ...item,
+        tipo: tipoRetorno,
+        apartamentoId: apartKey.replace("apartamento", ""),
+      }));
+
+    resultadoGeral.push(...filtrados);
+  }
+
+  return resultadoGeral;
 }
 
 const { authenticateToken } = require("./auth");
 
 router.get("/consumo", authenticateToken, async (req, res) => {
   try {
-    const { filtro, inicio, fim } = req.query;
-    const dados = await buscarDadosPorTipo("Consumos", "consumo", filtro, inicio, fim);
+    const { filtro, inicio, fim, apartamentoId } = req.query;
+    const dados = await buscarDadosPorTipo("Consumos", "consumo", filtro, inicio, fim, apartamentoId);
     res.json(dados);
   } catch (error) {
     console.error("Erro em /consumo:", error);

@@ -1,31 +1,73 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu do Inquilino</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Adicione seu CSS aqui -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu - Palm Energy</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="../css/menu.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-  <h1>Detalhes do Apartamento</h1>
+  <button class="menu-btn" id="menuBtn">☰</button>
 
-  <!-- Mensagem de erro -->
-  <div id="mensagem" style="color: red;"></div>
+  <div class="sidebar" id="sidebar">
+    <br>
+    <a href="#">Configurações</a>
+    <a href="../index.html" id="logout">Sair</a>
+  </div>
 
-  <!-- Informações do apartamento -->
-  <h2 id="apartamento-nome">Carregando...</h2>
-  <p id="apartamento-descricao"></p>
-  <p id="apartamento-preco"></p>
+  <div class="filter-container">
+    <button class="filter-btn" id="filterBtn">Filtrar</button>
+    <div class="filter-menu" id="filterMenu">
+      <button data-filter="hora">Última Hora</button>
+      <button data-filter="dia">Hoje</button>
+      <button data-filter="semana">Última Semana</button>
+      <button data-filter="mes">Último Mês</button>
+      <button data-filter="ano">Último Ano</button>
+      <button data-filter="inicio">Desde o Início</button>
 
-  <!-- Mais informações (exemplo) -->
-  <p><strong>Localização:</strong> <span id="apartamento-localizacao"></span></p>
+      <div class="tipo-selecao" id="tipoSelecionado">
+        <p><strong>Tipos de Dados:</strong></p>
+        <label><input type="checkbox" value="consumo" checked> Consumo</label><br />
+        <label><input type="checkbox" value="autoconsumo" checked> Autoconsumo</label><br />
+        <label><input type="checkbox" value="geracao" checked> Geração</label>
+      </div>
+      <hr />
 
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script>
-  <script src="menu-inquilino.js"></script>
+      <div class="custom-range">
+        <label>Início:</label>
+        <input type="datetime-local" id="inicioFiltro" />
+        <label>Fim:</label>
+        <input type="datetime-local" id="fimFiltro" />
+        <button id="aplicarIntervalo">Aplicar</button>
+      </div>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="meuGrafico"></canvas>
+  </div>
+
+  <div id="mediaContainer" class="media-consumo-container">
+    <div>
+      <h3 id="tituloMediaConsumo"></h3>
+      <p id="valorMediaConsumo" style="color: rgb(102, 6, 235);"></p>
+    </div>
+    <div>
+      <h3 id="tituloMediaAutoconsumo"></h3>
+      <p id="valorMediaAutoconsumo" style="color: rgba(0, 166, 90, 0.7);"></p>
+    </div>
+    <div>
+      <h3 id="tituloMediaGeracao"></h3>
+      <p id="valorMediaGeracao" style="color: rgba(243, 156, 18, 0.7);"></p>
+    </div>
+
+  </div>
+
+
 </body>
-
+<script type="module" src="../js/grafico.js"></script>
+<script type="module" src="../js/sidebar.js"></script>
 </html>

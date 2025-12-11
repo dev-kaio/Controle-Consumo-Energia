@@ -74,7 +74,7 @@ loginForm.addEventListener("submit", async (e) => {
       setTimeout(() => {
         mensagemL.textContent = "";
         signOut();
-      }, 2000);
+      }, 5000);
       return;
     }
 
@@ -84,10 +84,14 @@ loginForm.addEventListener("submit", async (e) => {
     } else if (dados.tipo === "inquilino") {
       if (!dados.ativo) {
         mensagemL.textContent = "Usuário inativo. Fale com o administrador.";
+        setTimeout(() => {
+          mensagemL.textContent = "";
+          signOut();
+        }, 5000);
         signOut();
         return;
       }
-      window.location.href = `pages/menu-inquilino.html/${dados.apartamento}`;
+      window.location.href = `pages/menu-inquilino.html?apartamento=${dados.apartamento}`;
     } else {
       mensagemL.textContent = "Tipo de usuário desconhecido.";
       signOut();

@@ -1,3 +1,5 @@
+//Apagar
+
 import { auth, db, verificarToken } from "../auth/firebaseConfig.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { ref, get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
@@ -67,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="alterarSenha-btn">
                             Alterar Senha
                         </button>
+                        <button class="deletar-btn">
+                            Deletar Usuário
+                        </button>
           </td>
         `;
 
@@ -75,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const alterarSenhaBtn = tr.querySelector(".alterarSenha-btn");
                     alterarSenhaBtn.addEventListener("click", () => alterarSenha());
+
+                    const deletarBtn = tr.querySelector(".deletar-btn");
+                    deletarBtn.addEventListener("click", () => excluir(uid));
 
                     tbody.appendChild(tr);
                 }
@@ -126,8 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById("modalEditar").style.display = "none";
     }
 
-    // Ainda não envia o e-mail de alteração de senha, 
-    // preciso fazer alteração do email no authenticate do firebase tbm
     window.alterarSenha = () => {
         document.getElementById("alterarSenha").style.display = "flex";
         document.getElementById("formAlterarSenha").onsubmit = async (e) => {
@@ -172,5 +178,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // window.excluir = (uid) => {
+    //     document.getElementById("modalDeletar").style.display = "flex";
+    //     document.getElementById("formDeletarInquilino").onclick = async (e) => {
+
+    //         e.preventDefault();
+    //         try {
+    //             const token = await auth.currentUser.getIdToken();
+    //             await fetch("/usuarios/deletar", {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${token}`,
+    //                 },
+    //                 body: JSON.stringify({ uid }),
+    //             });
+    //             alert("Inquilino deletado!");
+    //             document.getElementById("modalDeletar").style.display = "none";
+    //             carregarInquilinos();
+    //         } catch (err) {
+    //             console.error(err);
+    //             alert("Erro ao deletar inquilino.");
+    //         }
+    //         document.getElementById("cancelarDeletar").onclick = () => {
+    //             document.getElementById("modalDeletar").style.display = "none"; // Fecha o modal
+    //         };
+    //     }
+    // }
+
+    // document.getElementById("formDeletarInquilino").onclick = () => {
+    //     document.getElementById("modalDeletar").style.display = "none";
+    // }
     carregarInquilinos();
 });
