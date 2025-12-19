@@ -10,12 +10,14 @@
 </head>
 
 <body>
+
     <header>
         <button onclick="location.href='menu.html'">Voltar</button>
     </header>
 
     <h2>Gerenciar Inquilinos</h2>
 
+    <!-- CADASTRAR -->
     <form id="formInquilino">
         <input type="text" id="nome" placeholder="Nome">
         <input type="email" id="email" placeholder="Email">
@@ -24,56 +26,46 @@
         <button type="submit">Cadastrar</button>
     </form>
 
+    <!-- MODAL EDITAR -->
     <div id="modalEditar" style="display: none;">
         <div class="modal-conteudo">
             <span class="fechar" id="fecharEditar">&times;</span>
+
             <form id="formEditarInquilino">
                 <h2>Editar Inquilino</h2>
-                <input type="hidden" id="editarId">
+
                 <input type="text" id="editarNome" placeholder="Nome">
                 <input type="email" id="editarEmail" placeholder="Email">
                 <input type="text" id="editarApartamento" placeholder="Apartamento">
+
                 <button type="submit">Salvar Alterações</button>
             </form>
         </div>
     </div>
 
+    <!-- MODAL ALTERAR SENHA -->
     <div id="alterarSenha" style="display: none;">
         <div class="modal-conteudo">
             <span class="fechar" id="fecharAlterarSenha">&times;</span>
+
             <form id="formAlterarSenha">
                 <h2>Alterar Senha</h2>
-                <h3>Informe o email para redefinição da senha</h3>
-                <input type="email" id="alterarSenhaEmail" placeholder="Email para redefinição">
+                <p>Informe o email para redefinição da senha</p>
+
+                <input type="email" id="alterarSenhaEmail" placeholder="Email">
                 <button type="submit">Enviar</button>
             </form>
         </div>
     </div>
 
-    <!-- <div id="modalDeletar" style="display: none;">
-        <div class="modal-conteudo">
-            <span class="fechar" id="fecharDeletar">&times;</span>
-            <h3>Tem certeza que deseja excluir este inquilino?</h3>
-            <p>Esta ação é irreversível.</p>
-            <div class="modal-actions">
-                <button id="confirmarDeletar">Sim, excluir</button>
-                <button id="cancelarDeletar">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <form id="formDeletarInquilino" style="display: none;">
-        <input type="hidden" id="uidDeletarInquilino">
-    </form> -->
-
-
+    <!-- TABELA -->
     <table id="tabelaInquilinos">
         <thead>
             <tr>
                 <th>Nome</th>
                 <th>Apartamento</th>
                 <th>Status</th>
-                <th colspan="2" style="text-align: center;">Ações</th>
+                <th style="text-align:center;">Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
