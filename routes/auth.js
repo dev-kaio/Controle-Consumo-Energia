@@ -30,4 +30,29 @@ router.post("/registrar", authenticateToken, (req, res) => {
   });
 });
 
-module.exports = { router, authenticateToken };
+router.post("/role", authenticateToken, async (req, res) => {
+  try {
+    const { tipo } = req.body;
+    const uid = req.user.uid;
+
+    if (!["dono", "inquilino"].includes(tipo)) {
+      return res.status(400).json({ error: "Tipo de usuário inválido" });
+    }
+
+    await admin.auth().setCustomUserClaims(uid, { role: tipo });
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Erro ao definir role: ", err);
+    res.status(500).json({ error: "Erro ao definir role" });
+  }
+});
+
+function requireDono(req, res, next) {
+  if (req.user.role !== "dono") {
+    return res.status(403).json({ error: "Acesso negado" });
+  }
+  next();
+}
+
+module.exports = { router, authenticateToken, requireDono };

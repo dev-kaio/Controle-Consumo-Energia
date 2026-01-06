@@ -3,10 +3,10 @@ const router = express.Router();
 const admin = require("firebase-admin");
 const db = admin.database();
 
-const { authenticateToken } = require("./auth");
+const { authenticateToken, requireDono } = require("./auth");
 
 // Cria um novo inquilino
-router.post("/criar", authenticateToken, async (req, res) => {
+router.post("/criar", authenticateToken, requireDono, async (req, res) => {
     const { nome, email, senha, apartamento } = req.body;
 
     try {
@@ -31,7 +31,7 @@ router.post("/criar", authenticateToken, async (req, res) => {
 });
 
 // Atualiza (ex: ativar/desativar)
-router.post("/atualizar", authenticateToken, async (req, res) => {
+router.post("/atualizar", authenticateToken, requireDono, async (req, res) => {
     const { uid, dados } = req.body;
 
     try {
@@ -43,7 +43,7 @@ router.post("/atualizar", authenticateToken, async (req, res) => {
 });
 
 // Deleta inquilino
-router.post("/deletar", authenticateToken, async (req, res) => {
+router.post("/deletar", authenticateToken, requireDono, async (req, res) => {
     const { uid } = req.body;
 
     try {

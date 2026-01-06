@@ -6,7 +6,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  verificarToken();
+  verificarToken("dono");
 
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tbody.innerHTML = "";
 
-      if (!usuarios) return;z
+      if (!usuarios) return;
 
       for (const uid in usuarios) {
         const u = usuarios[uid];

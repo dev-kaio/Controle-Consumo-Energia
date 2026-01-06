@@ -65,9 +65,22 @@ loginForm.addEventListener("submit", async (e) => {
 
     const dados = snapshot.val();
 
+    await fetch("/auth/role", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await user.getIdToken()}`,
+      },
+      body: JSON.stringify({
+        tipo: dados.tipo,
+      }),
+    });
+
+    // Força renovar o token para receber a role
+    await user.getIdToken(true);
+
     localStorage.setItem("tipoUsuario", dados.tipo);
     localStorage.setItem("apartamentoId", dados.apartamento || "");
-
 
     if (!dados || !dados.tipo) {
       mensagemL.textContent = "Usuário sem permissão configurada.";
@@ -98,7 +111,8 @@ loginForm.addEventListener("submit", async (e) => {
     }
   } catch (error) {
     console.error("Erro no login:", error.code, error.message);
-    mensagemL.textContent = error.message || "Ocorreu um erro, tente novamente.";
+    mensagemL.textContent =
+      error.message || "Ocorreu um erro, tente novamente.";
 
     setTimeout(() => {
       mensagemL.textContent = "";
@@ -144,7 +158,6 @@ loginForm.addEventListener("submit", async (e) => {
 //     }, 2000);
 //   }
 // });
-
 
 //Visibilidade da senha
 const eyeOpenIcon = "./assets/eye-open.png";

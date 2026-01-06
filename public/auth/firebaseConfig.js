@@ -1,6 +1,9 @@
 import { getDatabase } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -10,7 +13,7 @@ const firebaseConfig = {
   storageBucket: "controle-energia-d3121.firebasestorage.app",
   messagingSenderId: "899177269932",
   appId: "1:899177269932:web:0e8a95b5c31eadb3fd6d09",
-  measurementId: "G-RRECH79BD7"
+  measurementId: "G-RRECH79BD7",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -26,40 +29,42 @@ async function signOut() {
   }
 }
 
-async function verificarToken() {
+async function verificarToken(roleNecessaria = null) {
   const auth = getAuth();
 
   onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const tokenResult = await user.getIdTokenResult(true); // Força a renovação do token
-        const expirationTime = tokenResult.expirationTime;
+    if (!user) {
+      window.location.href = "/index.html";
+      return;
+    }
 
-        // Verifica se o token expirou
-        if (Date.now() >= expirationTime) {
-          console.log("Token expirado, redirecionando...");
-          signOutAndRedirect();
-        }
-      } catch (error) {
-        console.error("Erro ao verificar o token:", error);
-        signOutAndRedirect();
+    try {
+      // Força pegar o token mais recente (com role)
+      const tokenResult = await user.getIdTokenResult(true);
+
+      // Se a página exigir um tipo de usuário
+      if (roleNecessaria && tokenResult.claims.role !== roleNecessaria) {
+        alert("Você não tem permissão para acessar esta página.");
+        window.location.href = "./menu-inquilino.html";
+        return;
       }
-    } else {
-      signOutAndRedirect();
+    } catch (error) {
+      console.error("Erro ao validar token:", error);
+      await firebaseSignOut(auth);
+      window.location.href = "/index.html";
     }
   });
 }
 
-function signOutAndRedirect() {
-  firebaseSignOut(getAuth())
-    .then(() => {
-      window.location.href = "/index.html";
-    })
-    .catch(error => {
-      console.error("Erro ao deslogar:", error);
-      window.location.href = "/index.html";
-    });
-}
-
+// function signOutAndRedirect() {
+//   firebaseSignOut(getAuth())
+//     .then(() => {
+//       window.location.href = "/index.html";
+//     })
+//     .catch((error) => {
+//       console.error("Erro ao deslogar:", error);
+//       window.location.href = "/index.html";
+//     });
+// }
 
 export { app, auth, db, signOut, verificarToken };
