@@ -5,8 +5,8 @@ import {
   get,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  verificarToken("dono");
+document.addEventListener("DOMContentLoaded", async () => {
+  await verificarToken("dono");
 
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");

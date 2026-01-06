@@ -1,7 +1,6 @@
-import { signOut, verificarToken } from "../auth/firebaseConfig.js";
+import { signOut } from "../auth/firebaseConfig.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  verificarToken();
 
   const urlParams = new URLSearchParams(window.location.search);
   const aptoSelecionado = urlParams.get("apartamento");

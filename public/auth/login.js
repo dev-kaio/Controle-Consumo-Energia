@@ -52,8 +52,6 @@ loginForm.addEventListener("submit", async (e) => {
     );
     const user = userCredential.user;
     const uid = user.uid;
-    const token = await user.getIdToken();
-    localStorage.setItem("token", token);
 
     const userRef = ref(db, `Usuarios/${uid}`);
     const snapshot = await get(userRef);
@@ -75,10 +73,12 @@ loginForm.addEventListener("submit", async (e) => {
         tipo: dados.tipo,
       }),
     });
+   
+    //forçando novo token
+    const token = await user.getIdToken(true);
+    await auth.currentUser.reload();
 
-    // Força renovar o token para receber a role
-    await user.getIdToken(true);
-
+    localStorage.setItem("token", token);
     localStorage.setItem("tipoUsuario", dados.tipo);
     localStorage.setItem("apartamentoId", dados.apartamento || "");
 

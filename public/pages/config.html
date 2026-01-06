@@ -14,15 +14,26 @@
 
     <div class="sidebar" id="sidebar">
       <br />
-      <a href="./inquilinos.html">Inquilinos</a>
+      <a href="./inquilinos.html" id="linkInquilinos">Inquilinos</a>
       <a href="#" onclick="window.history.back(); return false;">Voltar</a>
       <a href="../index.html" id="logout">Sair</a>
     </div>
 
-    <main>
-      <button class="senha-btn">Redefinir Senha</button>
-    </main>
+      <button class="senha-btn" id="senha-btn" style="background-color: rgb(255, 255, 0, 0.7);">Redefinir Senha</button>
+      
+      <div id="alterarSenha" style="display: none">
+        <div class="modal-conteudo">
+        <span class="fechar" id="fecharAlterarSenha">&times;</span>
+
+        <form id="formAlterarSenha">
+          <h2 style="color: white;">Alterar Senha</h2>
+          <p style="color: white;">Informe o email para redefinição da senha</p>
+
+          <input type="email" id="alterarSenhaEmail" placeholder="Email" />
+          <button type="submit">Enviar</button>
+        </form>
+        </div>
+      </div>
   </body>
-  <script type="module" src="../js/sidebar.js"></script>
-  <script type="module" src="../js/inquilinos.js"></script>
+  <script type="module" src="../js/sidebar-config.js"></script>
 </html>

@@ -38,6 +38,14 @@ async function verificarToken(roleNecessaria = null) {
       return;
     }
 
+    const token = await user.getIdTokenResult(true);
+
+    if (token.claims.role !== "dono") {
+      alert("Acesso negado");
+      window.location.href = "./menu.html";
+      return;
+    }
+
     try {
       // Força pegar o token mais recente (com role)
       const tokenResult = await user.getIdTokenResult(true);

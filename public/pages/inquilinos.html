@@ -1,77 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
     <link rel="stylesheet" href="../css/inquilinos.css" />
     <title>Gerenciar Inquilinos</title>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <header>
-        <button onclick="location.href='menu.html'">Voltar</button>
+      <button href="#" onclick="window.history.back(); return false;">
+        Voltar
+      </button>
     </header>
 
     <h2>Gerenciar Inquilinos</h2>
 
     <!-- CADASTRAR -->
     <form id="formInquilino">
-        <input type="text" id="nome" placeholder="Nome">
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="senha" placeholder="Senha">
-        <input type="text" id="apartamento" placeholder="Apartamento">
-        <button type="submit">Cadastrar</button>
+      <input type="text" id="nome" placeholder="Nome" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="senha" placeholder="Senha" />
+      <input type="text" id="apartamento" placeholder="Apartamento" />
+      <button type="submit">Cadastrar</button>
     </form>
 
     <!-- MODAL EDITAR -->
-    <div id="modalEditar" style="display: none;">
-        <div class="modal-conteudo">
-            <span class="fechar" id="fecharEditar">&times;</span>
+    <div id="modalEditar" style="display: none">
+      <div class="modal-conteudo">
+        <span class="fechar" id="fecharEditar">&times;</span>
 
-            <form id="formEditarInquilino">
-                <h2>Editar Inquilino</h2>
+        <form id="formEditarInquilino">
+          <h2>Editar Inquilino</h2>
 
-                <input type="text" id="editarNome" placeholder="Nome">
-                <input type="email" id="editarEmail" placeholder="Email">
-                <input type="text" id="editarApartamento" placeholder="Apartamento">
+          <input type="text" id="editarNome" placeholder="Nome" />
+          <input type="email" id="editarEmail" placeholder="Email" />
+          <input type="text" id="editarApartamento" placeholder="Apartamento" />
 
-                <button type="submit">Salvar Alterações</button>
-            </form>
-        </div>
+          <button type="submit">Salvar Alterações</button>
+        </form>
+      </div>
     </div>
 
     <!-- MODAL ALTERAR SENHA -->
-    <div id="alterarSenha" style="display: none;">
-        <div class="modal-conteudo">
-            <span class="fechar" id="fecharAlterarSenha">&times;</span>
+    <div id="alterarSenha" style="display: none">
+      <div class="modal-conteudo">
+        <span class="fechar" id="fecharAlterarSenha">&times;</span>
 
-            <form id="formAlterarSenha">
-                <h2>Alterar Senha</h2>
-                <p>Informe o email para redefinição da senha</p>
+        <form id="formAlterarSenha">
+          <h2>Alterar Senha</h2>
+          <p>Informe o email para redefinição da senha</p>
 
-                <input type="email" id="alterarSenhaEmail" placeholder="Email">
-                <button type="submit">Enviar</button>
-            </form>
-        </div>  
+          <input type="email" id="alterarSenhaEmail" placeholder="Email" />
+          <button type="submit">Enviar</button>
+        </form>
+      </div>
     </div>
 
     <!-- TABELA -->
     <table id="tabelaInquilinos">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Apartamento</th>
-                <th>Status</th>
-                <th style="text-align:center;">Ações</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Apartamento</th>
+          <th>Status</th>
+          <th style="text-align: center">Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
     </table>
 
     <script type="module" src="../js/inquilinos.js"></script>
-</body>
-
+  </body>
 </html>
