@@ -16,10 +16,11 @@ try {
     client_id: process.env.FIREBASE_CLIENT_ID,
     auth_uri: process.env.FIREBASE_AUTH_URI,
     token_uri: process.env.FIREBASE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    auth_provider_x509_cert_url:
+      process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
     universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
-    databaseURL: process.env.FIREBASE_DATABASE_URL
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
   };
 
   admin.initializeApp({
@@ -36,11 +37,13 @@ const db = admin.database();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+require("./routes/espsync");
+
 //Rotas Externas
 const { router: authRouter } = require("./routes/auth");
 app.use("/auth", authRouter);
 
-const rotaDB = require("./routes/firebase")
+const rotaDB = require("./routes/firebase");
 app.use("/firebase", rotaDB);
 
 const usuariosRoutes = require("./routes/usuarios");

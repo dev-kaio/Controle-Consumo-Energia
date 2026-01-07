@@ -25,21 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
       labels: [],
       datasets: [
         {
-          label: "Consumo (Watts)",
+          label: "Consumo (kWh)",
           data: [],
           borderColor: "rgba(102, 6, 235, 0.7)",
           borderWidth: 6,
           fill: true,
         },
         {
-          label: "Autoconsumo (Watts)",
+          label: "Autoconsumo (kWh)",
           data: [],
           borderColor: "rgba(0, 166, 90, 0.7)",
           borderWidth: 6,
           fill: true,
         },
         {
-          label: "Geração (Watts)",
+          label: "Geração (kWh)",
           data: [],
           borderColor: "rgba(243, 156, 18, 0.7)",
           borderWidth: 6,

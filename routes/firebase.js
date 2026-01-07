@@ -37,7 +37,14 @@ function calcularIntervalo(filtro) {
   };
 }
 
-async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim, apartamentoId) {
+async function buscarDadosPorTipo(
+  tipoFirebase,
+  tipoRetorno,
+  filtro,
+  inicio,
+  fim,
+  apartamentoId
+) {
   let dataInicio, dataFim;
 
   if (filtro) {
@@ -53,23 +60,38 @@ async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim
   }
 
   if (apartamentoId) {
-    const snapshot = await db.ref(`/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`).once("value");
+    const snapshot = await db
+      .ref(
+        `/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`
+      )
+      .once("value");
     const registros = snapshot.val();
     if (!registros) return [];
 
-    return Object.values(registros)
-      .filter((item) => {
+    const resultado = [];
+
+    for (const bloco of Object.values(registros)) {
+      // cada pushId (1 minuto)
+      for (const item of Object.values(bloco)) {
+        // cada leitura dentro do minuto
         const data = new Date(item.timestamp);
-        return data >= dataInicio && data <= dataFim;
-      })
-      .map((item) => ({
-        ...item,
-        tipo: tipoRetorno,
-        apartamentoId,
-      }));
+
+        if (data >= dataInicio && data <= dataFim) {
+          resultado.push({
+            ...item,
+            tipo: tipoRetorno,
+            apartamentoId,
+          });
+        }
+      }
+    }
+
+    return resultado;
   }
 
-  const snapshotTodos = await db.ref(`/${tipoFirebase}/Apartamentos`).once("value");
+  const snapshotTodos = await db
+    .ref(`/${tipoFirebase}/Apartamentos`)
+    .once("value");
   const todosApartamentos = snapshotTodos.val();
 
   if (!todosApartamentos) return [];
@@ -81,18 +103,19 @@ async function buscarDadosPorTipo(tipoFirebase, tipoRetorno, filtro, inicio, fim
     const registros = apartData[tipoFirebase];
     if (!registros) continue;
 
-    const filtrados = Object.values(registros)
-      .filter((item) => {
+    for (const bloco of Object.values(registros)) {
+      for (const item of Object.values(bloco)) {
         const data = new Date(item.timestamp);
-        return data >= dataInicio && data <= dataFim;
-      })
-      .map((item) => ({
-        ...item,
-        tipo: tipoRetorno,
-        apartamentoId: apartKey.replace("apartamento", ""),
-      }));
 
-    resultadoGeral.push(...filtrados);
+        if (data >= dataInicio && data <= dataFim) {
+          resultadoGeral.push({
+            ...item,
+            tipo: tipoRetorno,
+            apartamentoId: apartKey.replace("apartamento", ""),
+          });
+        }
+      }
+    }
   }
 
   return resultadoGeral;
@@ -103,7 +126,14 @@ const { authenticateToken } = require("./auth");
 router.get("/consumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim, apartamentoId } = req.query;
-    const dados = await buscarDadosPorTipo("Consumos", "consumo", filtro, inicio, fim, apartamentoId);
+    const dados = await buscarDadosPorTipo(
+      "Consumos",
+      "consumo",
+      filtro,
+      inicio,
+      fim,
+      apartamentoId
+    );
     res.json(dados);
   } catch (error) {
     console.error("Erro em /consumo:", error);
@@ -114,7 +144,13 @@ router.get("/consumo", authenticateToken, async (req, res) => {
 router.get("/autoconsumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
-    const dados = await buscarDadosPorTipo("AutoConsumo", "autoconsumo", filtro, inicio, fim);
+    const dados = await buscarDadosPorTipo(
+      "AutoConsumo",
+      "autoconsumo",
+      filtro,
+      inicio,
+      fim
+    );
     res.json(dados);
   } catch (error) {
     console.error("Erro em /autoconsumo:", error);
@@ -125,7 +161,13 @@ router.get("/autoconsumo", authenticateToken, async (req, res) => {
 router.get("/geracao", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim } = req.query;
-    const dados = await buscarDadosPorTipo("Geracao", "geracao", filtro, inicio, fim);
+    const dados = await buscarDadosPorTipo(
+      "Geracao",
+      "geracao",
+      filtro,
+      inicio,
+      fim
+    );
     res.json(dados);
   } catch (error) {
     console.error("Erro em /geracao:", error);
