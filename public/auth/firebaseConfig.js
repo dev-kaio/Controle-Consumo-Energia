@@ -42,7 +42,7 @@ async function verificarToken(roleNecessaria = null) {
 
     if (token.claims.role !== "dono") {
       alert("Acesso negado");
-      window.location.href = "./menu.html";
+      window.history.back();
       return;
     }
 
