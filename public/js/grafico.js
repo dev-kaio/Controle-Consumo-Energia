@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           label: "Autoconsumo (kWh)",
           data: [],
-          borderColor: "rgba(0, 166, 90, 0.7)",
+          borderColor: "rgba(0, 166, 90)",
           backgroundColor: "rgba(0, 166, 90, 0.7)",
           borderWidth: 3,
           fill: true,
@@ -80,9 +80,75 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < chart.data.datasets.length; i++) {
       chart.data.datasets[i].data = dadosPorTipo[i] || [];
     }
-    // console.log(labels)
-    // console.log(dadosPorTipo)
+    console.log(labels)
+    console.log(dadosPorTipo)
     chart.update();
+  }
+
+  // Determina se deve usar barras baseado no filtro ou agrupamento
+  function deveUsarBarras(filtro, agrupamento) {
+    // Barras para filtros: semana, mes, ano, inicio
+    if (filtro && ["semana", "mes", "ano", "inicio"].includes(filtro)) {
+      return true;
+    }
+    // Barras para agrupamentos: dia, mes, ano
+    if (agrupamento && ["dia", "mes", "ano"].includes(agrupamento)) {
+      return true;
+    }
+    // Linha para: hora, dia (filtro), raw
+    return false;
+  }
+
+  // Muda o tipo do gráfico se necessário
+  function ajustarTipoGrafico(tipo, labels, dadosPorTipo) {
+    if (chart.config.type === tipo) {
+      // Tipo já está correto, só atualiza os dados
+      return;
+    }
+    
+    // Prepara os datasets com os novos dados
+    const novosDatasets = chart.data.datasets.map((ds, idx) => ({
+      label: ds.label,
+      data: dadosPorTipo[idx] || [],
+      borderColor: ds.borderColor,
+      backgroundColor: ds.backgroundColor,
+      borderWidth: tipo === "bar" ? 2 : 3,
+      fill: ds.fill,
+    }));
+    
+    // Destrói e recria o gráfico com o novo tipo e dados
+    chart.destroy();
+    chart = new Chart(ctx, {
+      type: tipo,
+      data: {
+        labels: labels,
+        datasets: novosDatasets,
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              minRotation: 0,
+            },
+          },
+          y: {
+            beginAtZero: true,
+          },
+        },
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                size: 16,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   function atualizarMediaConsumo(medias, filtroDisplay) {
@@ -120,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       switch (tipo) {
         case "ano":
-          chave = d.getFullYear();
+          chave = String(d.getFullYear());
           break;
         case "mes":
           chave = `${String(d.getMonth() + 1).padStart(
@@ -151,6 +217,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const labels = Object.keys(grupos).sort((a, b) => {
       // tenta parsear d/m/y para Date, senão compara string normal
       const parseLabel = (label) => {
+        // Se for apenas um número (ano), trata como ano
+        if (/^\d{4}$/.test(label)) {
+          return new Date(parseInt(label), 0, 1);
+        }
         const parts = label.split(/[\/h]/);
         if (parts.length === 3) {
           // dia/mes/ano
@@ -174,9 +244,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return 0;
     });
 
-    const consumos = labels.map((label) =>
-      grupos[label].reduce((acc, val) => acc + val, 0)
-    );
+    const consumos = labels.map((label) => {
+      // Garante acesso consistente ao objeto grupos
+      const chave = String(label);
+      return grupos[chave] ? grupos[chave].reduce((acc, val) => acc + val, 0) : 0;
+    });
 
     return { labels, consumos };
   }
@@ -328,6 +400,9 @@ document.addEventListener("DOMContentLoaded", () => {
       agrupamento = calcularAgrupamentoAuto(params.inicio, params.fim);
     }
 
+    // Determina o tipo de gráfico baseado nos parâmetros
+    const tipoGrafico = deveUsarBarras(params.filtro, agrupamento) ? "bar" : "line";
+
     // Vamos montar labels comuns a todos os datasets, para alinhar os dados
     let todosLabels = new Set();
 
@@ -368,15 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         labelsTipo.forEach((l) => todosLabels.add(l));
       } else {
-        console.log(
-          "Tipo:",
-          tipo,
-          "Agrupamento:",
-          agrupamento,
-          "Dados recebidos:",
-          dados
-        );
-
         // Converte caso seja um objeto de pares chave-valor
         const dadosArray = Array.isArray(dados)
           ? dados
@@ -394,9 +460,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Converte set para array e ordena para garantir ordem temporal
     const labelsOrdenados = Array.from(todosLabels).sort((a, b) => {
-      const da = new Date(a);
-      const db = new Date(b);
-      return da - db;
+      // Função para parsear labels de diferentes formatos
+      const parseLabel = (label) => {
+        // Se for apenas um número (ano), trata como ano
+        if (/^\d{4}$/.test(label)) {
+          return new Date(parseInt(label), 0, 1);
+        }
+        const parts = label.split(/[\/h]/);
+        if (parts.length === 3) {
+          // dia/mes/ano
+          return new Date(parts[2], parts[1] - 1, parts[0]);
+        } else if (parts.length === 2 && !label.endsWith("h")) {
+          // mes/ano
+          return new Date(parts[1], parts[0] - 1);
+        } else if (label.endsWith("h")) {
+          // hora
+          const hora = parseInt(label.replace("h", ""));
+          return new Date(2000, 0, 1, hora);
+        }
+        const parsed = new Date(label);
+        return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+      };
+      
+      const da = parseLabel(a);
+      const db = parseLabel(b);
+      
+      if (da instanceof Date && db instanceof Date) {
+        return da - db;
+      }
+      return String(a).localeCompare(String(b));
     });
 
     // Para cada tipo, monta array com valores alinhados ao labelsOrdenados (0 quando não tem)
@@ -411,16 +503,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const { labels, consumos } = dadosAgrupadosPorTipo[tipo];
       const mapLabelParaConsumo = {};
       labels.forEach((lab, idx) => {
-        mapLabelParaConsumo[lab] = consumos[idx];
+        const chave = String(lab);
+        mapLabelParaConsumo[chave] = consumos[idx];
       });
 
-      const valoresAlinhados = labelsOrdenados.map(
-        (lab) => mapLabelParaConsumo[lab] || 0
-      );
+      const valoresAlinhados = labelsOrdenados.map((lab) => {
+        const chave = String(lab);
+        return mapLabelParaConsumo[chave] || 0;
+      });
+      
       datasets.push(valoresAlinhados);
     }
 
-    atualizarGrafico(labelsOrdenados, datasets);
+    // Ajusta o tipo do gráfico se necessário (com os dados já processados)
+    ajustarTipoGrafico(tipoGrafico, labelsOrdenados, datasets);
+    
+    // Se o tipo não mudou, apenas atualiza os dados
+    if (chart.config.type === tipoGrafico) {
+      atualizarGrafico(labelsOrdenados, datasets);
+    }
 
     // Calcula médias para cada tipo (sem considerar zeros)
     const medias = {};
