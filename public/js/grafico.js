@@ -1,7 +1,6 @@
 import { signOut } from "../auth/firebaseConfig.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-
   const urlParams = new URLSearchParams(window.location.search);
   const aptoSelecionado = urlParams.get("apartamento");
 
@@ -28,21 +27,24 @@ document.addEventListener("DOMContentLoaded", () => {
           label: "Consumo (kWh)",
           data: [],
           borderColor: "rgba(102, 6, 235, 0.7)",
-          borderWidth: 6,
+          backgroundColor: "rgba(102, 6, 235, 0.7)",
+          borderWidth: 3,
           fill: true,
         },
         {
           label: "Autoconsumo (kWh)",
           data: [],
           borderColor: "rgba(0, 166, 90, 0.7)",
-          borderWidth: 6,
+          backgroundColor: "rgba(0, 166, 90, 0.7)",
+          borderWidth: 3,
           fill: true,
         },
         {
           label: "Geração (kWh)",
           data: [],
           borderColor: "rgba(243, 156, 18, 0.7)",
-          borderWidth: 6,
+          backgroundColor: "rgba(243, 156, 18, 0.7)",
+          borderWidth: 3,
           fill: true,
         },
       ],
@@ -53,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       scales: {
         x: {
           ticks: {
-            maxRotation: 45,
+            maxRotation: 0,
             minRotation: 0,
           },
         },
@@ -65,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         legend: {
           labels: {
             font: {
-              size: 14,
+              size: 16,
             },
           },
         },
@@ -101,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }:<br> ${filtroDisplay}`;
       if (medias[tipo] !== undefined && medias[tipo] !== null) {
         valor.textContent = medias[tipo]
-          ? `${medias[tipo].toFixed(2)} Watts`
+          ? `${medias[tipo].toFixed(2)} kWh`
           : "--";
       } else {
         valor.textContent = "--";
@@ -338,7 +340,14 @@ document.addEventListener("DOMContentLoaded", () => {
         continue;
       }
 
-      const dados = dadosPorTipo[tipo] || [];
+      let dados = dadosPorTipo[tipo] || [];
+
+      if (!Array.isArray(dados)) {
+        dados = Object.entries(dados).map(([timestamp, valor]) => ({
+          timestamp,
+          valor,
+        }));
+      }
 
       if (agrupamento === "raw" || agrupamento === "hora") {
         // Labels formados direto da data
