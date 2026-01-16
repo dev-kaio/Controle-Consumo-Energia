@@ -1,8 +1,14 @@
-import { signOut } from "../auth/firebaseConfig.js";
+import { signOut, db } from "../auth/firebaseConfig.js";
+import {
+  ref,
+  get,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const aptoSelecionado = urlParams.get("apartamento");
+
+  let filtroAtualDisplay = "Desde o início";
 
   const btnLogout = document.getElementById("logout");
   btnLogout.addEventListener("click", Sair);
@@ -75,13 +81,153 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   });
 
+  let layoutAtual = "grafico";
+  const divInquilinos = document.getElementById("inquilinoContainer");
+  const divGrafico = document.getElementById("graficoContainer");
+
+  function aplicarLayout() {
+    if (layoutAtual === "grafico") {
+      divGrafico.style.display = "block";
+      divInquilinos.style.display = "none";
+    } else {
+      divGrafico.style.display = "none";
+      divInquilinos.style.display = "block";
+    }
+  }
+
+  aplicarLayout();
+
+  const trocarDisposicao = document.getElementById("trocarDisposicao");
+
+  trocarDisposicao.addEventListener("click", () => {
+    layoutAtual = layoutAtual === "grafico" ? "inquilinos" : "grafico";
+    aplicarLayout();
+  });
+
+  async function buscarInquilinos() {
+    const snapshot = await get(ref(db, "Usuarios"));
+    const usuarios = snapshot.val();
+
+    if (!usuarios) return [];
+
+    const inquilinos = [];
+
+    for (const uid in usuarios) {
+      const u = usuarios[uid];
+      if (u.tipo === "inquilino" && u.ativo) {
+        inquilinos.push({
+          uid,
+          nome: u.nome,
+          apartamento: u.apartamento,
+        });
+      }
+    }
+
+    return inquilinos;
+  }
+
+  function agruparPorApartamento(dadosPorTipo) {
+    const resultado = {};
+
+    for (const tipo of ["consumo", "autoconsumo", "geracao"]) {
+      let dados = dadosPorTipo[tipo] || [];
+
+      // garante array sempre
+      if (!Array.isArray(dados)) {
+        dados = Object.values(dados);
+      }
+
+      for (const item of dados) {
+        const apto = item.apartamentoId;
+        if (!apto) continue;
+
+        if (!resultado[apto]) {
+          resultado[apto] = {
+            consumo: 0,
+            autoconsumo: 0,
+            geracao: 0,
+          };
+        }
+
+        resultado[apto][tipo] += Number(item.valor || 0);
+      }
+    }
+
+    return resultado;
+  }
+
+  async function renderizarInquilinos(dadosPorTipo, filtroAtualDisplay) {
+    const container = document.getElementById("inquilinoContainer");
+    container.innerHTML = "";
+
+    const totaisPorApto = agruparPorApartamento(dadosPorTipo);
+    const inquilinos = await buscarInquilinos();
+
+    for (const inq of inquilinos) {
+      const totais = totaisPorApto[inq.apartamento] || {
+        consumo: 0,
+        autoconsumo: 0,
+        geracao: 0,
+      };
+
+      const card = criarCardInquilino({
+        apartamento: inq.apartamento,
+        nome: inq.nome,
+        consumo: totais.consumo,
+        autoconsumo: totais.autoconsumo,
+        geracao: totais.geracao,
+        filtro: filtroAtualDisplay,
+      });
+
+      container.appendChild(card);
+    }
+  }
+
+  function criarCardInquilino({
+    apartamento,
+    nome,
+    consumo,
+    autoconsumo,
+    geracao,
+    filtro,
+  }) {
+    const div = document.createElement("div");
+
+    div.style.cssText = `
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #f9f9f9;
+  `;
+
+    div.innerHTML = `
+    <p><strong>Apartamento:</strong> ${apartamento}</p>
+    <p><strong>Inquilino:</strong> ${nome}</p>
+
+    <p>Consumo (${filtro}): 
+      <strong>${consumo.toFixed(2)} kWh</strong>
+    </p>
+
+    <p>Autoconsumo (${filtro}): 
+      <strong>${autoconsumo.toFixed(2)} kWh</strong>
+    </p>
+
+    <p>Geração (${filtro}): 
+      <strong>${geracao.toFixed(2)} kWh</strong>
+    </p>
+  `;
+
+    return div;
+  }
+
   function atualizarGrafico(labels, dadosPorTipo) {
     chart.data.labels = labels;
     for (let i = 0; i < chart.data.datasets.length; i++) {
       chart.data.datasets[i].data = dadosPorTipo[i] || [];
     }
-    console.log(labels)
-    console.log(dadosPorTipo)
+    console.log(labels);
+    console.log(dadosPorTipo);
     chart.update();
   }
 
@@ -105,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Tipo já está correto, só atualiza os dados
       return;
     }
-    
+
     // Prepara os datasets com os novos dados
     const novosDatasets = chart.data.datasets.map((ds, idx) => ({
       label: ds.label,
@@ -115,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       borderWidth: tipo === "bar" ? 2 : 3,
       fill: ds.fill,
     }));
-    
+
     // Destrói e recria o gráfico com o novo tipo e dados
     chart.destroy();
     chart = new Chart(ctx, {
@@ -247,7 +393,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const consumos = labels.map((label) => {
       // Garante acesso consistente ao objeto grupos
       const chave = String(label);
-      return grupos[chave] ? grupos[chave].reduce((acc, val) => acc + val, 0) : 0;
+      return grupos[chave]
+        ? grupos[chave].reduce((acc, val) => acc + val, 0)
+        : 0;
     });
 
     return { labels, consumos };
@@ -324,13 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Soma os dados de consumo para todos os apartamentos
           const dadosAgrupados = data ? Object.values(data) : [];
-          dadosTotais[tipo] = dadosAgrupados.reduce((acc, item) => {
-            // Para cada item, somar o consumo ao acumulado
-            const timestamp = item.timestamp;
-            if (!acc[timestamp]) acc[timestamp] = 0;
-            acc[timestamp] += item.valor; // Adiciona o valor de consumo
-            return acc;
-          }, {});
+          dadosTotais[tipo] = data || [];
         } catch (err) {
           console.error(`Erro ao buscar dados de ${tipo}:`, err);
           dadosTotais[tipo] = [];
@@ -400,8 +542,12 @@ document.addEventListener("DOMContentLoaded", () => {
       agrupamento = calcularAgrupamentoAuto(params.inicio, params.fim);
     }
 
+    filtroAtualDisplay = filtroDisplay;
+
     // Determina o tipo de gráfico baseado nos parâmetros
-    const tipoGrafico = deveUsarBarras(params.filtro, agrupamento) ? "bar" : "line";
+    const tipoGrafico = deveUsarBarras(params.filtro, agrupamento)
+      ? "bar"
+      : "line";
 
     // Vamos montar labels comuns a todos os datasets, para alinhar os dados
     let todosLabels = new Set();
@@ -481,10 +627,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const parsed = new Date(label);
         return isNaN(parsed.getTime()) ? new Date(0) : parsed;
       };
-      
+
       const da = parseLabel(a);
       const db = parseLabel(b);
-      
+
       if (da instanceof Date && db instanceof Date) {
         return da - db;
       }
@@ -511,13 +657,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const chave = String(lab);
         return mapLabelParaConsumo[chave] || 0;
       });
-      
+
       datasets.push(valoresAlinhados);
     }
 
     // Ajusta o tipo do gráfico se necessário (com os dados já processados)
     ajustarTipoGrafico(tipoGrafico, labelsOrdenados, datasets);
-    
+
     // Se o tipo não mudou, apenas atualiza os dados
     if (chart.config.type === tipoGrafico) {
       atualizarGrafico(labelsOrdenados, datasets);
@@ -541,6 +687,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     atualizarMediaConsumo(medias, filtroDisplay);
+
+    // se for escalar, precisa considerar impacto na performance caso tenha grande volume de inquilinos e dados
+    await renderizarInquilinos(dadosPorTipo, filtroAtualDisplay);
+
+    return {
+      dadosPorTipo,
+      datasets,
+      labelsOrdenados,
+      filtroDisplay,
+    };
   }
 
   // Filtros
@@ -549,7 +705,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .forEach((button) => {
       button.addEventListener("click", () => {
         const filtro = button.getAttribute("data-filter");
-        buscarDados({ filtro });
+        buscarDados({ filtro }).then(aplicarLayout);
         document.getElementById("filterMenu").style.display = "none";
       });
     });
@@ -562,7 +718,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    buscarDados({ inicio, fim });
+    buscarDados({ inicio, fim }).then(aplicarLayout);
     document.getElementById("filterMenu").style.display = "none";
   });
 
@@ -572,10 +728,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .forEach((checkbox) => {
       checkbox.addEventListener("change", () => {
         // Recarregar os dados com os tipos selecionados atuais
-        buscarDados({ filtro: "inicio" }); // ou o filtro que desejar ao reiniciar
+        buscarDados({ filtro: "inicio" }).then(aplicarLayout); // ou o filtro que desejar ao reiniciar
       });
     });
 
   // Carregar dados iniciais com filtro 'inicio' e todos os tipos selecionados
-  buscarDados({ filtro: "inicio" });
+  buscarDados({ filtro: "inicio" }).then(aplicarLayout);
 });
