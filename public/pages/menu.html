@@ -1,76 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Menu - Palm Energy</title>
+    <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="../css/menu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Menu - Palm Energy</title>
-  <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
-  <link rel="stylesheet" href="../css/menu.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+  <body>
+    <button class="menu-btn" id="menuBtn">☰</button>
 
-<body>
-  <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="sidebar" id="sidebar">
+      <br />
+      <a href="./inquilinos.html">Inquilinos</a>
+      <a href="./config.html">Configurações</a>
+      <a href="../index.html" id="logout">Sair</a>
+    </div>
 
-  <div class="sidebar" id="sidebar">
-    <br>
-    <a href="./inquilinos.html">Inquilinos</a>
-    <a href="./config.html">Configurações</a>
-    <a href="../index.html" id="logout">Sair</a>
-  </div>
+    <div class="filter-container">
+      <button class="filter-btn" id="filterBtn">Filtrar</button>
+      <div class="filter-menu" id="filterMenu">
+        <button data-filter="hora">Última Hora</button>
+        <button data-filter="dia">Hoje</button>
+        <button data-filter="semana">Última Semana</button>
+        <button data-filter="mes">Último Mês</button>
+        <button data-filter="ano">Último Ano</button>
+        <button data-filter="inicio">Desde o Início</button>
 
-  <div class="filter-container">
-    <button class="filter-btn" id="filterBtn">Filtrar</button>
-    <div class="filter-menu" id="filterMenu">
-      <button data-filter="hora">Última Hora</button>
-      <button data-filter="dia">Hoje</button>
-      <button data-filter="semana">Última Semana</button>
-      <button data-filter="mes">Último Mês</button>
-      <button data-filter="ano">Último Ano</button>
-      <button data-filter="inicio">Desde o Início</button>
+        <div class="tipo-selecao" id="tipoSelecionado">
+          <p><strong>Tipos de Dados:</strong></p>
+          <label
+            ><input type="checkbox" value="consumo" checked /> Consumo</label
+          ><br />
+          <label
+            ><input type="checkbox" value="autoconsumo" checked />
+            Autoconsumo</label
+          ><br />
+          <label
+            ><input type="checkbox" value="geracao" checked /> Geração</label
+          >
+        </div>
+        <hr />
 
-      <div class="tipo-selecao" id="tipoSelecionado">
-        <p><strong>Tipos de Dados:</strong></p>
-        <label><input type="checkbox" value="consumo" checked> Consumo</label><br />
-        <label><input type="checkbox" value="autoconsumo" checked> Autoconsumo</label><br />
-        <label><input type="checkbox" value="geracao" checked> Geração</label>
+        <div class="custom-range">
+          <label>Início:</label>
+          <input type="datetime-local" id="inicioFiltro" />
+          <label>Fim:</label>
+          <input type="datetime-local" id="fimFiltro" />
+          <button id="aplicarIntervalo">Aplicar</button>
+        </div>
       </div>
-      <hr />
+    </div>
 
-      <div class="custom-range">
-        <label>Início:</label>
-        <input type="datetime-local" id="inicioFiltro" />
-        <label>Fim:</label>
-        <input type="datetime-local" id="fimFiltro" />
-        <button id="aplicarIntervalo">Aplicar</button>
+    <div class="chart-container">
+      <div
+        id="inquilinoContainer"
+        style="
+          display: none;
+          padding: 100px;
+          border-radius: 10px;
+        "
+      ></div>
+
+      <div id="graficoContainer">
+        <canvas id="meuGrafico"></canvas>
       </div>
     </div>
-  </div>
 
-  <div class="chart-container">
-    <canvas id="meuGrafico"></canvas>
-  </div>
+    <button
+      id="trocarDisposicao"
+      style="background-color: rgb(255, 255, 0, 0.7); display: flex; align-self: center;"
+    >
+      Trocar Disposição
+    </button>
 
-  <div id="mediaContainer" class="media-consumo-container">
-    <div>
-      <h3 id="tituloMediaConsumo" ></h3>
-      <p id="valorMediaConsumo" style="color: rgb(102, 6, 235);"></p>
+    <div id="mediaContainer" class="media-consumo-container">
+      <div>
+        <h3 id="tituloMediaConsumo"></h3>
+        <p id="valorMediaConsumo" style="color: rgb(102, 6, 235)"></p>
+      </div>
+      <div>
+        <h3 id="tituloMediaAutoconsumo"></h3>
+        <p id="valorMediaAutoconsumo" style="color: rgba(0, 166, 90, 0.7)"></p>
+      </div>
+      <div>
+        <h3 id="tituloMediaGeracao"></h3>
+        <p id="valorMediaGeracao" style="color: rgba(243, 156, 18, 0.7)"></p>
+      </div>
     </div>
-    <div>
-      <h3 id="tituloMediaAutoconsumo"></h3>
-      <p id="valorMediaAutoconsumo" style="color: rgba(0, 166, 90, 0.7);"></p>
-    </div>
-    <div>
-      <h3 id="tituloMediaGeracao"></h3>
-      <p id="valorMediaGeracao" style="color: rgba(243, 156, 18, 0.7);"></p>
-    </div>
-
-  </div>
-
-
-</body>
-<script type="module" src="../js/grafico.js"></script>
-<script type="module" src="../js/sidebar.js"></script>
-
+  </body>
+  <script type="module" src="../js/grafico.js"></script>
+  <script type="module" src="../js/info-inquilinos.js"></script>
+  <script type="module" src="../js/sidebar.js"></script>
 </html>

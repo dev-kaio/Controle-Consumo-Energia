@@ -72,6 +72,13 @@ img {
   color: white;
 }
 
+#graficoContainer {
+  width: 90vw;
+  height: 80vh;
+  padding: 2rem;
+  box-sizing: border-box;
+  border-radius: 20px;
+}
 /* Container central do gráfico */
 .chart-container {
   display: flex;
@@ -348,5 +355,9 @@ input:focus {
     width: 100% !important;
     height: 100% !important;
     border-radius: 12px;
+  }
+
+  .inquilinoContainer{
+    width: 90vw;
   }
 }
