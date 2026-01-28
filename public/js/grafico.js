@@ -302,10 +302,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tipos.forEach((tipo) => {
       const titulo = document.getElementById(
-        `tituloMedia${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`
+        `tituloMedia${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`,
       );
       const valor = document.getElementById(
-        `valorMedia${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`
+        `valorMedia${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`,
       );
 
       if (!titulo || !valor) return;
@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
         case "mes":
           chave = `${String(d.getMonth() + 1).padStart(
             2,
-            "0"
+            "0",
           )}/${d.getFullYear()}`;
           break;
         case "dia":
@@ -415,13 +415,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getTiposSelecionados() {
     return Array.from(
-      document.querySelectorAll("#tipoSelecionado input:checked")
+      document.querySelectorAll("#tipoSelecionado input:checked"),
     ).map((cb) => cb.value);
   }
 
   async function buscarDadosSeparados(
     params,
-    tiposSelecionados = getTiposSelecionados()
+    tiposSelecionados = getTiposSelecionados(),
   ) {
     const tipoParaEndpoint = {
       consumo: "consumo",
@@ -438,7 +438,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tipoUsuario === "inquilino" && apartamentoId) {
       for (let tipo of tiposSelecionados) {
         const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(
-          params
+          params,
         ).toString()}`;
 
         try {
@@ -458,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Caso o tipo de usuário seja "dono", podemos pegar dados de todos os apartamentos
       for (let tipo of tiposSelecionados) {
         const url = `/firebase/${tipoParaEndpoint[tipo]}/?${new URLSearchParams(
-          params
+          params,
         ).toString()}`;
         try {
           const response = await fetch(url, {
@@ -482,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Dono olhando um único apartamento
       for (let tipo of tiposSelecionados) {
         const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(
-          params
+          params,
         ).toString()}`;
 
         try {
@@ -537,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
       agrupamento = info.agrupamento || "raw";
     } else if (params.inicio && params.fim) {
       filtroDisplay = `${new Date(
-        params.inicio
+        params.inicio,
       ).toLocaleDateString()} até ${new Date(params.fim).toLocaleDateString()}`;
       agrupamento = calcularAgrupamentoAuto(params.inicio, params.fim);
     }
@@ -578,7 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
             minute: "2-digit",
             day: "2-digit",
             month: "2-digit",
-          })
+          }),
         );
         const consumosTipo = dados.map((item) => item.valor);
 
@@ -671,6 +671,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Calcula médias para cada tipo (sem considerar zeros)
     const medias = {};
+
+    //----------------------------------------------------------------------------------
+    //
+    //  O CÁLCULO DA MEDIA ESTA DESCONSIDERANDO DIAS SEM CONSUMO, PODENDO AUMENTAR MÉDIA
+    //
+    //----------------------------------------------------------------------------------
 
     for (const tipo of ["consumo", "autoconsumo", "geracao"]) {
       if (!tiposSelecionados.includes(tipo)) {
