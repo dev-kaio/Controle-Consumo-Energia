@@ -71,6 +71,7 @@ loginForm.addEventListener("submit", async (e) => {
       },
       body: JSON.stringify({
         tipo: dados.tipo,
+        predioId: dados.predioId || null,
       }),
     });
    

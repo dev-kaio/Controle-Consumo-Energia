@@ -43,7 +43,7 @@ async function buscarDadosPorTipo(
   filtro,
   inicio,
   fim,
-  apartamentoId
+  apartamentoId,
 ) {
   let dataInicio, dataFim;
 
@@ -62,7 +62,7 @@ async function buscarDadosPorTipo(
   if (apartamentoId) {
     const snapshot = await db
       .ref(
-        `/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`
+        `/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`,
       )
       .once("value");
     const registros = snapshot.val();
@@ -121,19 +121,34 @@ async function buscarDadosPorTipo(
   return resultadoGeral;
 }
 
-const { authenticateToken } = require("./auth");
+const { authenticateToken } = require("./requires");
 
 router.get("/consumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      // Inquilino só vê o próprio ap
+      aptFinal = aptToken;
+
+      // Tentou forçar outro?
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
       "Consumos",
       "consumo",
       filtro,
       inicio,
       fim,
-      apartamentoId
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /consumo:", error);
@@ -143,14 +158,28 @@ router.get("/consumo", authenticateToken, async (req, res) => {
 
 router.get("/autoconsumo", authenticateToken, async (req, res) => {
   try {
-    const { filtro, inicio, fim } = req.query;
+    const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      aptFinal = aptToken;
+
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
       "AutoConsumo",
       "autoconsumo",
       filtro,
       inicio,
-      fim
+      fim,
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /autoconsumo:", error);
@@ -160,14 +189,28 @@ router.get("/autoconsumo", authenticateToken, async (req, res) => {
 
 router.get("/geracao", authenticateToken, async (req, res) => {
   try {
-    const { filtro, inicio, fim } = req.query;
+    const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      aptFinal = aptToken;
+
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
       "Geracao",
       "geracao",
       filtro,
       inicio,
-      fim
+      fim,
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /geracao:", error);

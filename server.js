@@ -40,8 +40,9 @@ app.use(express.static(path.join(__dirname, "public")));
 require("./routes/espsync");
 
 //Rotas Externas
-const { router: authRouter } = require("./routes/auth");
+const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
+
 
 const rotaDB = require("./routes/firebase");
 app.use("/firebase", rotaDB);

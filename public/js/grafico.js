@@ -93,6 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
       divGrafico.style.display = "none";
       divInquilinos.style.display = "block";
     }
+
+    const menuInquilino = window.location.pathname.includes(
+      "pages/menu-inquilino",
+    );
+
+    const btnTrocarDisposicao = document.getElementById("trocarDisposicao");
+
+    if (menuInquilino) {
+      btnTrocarDisposicao.style.display = "none";
+    }
   }
 
   aplicarLayout();
@@ -431,72 +441,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const dadosTotais = {};
     const token = localStorage.getItem("token");
-    const tipoUsuario = localStorage.getItem("tipoUsuario");
-    const apartamentoId = localStorage.getItem("apartamentoId");
 
-    // Caso o tipo de usuário seja "inquilino", fazemos a busca para um único apartamento
-    if (tipoUsuario === "inquilino" && apartamentoId) {
-      for (let tipo of tiposSelecionados) {
-        const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(
-          params,
-        ).toString()}`;
+    for (let tipo of tiposSelecionados) {
+      const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(
+        params,
+      ).toString()}`;
 
-        try {
-          const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+      try {
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-          if (!response.ok) throw new Error(`Erro ao buscar dados de ${tipo}`);
-          const data = await response.json();
-          dadosTotais[tipo] = data ? Object.values(data) : [];
-        } catch (err) {
-          console.error(err);
-          dadosTotais[tipo] = [];
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar ${tipo}`);
         }
-      }
-    } else if (tipoUsuario === "dono" && !aptoSelecionado) {
-      // Caso o tipo de usuário seja "dono", podemos pegar dados de todos os apartamentos
-      for (let tipo of tiposSelecionados) {
-        const url = `/firebase/${tipoParaEndpoint[tipo]}/?${new URLSearchParams(
-          params,
-        ).toString()}`;
-        try {
-          const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
 
-          if (!response.ok) throw new Error(`Erro ao buscar dados de ${tipo}`);
-          const data = await response.json();
-
-          // console.log(data);
-
-          // Soma os dados de consumo para todos os apartamentos
-          const dadosAgrupados = data ? Object.values(data) : [];
-          dadosTotais[tipo] = data || [];
-        } catch (err) {
-          console.error(`Erro ao buscar dados de ${tipo}:`, err);
-          dadosTotais[tipo] = [];
-        }
-      }
-    } else if (tipoUsuario === "dono" && aptoSelecionado) {
-      // Dono olhando um único apartamento
-      for (let tipo of tiposSelecionados) {
-        const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(
-          params,
-        ).toString()}`;
-
-        try {
-          const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (!response.ok) throw new Error(`Erro ao buscar dados de ${tipo}`);
-          const data = await response.json();
-          dadosTotais[tipo] = data ? Object.values(data) : [];
-        } catch (err) {
-          console.error(err);
-          dadosTotais[tipo] = [];
-        }
+        const data = await response.json();
+        dadosTotais[tipo] = Array.isArray(data)
+          ? data
+          : Object.values(data || {});
+      } catch (err) {
+        console.error(`Erro ao buscar ${tipo}:`, err);
+        dadosTotais[tipo] = [];
       }
     }
 
@@ -504,17 +470,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function buscarDados(params) {
-    const tipoUsuario = localStorage.getItem("tipoUsuario");
-    const apartamentoId = localStorage.getItem("apartamentoId");
-
     // Se veio apto pela URL, ele tem prioridade absoluta
     if (aptoSelecionado) {
       params.apartamentoId = aptoSelecionado;
     }
-    // Senão, se for inquilino, usa o apto dele
-    else if (tipoUsuario === "inquilino" && apartamentoId) {
-      params.apartamentoId = apartamentoId;
-    }
+
     const tiposSelecionados = getTiposSelecionados();
 
     const dadosPorTipo = await buscarDadosSeparados(params, tiposSelecionados);
