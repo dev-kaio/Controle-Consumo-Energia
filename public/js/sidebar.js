@@ -24,3 +24,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
+
+const themeToggle = document.getElementById("themeToggle");
+
+const temaSalvo = localStorage.getItem("tema");
+if (temaSalvo === "dark") {
+  document.body.classList.add("dark");
+  themeToggle.textContent = "☀️";
+}
+
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+
+  const dark = document.body.classList.contains("dark");
+  themeToggle.textContent = dark ? "☀️" : "🌙";
+  localStorage.setItem("tema", dark ? "dark" : "light");
+});

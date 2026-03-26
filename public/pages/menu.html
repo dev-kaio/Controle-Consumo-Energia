@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/menu.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
+  <button id="themeToggle" title="Alternar tema">🌙</button>
 
   <body>
     <button class="menu-btn" id="menuBtn">☰</button>
@@ -57,11 +58,7 @@
     <div class="chart-container">
       <div
         id="inquilinoContainer"
-        style="
-          display: none;
-          padding: 100px;
-          border-radius: 10px;
-        "
+        style="display: none; padding: 100px; border-radius: 10px"
       ></div>
 
       <div id="graficoContainer">
@@ -71,7 +68,11 @@
 
     <button
       id="trocarDisposicao"
-      style="background-color: rgb(255, 255, 0, 0.7); display: flex; align-self: center;"
+      style="
+        background-color: rgb(255, 255, 0, 0.7);
+        display: flex;
+        align-self: center;
+      "
     >
       Trocar Disposição
     </button>
