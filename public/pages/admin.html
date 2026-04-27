@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -9,21 +9,32 @@
   </head>
 
   <body>
+    <button id="themeToggle" title="Alternar tema">🌙</button>
+
     <header>
-      <button href="#" onclick="window.history.back(); return false;">
+      <button
+        href="#"
+        onclick="
+          window.history.back();
+          return false;
+        "
+      >
         Voltar
       </button>
     </header>
 
     <h2>Gerenciar Inquilinos</h2>
 
+    <h4 id="superadmin"></h4>
     <!-- CADASTRAR -->
     <form id="formInquilino">
       <input type="text" id="nome" placeholder="Nome" />
       <input type="email" id="email" placeholder="Email" />
       <input type="password" id="senha" placeholder="Senha" />
       <input type="text" id="apartamento" placeholder="Apartamento" />
-      <button type="submit">Cadastrar</button>
+      <!-- Condomínio tem que vir do admin que está cadastrando-->
+      
+      <button id="cadastrarBtn" type="submit">Cadastrar</button>
     </form>
 
     <!-- MODAL EDITAR -->
@@ -72,5 +83,6 @@
     </table>
 
     <script type="module" src="../js/inquilinos.js"></script>
+    <script src="../js/tema.js"></script>
   </body>
 </html>

@@ -2,19 +2,7 @@ const express = require("express");
 const router = express.Router();
 const admin = require("firebase-admin");
 
-async function authenticateToken(req, res, next) {
-  const token = req.headers.authorization?.split("Bearer ")[1];
-  if (!token) return res.status(401).json({ erro: "Token não fornecido" });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    console.error("Erro ao verificar token:", err);
-    res.status(403).json({ erro: "Token inválido" });
-  }
-}
+const { authenticateToken } = require("./requires");
 
 router.post("/login", authenticateToken, (req, res) => {
   return res.json({
@@ -35,24 +23,69 @@ router.post("/role", authenticateToken, async (req, res) => {
     const { tipo } = req.body;
     const uid = req.user.uid;
 
-    if (!["dono", "inquilino"].includes(tipo)) {
+    if (!["superadmin", "admin", "inquilino"].includes(tipo)) {
       return res.status(400).json({ error: "Tipo de usuário inválido" });
     }
 
-    await admin.auth().setCustomUserClaims(uid, { role: tipo });
+    const db = admin.database();
 
-    res.json({ ok: true });
-  } catch (error) {
-    console.error("Erro ao definir role: ", err);
+    // pega dados do usuário no banco
+    const userSnap = await db.ref(`usuarios/${uid}`).once("value");
+    const userData = userSnap.val();
+
+    if (!userData) {
+      return res.status(404).json({ error: "Usuário não encontrado no banco" });
+    }
+
+    let claims = {
+      role: tipo,
+    };
+
+    if (tipo === "admin") {
+      if (!userData.condominioID) {
+        return res.status(400).json({ error: "Admin sem condominio" });
+      }
+
+      claims = {
+        role: "admin",
+        condominioID: userData.condominioID,
+      };
+    } else if (tipo === "superadmin") {
+      // Superadmin não precisa de condominioID
+      claims = {
+        role: "superadmin",
+      };
+    }
+
+    if (tipo === "inquilino") {
+      const aptoID = userData.aptoID;
+
+      if (!aptoID) {
+        return res.status(400).json({ error: "Inquilino sem apartamento" });
+      }
+
+      const aptoSnap = await db.ref(`apartamentos/${aptoID}`).once("value");
+      const aptoData = aptoSnap.val();
+
+      if (!aptoData) {
+        return res.status(404).json({ error: "Apartamento não encontrado" });
+      }
+
+      claims = {
+        role: "inquilino",
+        condominioID: userData.condominioID,
+        predioID: aptoData.predioID,
+        aptoID: aptoID,
+      };
+    }
+
+    await admin.auth().setCustomUserClaims(uid, claims);
+
+    res.json({ ok: true, claims });
+  } catch (err) {
+    console.error("Erro ao definir claims:", err);
     res.status(500).json({ error: "Erro ao definir role" });
   }
 });
 
-function requireDono(req, res, next) {
-  if (req.user.role !== "dono") {
-    return res.status(403).json({ error: "Acesso negado" });
-  }
-  next();
-}
-
-module.exports = { router, authenticateToken, requireDono };
+module.exports = router;

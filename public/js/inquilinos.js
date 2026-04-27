@@ -1,4 +1,9 @@
-import { auth, db, verificarToken } from "../auth/firebaseConfig.js";
+import {
+  auth,
+  db,
+  verificarToken,
+  getUsuarioLogado,
+} from "../auth/firebaseConfig.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   ref,
@@ -6,10 +11,24 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await verificarToken("dono");
+  await verificarToken(["admin", "superadmin"]);
 
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");
+
+  // Superadmin vê todos, admin vê só do seu condomínio
+  const usuarioLogado = getUsuarioLogado();
+  const tipoUsuario = localStorage.getItem("tipoUsuario");
+
+  if (tipoUsuario === "superadmin") {
+    const superadminInfo = document.getElementById("superadmin");
+    superadminInfo.innerHTML =
+      "Você está logado como Superadmin. Para cadastrar inquilino acesse a página <a href='superadmin.html'>Superadmin</a> ";
+    superadminInfo.style.color = "#6366f1";
+
+    document.getElementById("cadastrarBtn").disabled = true;
+    document.getElementById("formInquilino").style.display = "none";
+  }
 
   /* ==========================
        CADASTRAR INQUILINO
@@ -20,9 +39,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const nome = document.getElementById("nome").value.trim();
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value.trim();
-    const apartamento = document.getElementById("apartamento").value.trim();
+    const aptoID = document.getElementById("apartamento").value.trim();
 
-    if (!nome || !email || !senha || !apartamento) {
+    if (!nome || !email || !senha || !aptoID) {
       alert("Preencha todos os campos!");
       return;
     }
@@ -36,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome, email, senha, apartamento }),
+        body: JSON.stringify({ nome, email, senha, aptoID }),
       });
 
       alert("Inquilino criado!");
@@ -53,22 +72,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================== */
   async function carregarInquilinos() {
     try {
-      const snapshot = await get(ref(db, "Usuarios"));
+      const snapshot = await get(ref(db, "usuarios"));
       const usuarios = snapshot.val();
-
       tbody.innerHTML = "";
 
       if (!usuarios) return;
 
       for (const uid in usuarios) {
         const u = usuarios[uid];
+
+        // Superadmin vê todos, admin filtra por condominioID
         if (u.tipo !== "inquilino") continue;
+        if (
+          tipoUsuario === "admin" &&
+          u.condominioID !== usuarioLogado.condominioID
+        )
+          continue;
 
         const tr = document.createElement("tr");
+        if (!u.ativo) {
+          tr.style.opacity = "0.5";
+        }
 
         tr.innerHTML = `
                     <td>${u.nome}</td>
-                    <td>${u.apartamento}</td>
+                    <td>${u.aptoID.replace("apto_", "")}</td>
                     <td>${u.ativo ? "Ativo" : "Inativo"}</td>
                     <td style="display:flex; gap:10px; justify-content:center;">
                         <button class="status-btn">
@@ -78,25 +106,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <button class="senha-btn">Alterar Senha</button>
                         <button class="deletar-btn">Deletar</button>
                         <a href="menu.html?apartamento=${
-                          u.apartamento
+                          u.aptoID
                         }" style="color:purple; text-decoration: none; border-radius: 20px; padding: 10px; background-color: rgb(255, 255, 0, 0.7); ">Gerenciar Consumo</a>
                     </td>
                 `;
 
         tr.querySelector(".status-btn").addEventListener("click", () =>
-          desativar(uid, !u.ativo)
+          desativar(uid, !u.ativo),
         );
 
         tr.querySelector(".editar-btn").addEventListener("click", () =>
-          editar(uid, u)
+          editar(uid, u),
         );
 
         tr.querySelector(".senha-btn").addEventListener("click", () =>
-          alterarSenha()
+          alterarSenha(),
         );
 
         tr.querySelector(".deletar-btn").addEventListener("click", () =>
-          excluir(uid)
+          excluir(uid),
         );
 
         tbody.appendChild(tr);
@@ -117,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("editarNome").value = u.nome;
     document.getElementById("editarEmail").value = u.email;
-    document.getElementById("editarApartamento").value = u.apartamento;
+    document.getElementById("editarApartamento").value = u.aptoID;
 
     const formEditar = document.getElementById("formEditarInquilino");
 
@@ -126,11 +154,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const nome = document.getElementById("editarNome").value.trim();
       const email = document.getElementById("editarEmail").value.trim();
-      const apartamento = document
-        .getElementById("editarApartamento")
-        .value.trim();
+      const aptoID = document.getElementById("editarApartamento").value.trim();
 
-      if (!nome || !email || !apartamento) {
+      if (!nome || !email || !aptoID) {
         alert("Preencha todos os campos!");
         return;
       }
@@ -146,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           },
           body: JSON.stringify({
             uid,
-            dados: { nome, email, apartamento },
+            dados: { nome, email, aptoID },
           }),
         });
 
@@ -183,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
+        // Restringir p email chegar só por condominioID e registrado no Authentication
         await sendPasswordResetEmail(auth, email);
         alert("E-mail de redefinição enviado!");
         modal.style.display = "none";

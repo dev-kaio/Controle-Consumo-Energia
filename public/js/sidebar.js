@@ -2,6 +2,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
 
+  const tipoUsuario = localStorage.getItem("tipoUsuario");
+  const superadminLink = document.getElementById("superadminLink");
+  if (superadminLink && tipoUsuario === "superadmin") {
+    superadminLink.style.display = "block";
+    superadminLink.href = "./superadmin.html";
+  }
+
   menuBtn.addEventListener("click", () => {
     sidebar.classList.toggle("active");
   });

@@ -38,12 +38,12 @@ function calcularIntervalo(filtro) {
 }
 
 async function buscarDadosPorTipo(
-  tipoFirebase,
+  tipoFirebase, // consumo | autoconsumo | geracao
   tipoRetorno,
   filtro,
   inicio,
   fim,
-  apartamentoId
+  apartamentoId,
 ) {
   let dataInicio, dataFim;
 
@@ -59,81 +59,90 @@ async function buscarDadosPorTipo(
     throw new Error("Parâmetros inválidos");
   }
 
+  const resultado = [];
+
+  // CASO COM APARTAMENTO
   if (apartamentoId) {
     const snapshot = await db
-      .ref(
-        `/${tipoFirebase}/Apartamentos/apartamento${apartamentoId}/${tipoFirebase}`
-      )
+      .ref(`leituras/apto_${apartamentoId}/${tipoFirebase}`)
       .once("value");
+
     const registros = snapshot.val();
     if (!registros) return [];
 
-    const resultado = [];
+    for (const item of Object.values(registros)) {
+      const data = new Date(item.timestamp);
 
-    for (const bloco of Object.values(registros)) {
-      // cada pushId (1 minuto)
-      for (const item of Object.values(bloco)) {
-        // cada leitura dentro do minuto
-        const data = new Date(item.timestamp);
-
-        if (data >= dataInicio && data <= dataFim) {
-          resultado.push({
-            ...item,
-            tipo: tipoRetorno,
-            apartamentoId,
-          });
-        }
+      if (data >= dataInicio && data <= dataFim) {
+        resultado.push({
+          timestamp: item.timestamp,
+          valorKWh: item.valorKWh,
+          tipo: tipoRetorno,
+          aptoID: apartamentoId,
+        });
       }
     }
 
     return resultado;
   }
 
-  const snapshotTodos = await db
-    .ref(`/${tipoFirebase}/Apartamentos`)
-    .once("value");
-  const todosApartamentos = snapshotTodos.val();
+  // TODOS APARTAMENTOS
+  const snapshotTodos = await db.ref(`leituras`).once("value");
+  const todos = snapshotTodos.val();
 
-  if (!todosApartamentos) return [];
+  if (!todos) return [];
 
-  const resultadoGeral = [];
+  for (const [aptoKey, aptoData] of Object.entries(todos)) {
+    const numero = aptoKey.replace("apto_", "");
 
-  // Percorre cada apartamento
-  for (const [apartKey, apartData] of Object.entries(todosApartamentos)) {
-    const registros = apartData[tipoFirebase];
+    const registros = aptoData[tipoFirebase];
     if (!registros) continue;
 
-    for (const bloco of Object.values(registros)) {
-      for (const item of Object.values(bloco)) {
-        const data = new Date(item.timestamp);
+    for (const item of Object.values(registros)) {
+      const data = new Date(item.timestamp);
 
-        if (data >= dataInicio && data <= dataFim) {
-          resultadoGeral.push({
-            ...item,
-            tipo: tipoRetorno,
-            apartamentoId: apartKey.replace("apartamento", ""),
-          });
-        }
+      if (data >= dataInicio && data <= dataFim) {
+        resultado.push({
+          timestamp: item.timestamp,
+          valorKWh: item.valorKWh,
+          tipo: tipoRetorno,
+          aptoID: `apto_${numero}`,
+        });
       }
     }
   }
 
-  return resultadoGeral;
+  return resultado;
 }
 
-const { authenticateToken } = require("./auth");
+const { authenticateToken } = require("./requires");
 
 router.get("/consumo", authenticateToken, async (req, res) => {
   try {
     const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      // Inquilino só vê o próprio ap
+      aptFinal = aptToken;
+
+      // Tentou forçar outro?
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
-      "Consumos",
+      "consumo",
       "consumo",
       filtro,
       inicio,
       fim,
-      apartamentoId
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /consumo:", error);
@@ -143,14 +152,28 @@ router.get("/consumo", authenticateToken, async (req, res) => {
 
 router.get("/autoconsumo", authenticateToken, async (req, res) => {
   try {
-    const { filtro, inicio, fim } = req.query;
+    const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      aptFinal = aptToken;
+
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
-      "AutoConsumo",
+      "autoconsumo",
       "autoconsumo",
       filtro,
       inicio,
-      fim
+      fim,
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /autoconsumo:", error);
@@ -160,14 +183,28 @@ router.get("/autoconsumo", authenticateToken, async (req, res) => {
 
 router.get("/geracao", authenticateToken, async (req, res) => {
   try {
-    const { filtro, inicio, fim } = req.query;
+    const { filtro, inicio, fim, apartamentoId } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
+
+    let aptFinal = apartamentoId;
+
+    if (role === "inquilino") {
+      aptFinal = aptToken;
+
+      if (apartamentoId && apartamentoId !== aptToken) {
+        return res.status(403).json({ erro: "Acesso negado" });
+      }
+    }
+
     const dados = await buscarDadosPorTipo(
-      "Geracao",
+      "geracao",
       "geracao",
       filtro,
       inicio,
-      fim
+      fim,
+      aptFinal,
     );
+
     res.json(dados);
   } catch (error) {
     console.error("Erro em /geracao:", error);

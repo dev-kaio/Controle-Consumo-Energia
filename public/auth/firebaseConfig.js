@@ -29,7 +29,7 @@ async function signOut() {
   }
 }
 
-async function verificarToken(roleNecessaria = null) {
+async function verificarToken(rolesPermitidos = []) {
   const auth = getAuth();
 
   onAuthStateChanged(auth, async (user) => {
@@ -38,41 +38,49 @@ async function verificarToken(roleNecessaria = null) {
       return;
     }
 
-    const token = await user.getIdTokenResult(true);
-
-    if (token.claims.role !== "dono") {
-      alert("Acesso negado");
-      window.history.back();
-      return;
-    }
-
     try {
-      // Força pegar o token mais recente (com role)
+      // pega token com claims atualizadas
       const tokenResult = await user.getIdTokenResult(true);
+      const role = tokenResult.claims.role;
 
-      // Se a página exigir um tipo de usuário
-      if (roleNecessaria && tokenResult.claims.role !== roleNecessaria) {
-        alert("Você não tem permissão para acessar esta página.");
-        window.location.href = "./menu-inquilino.html";
+      // se não tiver role definida
+      if (!role) {
+        alert("Usuário sem permissão.");
+        window.location.href = "/index.html";
+        return;
+      }
+
+      // valida roles permitidas
+      if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(role)) {
+        alert("Acesso negado");
+
+        // redireciona baseado no tipo
+        if (role === "inquilino") {
+          window.location.href = "/pages/menu-inquilino.html";
+        } else {
+          window.location.href = "/pages/menu.html";
+        }
+
         return;
       }
     } catch (error) {
       console.error("Erro ao validar token:", error);
-      await firebaseSignOut(auth);
+      await signOut(auth);
       window.location.href = "/index.html";
     }
   });
 }
 
-// function signOutAndRedirect() {
-//   firebaseSignOut(getAuth())
-//     .then(() => {
-//       window.location.href = "/index.html";
-//     })
-//     .catch((error) => {
-//       console.error("Erro ao deslogar:", error);
-//       window.location.href = "/index.html";
-//     });
-// }
+/**
+ * Retorna dados do usuário logado do localStorage
+ */
+function getUsuarioLogado() {
+  return {
+    tipo: localStorage.getItem("tipoUsuario") || null,
+    condominioID: localStorage.getItem("condominioID") || null,
+    aptoID: localStorage.getItem("aptoID") || null,
+    uid: null, // UID vem do Firebase Auth, não do localStorage
+  };
+}
 
-export { app, auth, db, signOut, verificarToken };
+export { app, auth, db, signOut, verificarToken, getUsuarioLogado };

@@ -1,37 +1,91 @@
-body {
-  font-family: "Orbitron", sans-serif;
-  background: #6606eb;
-  background-image: url("../assets/logo.png");
-  background-repeat: no-repeat;
-  background-position: top;
-  background-size: 100px 100px;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  min-height: 95vh;
+/* =========================
+   RESET + BASE
+========================= */
+* {
+  box-sizing: border-box;
   margin: 0;
-  padding: 1rem;
+  padding: 0;
 }
 
-img {
-  width: 128px;
-  height: 128px;
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #afafb0;
+  color: #1f2933;
+  min-height: 100vh;
 }
 
+/* =========================
+   DARK MODE
+========================= */
+body.dark {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+/* Header */
+
+header {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+}
+
+header button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+body.dark header button {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+/* =========================
+   MENU BUTTON
+========================= */
+.menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  font-size: 22px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+body.dark .menu-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
 .sidebar {
   position: fixed;
   top: 0;
-  left: -250px;
-  /* escondida inicialmente */
-  width: 250px;
+  left: -260px;
+  width: 260px;
   height: 100%;
-  background-color: rgb(102, 6, 235);
-  color: white;
-  padding-top: 60px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  background: #ffffff4e;
+  border-right: 1px solid #ffffff4e;
+  padding-top: 70px;
   transition: left 0.3s ease;
-  z-index: 1000;
+  z-index: 900;
+}
+
+body.dark .sidebar {
+  background: #1f2937;
+  border-color: #374151;
 }
 
 .sidebar.active {
@@ -40,324 +94,369 @@ img {
 
 .sidebar a {
   display: block;
-  padding: 15px 20px;
-  color: white;
-  font-weight: 500;
+  padding: 14px 20px;
   text-decoration: none;
+  color: inherit;
+  font-weight: 500;
 }
 
 .sidebar a:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.04);
 }
 
-/* Botão do menu */
-.menu-btn {
+body.dark .sidebar a:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* =========================
+   FILTER
+========================= */
+.filter-container {
   position: fixed;
-  top: 15px;
-  left: 15px;
-  font-size: 24px;
-  background-color: rgb(230, 230, 230);
-  color: rgb(102, 6, 235);
-  border: none;
-  padding: 8px 12px;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.filter-btn {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 1100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-weight: 500;
 }
 
-.menu-btn:hover {
-  background-color: rgb(102, 6, 235);
+body.dark .filter-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.filter-menu {
+  display: none;
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.filter-menu button[data-filter] {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filter-menu button[data-filter]:hover {
+  background: #eef2f7;
+}
+
+body.dark .filter-menu button[data-filter] {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+body.dark .filter-menu button[data-filter]:hover {
+  background: #1f2937;
+}
+
+.filter-menu hr {
+  border: none;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 14px 0;
+}
+
+body.dark .filter-menu hr {
+  background: #374151;
+}
+
+.tipo-selecao {
+  padding: 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+body.dark .tipo-selecao {
+  background: #111827;
+}
+
+.tipo-selecao p {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.tipo-selecao label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.custom-range {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.dark .custom-range {
+  background: #111827;
+}
+
+.custom-range label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+body.dark .custom-range label {
+  color: #9ca3af;
+}
+
+input[type="datetime-local"] {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  background: #ffffff;
+  color: #111827;
+}
+
+body.dark input[type="datetime-local"] {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+#aplicarIntervalo {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #6366f1;
   color: white;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-#graficoContainer {
-  width: 90vw;
-  height: 80vh;
-  padding: 2rem;
-  box-sizing: border-box;
-  border-radius: 20px;
+#aplicarIntervalo:hover {
+  background: #4f46e5;
 }
-/* Container central do gráfico */
+
+
+body.dark .filter-menu {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+
+/* =========================
+   MAIN LAYOUT
+========================= */
 .chart-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 5%;
-  height: 80vh;
-  padding: 2rem;
-  box-sizing: border-box;
-  width: 90vw;
+  padding: 100px 40px 20px;
+  max-width: 1400px;
+  margin: auto;
 }
 
-/* Canvas do gráfico */
-.chart-container canvas {
-  background: rgb(230, 230, 230);
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 1rem;
-}
-
-.media-consumo-container {
-  margin: 20px auto 0 auto;
-  /* auto nas laterais centraliza horizontalmente */
-  padding: 15px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  text-align: center;
-  max-width: 350px;
-  /* opcional, limita largura para ficar mais bonito */
-  width: 90%;
-  /* para ser responsivo em telas pequenas */
-}
-
-.media-consumo-container h3 {
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #333;
-}
-
-.media-consumo-container p {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-/* Container do filtro */
-.filter-container {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  z-index: 1100;
-}
-
-/* Botão de filtro */
-.filter-btn {
-  background-color: white;
-  color: rgb(102, 6, 235);
-  border: none;
-  padding: 15px 20px;
-  font-size: 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.filter-btn:hover {
-  background-color: rgb(102, 6, 235);
-  color: white;
-}
-
-/* Menu suspenso */
-.filter-menu {
-  display: none;
-  position: absolute;
-  top: 40px;
-  right: 0;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-
-.filter-menu button {
-  display: block;
-  padding: 10px 15px;
-  border: none;
-  background: none;
-  text-align: left;
+/* =========================
+   GRAPH
+========================= */
+#graficoContainer {
   width: 100%;
-  color: rgb(102, 6, 235);
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.filter-menu button:hover {
-  background-color: rgba(102, 6, 235, 0.1);
-}
-
-.custom-range {
+  max-width: 1100px;
+  height: 520px;
+  background: #ffffff4e;
+  border-radius: 18px;
+  padding: 24px;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 10px;
+  align-items: center;
+  justify-content: center;
 }
 
-.custom-range label {
-  font-size: 0.9rem;
+body.dark #graficoContainer {
+  background: #1f2937;
+  border-color: #374151;
 }
 
-input[type="datetime-local"] {
-  padding: 8px 12px;
-  border: 2px solid #6606eb;
-  border-radius: 12px;
-  background: #f8f8ff;
-  color: #333;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
+#graficoContainer canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
-input[type="datetime-local"]:focus {
-  border-color: #4b00c9;
-  box-shadow: 0 0 6px rgba(102, 6, 235, 0.6);
-  background: #fff;
+/* =========================
+   KPI / MÉDIAS
+========================= */
+.media-consumo-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 1100px;
+  margin: 20px auto 40px;
+  padding: 0 40px;
 }
 
-#aplicarIntervalo {
-  margin-top: 10px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 12px;
-  background: rgb(102, 6, 235);
-  color: white;
-  font-weight: bold;
+.media-consumo-container > div {
+  background: #ffffff4e;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+body.dark .media-consumo-container > div {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+/* TITULOS */
+.media-consumo-container h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: black;
+}
+
+body.dark .media-consumo-container h3 {
+  color: #9ca3af;
+}
+
+/* VALORES */
+.media-consumo-container p {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: black;
+}
+
+body.dark .media-consumo-container p {
+  color: #f9fafb;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+#trocarDisposicao {
+  margin: 10px auto;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: black;
   cursor: pointer;
-  transition: background 0.3s ease;
 }
 
-#aplicarIntervalo:hover {
-  background: rgb(80, 4, 190);
+body.dark #trocarDisposicao {
+  background: #1f2937;
+  border-color: #374151;
 }
 
-.tipo-selecao {
-  margin-top: 10px;
-  padding: 10px 0;
+#themeToggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
 }
 
-.tipo-selecao label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
+body.dark #themeToggle {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
 }
 
-/* Modais */
-.modal-conteudo {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    background-color: rgb(102, 6, 235, 1);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 400px;
-    overflow-y: auto;
+/* =========================
+   INQUILINOS - CONTAINER
+========================= */
+#inquilinoContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
-.modal-conteudo button {
-    background-color: rgb(78, 30, 145);
+/* =========================
+   CARD INQUILINO - LIGHT
+========================= */
+#inquilinoContainer > div {
+  background-color: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 14px !important;
+  padding: 20px !important;
+  color: #1f2933;
+  transition: background-color 0.2s ease, border 0.2s ease;
 }
 
-.modal-conteudo button:hover {
-    background-color: #4b00c9;
+/* TÍTULOS */
+#inquilinoContainer p strong {
+  color: #111827;
 }
 
-.modal-conteudo h2,
-.modal-conteudo h3 {
-    margin-bottom: 20px;
-    text-align: center;
+/* =========================
+   CARD INQUILINO - DARK
+========================= */
+body.dark #inquilinoContainer > div {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #e5e7eb;
 }
 
-/* Estilo para fechar o modal */
-.fechar {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #fff;
+body.dark #inquilinoContainer p strong {
+  color: #f9fafb;
 }
 
-/* Para as divs do modal aparecerem em tela */
-#modalEditar,
-#alterarSenha {
-    display: flex;
-    flex-direction: row;
-    text-align: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
+/* =========================
+   HOVER (opcional, fica chique)
+========================= */
+#inquilinoContainer > div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
-#modalEditar form,
-#alterarSenha form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-}
-
-button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 12px;
-    background-color: #6606eb;
-    color: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-button:hover {
-    background-color: #4b00c9;
+body.dark #inquilinoContainer > div:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 
-input {
-    padding: 10px 14px;
-    border: 1px solid #fff;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-input:focus {
-    border-color: #4b00c9;
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 6px rgba(102, 6, 235, 0.6);
-}
-
-/* Ajustes para celular */
-@media (max-width: 768px) {
-  body {
-    padding: 0;
-    align-items: flex-start;
-    background-position: top;
-    background-size: 70px 70px;
-    flex-direction: column;
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 900px) {
+  .media-consumo-container {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
   }
 
-  .chart-container {
-    margin-top: 80px;
-    /* espaço pro menu e filtro */
-    width: 100vw;
-    /* ocupa toda a largura */
-    height: calc(100vh - 120px);
-    /* ocupa quase toda altura */
-    padding: 0.5rem;
-  }
-
-  .chart-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 12px;
-  }
-
-  .inquilinoContainer{
-    width: 90vw;
+  #graficoContainer {
+    height: 420px;
   }
 }
