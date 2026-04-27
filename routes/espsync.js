@@ -4,16 +4,25 @@ const db = admin.database();
 console.log("ESP32 - Sincronia ativada");
 
 db.ref("Esp32").on("child_added", (aptoSnap) => {
-  const apto = aptoSnap.key; // apto101
+  const aptoRaw = aptoSnap.key; // ex: apto101
 
-  aptoSnap.ref.on("child_added", (registroSnap) => {
+  // converte pro novo padrão do banco
+  const numero = aptoRaw.replace("apto", ""); // 101
+  const aptoID = `apto_${numero}`;
+
+  aptoSnap.ref.on("child_added", async (registroSnap) => {
     const pushId = registroSnap.key;
     const dados = registroSnap.val();
 
-    const numero = apto.replace("apto", ""); // 101
+    try {
+      // novo destino
+      const destino = `leituras/${aptoID}/consumo/${pushId}`;
 
-    const destino = `Consumos/Apartamentos/apartamento${numero}/Consumos/${pushId}`;
+      await db.ref(destino).set(dados);
 
-    db.ref(destino).set(dados);
+      console.log(`Salvo em ${destino}`);
+    } catch (err) {
+      console.error("Erro ao salvar leitura:", err);
+    }
   });
 });

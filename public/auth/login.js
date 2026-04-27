@@ -48,12 +48,12 @@ loginForm.addEventListener("submit", async (e) => {
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = userCredential.user;
     const uid = user.uid;
 
-    const userRef = ref(db, `Usuarios/${uid}`);
+    const userRef = ref(db, `usuarios/${uid}`);
     const snapshot = await get(userRef);
     if (!snapshot.exists()) {
       mensagemL.textContent = "Usuário não encontrado no banco de dados.";
@@ -63,7 +63,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     const dados = snapshot.val();
 
-    await fetch("/auth/role", {
+    const response = await fetch("/auth/role", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,17 +71,23 @@ loginForm.addEventListener("submit", async (e) => {
       },
       body: JSON.stringify({
         tipo: dados.tipo,
-        predioId: dados.predioId || null,
+        condominioID: dados.condominioID || null,
       }),
     });
-   
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Erro ao definir role");
+    }
+
     //forçando novo token
     const token = await user.getIdToken(true);
     await auth.currentUser.reload();
 
     localStorage.setItem("token", token);
     localStorage.setItem("tipoUsuario", dados.tipo);
-    localStorage.setItem("apartamentoId", dados.apartamento || "");
+    localStorage.setItem("aptoID", dados.aptoID || "");
+    localStorage.setItem("condominioID", dados.condominioID || "");
 
     if (!dados || !dados.tipo) {
       mensagemL.textContent = "Usuário sem permissão configurada.";
@@ -92,8 +98,10 @@ loginForm.addEventListener("submit", async (e) => {
       return;
     }
 
+    // ARRUMAR REDIRECIONAMENTO CONSTANDO SUPERADMIN, ADMIN
+
     // Redireciona de acordo com o tipo
-    if (dados.tipo === "dono") {
+    if (dados.tipo === "admin" || dados.tipo == "superadmin") {
       window.location.href = "pages/menu.html";
     } else if (dados.tipo === "inquilino") {
       if (!dados.ativo) {
@@ -102,16 +110,18 @@ loginForm.addEventListener("submit", async (e) => {
           mensagemL.textContent = "";
           signOut();
         }, 5000);
-        signOut();
         return;
       }
-      window.location.href = `pages/menu-inquilino.html?apartamento=${dados.apartamento}`;
+
+      window.location.href = `pages/menu-inquilino.html?aptoID=${dados.aptoID}`;
     } else {
       mensagemL.textContent = "Tipo de usuário desconhecido.";
       signOut();
     }
   } catch (error) {
-    console.error("Erro no login:", error.code, error.message);
+    console.error("Erro no login:", error);
+    mensagemL.textContent =
+      error.message || JSON.stringify(error) || "Erro no login";
     mensagemL.textContent =
       error.message || "Ocorreu um erro, tente novamente.";
 

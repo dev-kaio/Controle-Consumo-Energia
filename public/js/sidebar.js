@@ -2,6 +2,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
 
+  const tipoUsuario = localStorage.getItem("tipoUsuario");
+  const superadminLink = document.getElementById("superadminLink");
+  if (superadminLink && tipoUsuario === "superadmin") {
+    superadminLink.style.display = "block";
+    superadminLink.href = "./superadmin.html";
+  }
+
   menuBtn.addEventListener("click", () => {
     sidebar.classList.toggle("active");
   });
@@ -23,20 +30,4 @@ document.addEventListener("DOMContentLoaded", async () => {
       filterMenu.style.display = "none";
     }
   });
-});
-
-const themeToggle = document.getElementById("themeToggle");
-
-const temaSalvo = localStorage.getItem("tema");
-if (temaSalvo === "dark") {
-  document.body.classList.add("dark");
-  themeToggle.textContent = "☀️";
-}
-
-themeToggle.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-
-  const dark = document.body.classList.contains("dark");
-  themeToggle.textContent = dark ? "☀️" : "🌙";
-  localStorage.setItem("tema", dark ? "dark" : "light");
 });

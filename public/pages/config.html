@@ -8,24 +8,20 @@
     <link rel="stylesheet" href="../css/menu.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-  <button id="themeToggle" title="Alternar tema">🌙</button>
 
+  <header>
+    <button
+      href="#"
+      onclick="
+        window.history.back();
+        return false;
+      "
+    >
+      Voltar
+    </button>
+  </header>
   <body>
-    <button class="menu-btn" id="menuBtn">☰</button>
-
-    <div class="sidebar" id="sidebar">
-      <br />
-      <a href="./inquilinos.html" id="linkInquilinos">Inquilinos</a>
-      <a
-        href="#"
-        onclick="
-          window.history.back();
-          return false;
-        "
-        >Voltar</a
-      >
-      <a href="../index.html" id="logout">Sair</a>
-    </div>
+    <button id="themeToggle" title="Alternar tema">🌙</button>
 
     <button
       class="senha-btn"
@@ -50,4 +46,5 @@
     </div>
   </body>
   <script type="module" src="../js/sidebar-config.js"></script>
+  <script src="../js/tema.js"></script>
 </html>

@@ -6,7 +6,7 @@ import {
 
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const aptoSelecionado = urlParams.get("apartamento");
+  const aptoSelecionado = urlParams.get("aptoID");
 
   let filtroAtualDisplay = "Desde o início";
 
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   async function buscarInquilinos() {
-    const snapshot = await get(ref(db, "Usuarios"));
+    const snapshot = await get(ref(db, "usuarios"));
     const usuarios = snapshot.val();
 
     if (!usuarios) return [];
@@ -125,11 +125,11 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const uid in usuarios) {
       const u = usuarios[uid];
       if (u.tipo === "inquilino" && u.ativo) {
-        inquilinos.push({
-          uid,
-          nome: u.nome,
-          apartamento: u.apartamento,
-        });
+          inquilinos.push({
+            uid,
+            nome: u.nome,
+            aptoID: u.aptoID,
+          });
       }
     }
 
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       for (const item of dados) {
-        const apto = item.apartamentoId;
+        const apto = item.aptoID;
         if (!apto) continue;
 
         if (!resultado[apto]) {
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
           };
         }
 
-        resultado[apto][tipo] += Number(item.valor || 0);
+        resultado[apto][tipo] += Number(item.valorKWh || 0);
       }
     }
 
@@ -174,14 +174,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const inquilinos = await buscarInquilinos();
 
     for (const inq of inquilinos) {
-      const totais = totaisPorApto[inq.apartamento] || {
+      const totais = totaisPorApto[inq.aptoID] || {
         consumo: 0,
         autoconsumo: 0,
         geracao: 0,
       };
 
       const card = criarCardInquilino({
-        apartamento: inq.apartamento,
+        apartamento: inq.aptoID || "Não definido",
         nome: inq.nome,
         consumo: totais.consumo,
         autoconsumo: totais.autoconsumo,
@@ -212,19 +212,19 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
     div.innerHTML = `
-    <p><strong>Apartamento:</strong> ${apartamento}</p>
+    <p><strong>Apartamento:</strong> ${apartamento.replace("apto_", "")}</p>
     <p><strong>Inquilino:</strong> ${nome}</p>
 
-    <p>Consumo (${filtro}): 
-      <strong>${consumo.toFixed(2)} kWh</strong>
+    <p><strong>Consumo (${filtro}):</strong>
+      <span style="color:rgba(102, 6, 235, 0.7)">${consumo.toFixed(2)} kWh </span>
     </p>
 
-    <p>Autoconsumo (${filtro}): 
-      <strong>${autoconsumo.toFixed(2)} kWh</strong>
+    <p><strong>Autoconsumo (${filtro}):</strong> 
+      <span style="color:rgba(0, 166, 90, 0.7)">${autoconsumo.toFixed(2)} kWh </span>
     </p>
 
-    <p>Geração (${filtro}): 
-      <strong>${geracao.toFixed(2)} kWh</strong>
+    <p><strong>Geração (${filtro}): </strong>
+      <span style="color:rgba(243, 156, 18, 0.7)">${geracao.toFixed(2)} kWh </span>
     </p>
   `;
 
@@ -366,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!grupos[chave]) grupos[chave] = [];
-      grupos[chave].push(item.valor);
+      grupos[chave].push(item.valorKWh);
     });
 
     // Ordena as labels corretamente (convertendo para Date no formato dd/mm/yyyy ou mm/yyyy)
@@ -472,7 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function buscarDados(params) {
     // Se veio apto pela URL, ele tem prioridade absoluta
     if (aptoSelecionado) {
-      params.apartamentoId = aptoSelecionado;
+      params.aptoID = aptoSelecionado;
     }
 
     const tiposSelecionados = getTiposSelecionados();
@@ -540,7 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
             month: "2-digit",
           }),
         );
-        const consumosTipo = dados.map((item) => item.valor);
+        const consumosTipo = dados.map((item) => item.valorKWh);
 
         dadosAgrupadosPorTipo[tipo] = {
           labels: labelsTipo,
@@ -634,7 +634,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //----------------------------------------------------------------------------------
     //
-    //  O CÁLCULO DA MEDIA ESTA DESCONSIDERANDO DIAS SEM CONSUMO, PODENDO AUMENTAR MÉDIA
+    //  CÁLCULO DA MÉDIA - EXPLICAÇÃO
+    //
+    //  Como funciona atualmente:
+    //  - O código filtra apenas valores MAIORES que 0 (dadosValidos = dados.filter(v => v > 0))
+    //  - A média é calculada: soma / quantidade de dias com dados
+    //
+    //  Exemplo: Mês de 30 dias, mas só 5 dias têm leitura
+    //  - Leituras: [1.2, 1.5, 2.1, 1.8, 2.3] kWh
+    //  - Média atual: (1.2+1.5+2.1+1.8+2.3) / 5 = 1.78 kWh/dia
+    //
+    //  Caso que pode gerar PROBLEMA:
+    //  - Se o ESP32 não enviou dados em alguns dias (por estar offline, sem energia, etc.)
+    //  - A média será calculada SEM considerar esses dias como 0
+    //  - Isso pode SUPERESTIMAR o consumo médio real
+    //
+    //  Alternativas possíveis:
+    //  1. Manter assim (média por dia COM dados) - atual
+    //  2. Dividir pelo total de dias do período (incluindo zeros)
+    //  3. Considerar dias úteis apenas
     //
     //----------------------------------------------------------------------------------
 

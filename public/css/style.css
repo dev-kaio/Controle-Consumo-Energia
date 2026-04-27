@@ -2,14 +2,14 @@
 
 body {
   font-family: "Orbitron", sans-serif;
-  background: rgb(102, 6, 235);
-  background-image: url("../assets/logo.png");
+  background-color: #afafb0;
+  background-image: url("../assets/logolight.png");
   background-repeat: no-repeat;
-  background-position: right;
+  background-position: center top;
   display: flex;
   justify-content: center;
-  align-items: start;
-  min-height: 95vh; /* min para evitar problemas no mobile */
+  align-items: center;
+  min-height: 95vh;
   margin: 0;
   padding: 1rem;
 }
@@ -18,8 +18,46 @@ img {
   height: 128px;
 }
 
+/* DARK MODE */
+body.dark {
+  background-color: #111827;
+  background-image: url("../assets/logodark.png");
+}
+
+body.dark .container {
+  background-color: #1f2937;
+}
+
+body.dark h2 {
+  color: #e5e7eb;
+}
+
+body.dark label {
+  color: #9ca3af;
+}
+
+body.dark input[type="text"],
+body.dark input[type="password"],
+body.dark input[type="email"] {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+body.dark .container:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .container-title {
+  color: #e5e7eb;
+}
+
+img {
+  width: 128px;
+  height: 128px;
+}
+
 .container {
-  margin-left: 15%;
   background-color: #ffffff;
   padding: 2rem;
   border-radius: 20px;
@@ -32,7 +70,6 @@ img {
 
 .container-title {
   text-align: center;
-  margin-left: 15%;
   padding: 2rem;
   width: 100%;
   max-width: 350px;
@@ -126,8 +163,27 @@ p {
   text-decoration: underline;
 }
 
+#themeToggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+body.dark #themeToggle {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
 /* Ajustes para celular */
-@media (max-width: 1490px) {
+/* @media (max-width: 1490px) {
   body {
     padding: 0.5rem;
     align-items: center;
@@ -167,4 +223,4 @@ p {
     height: 20px;
     right: 8px;
   }
-}
+} */

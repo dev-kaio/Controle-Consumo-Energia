@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 
 /**
- * Autentica o token Firebase
+ * Autentica token Firebase
  */
 async function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -15,7 +15,16 @@ async function authenticateToken(req, res, next) {
 
   try {
     const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded; // role, predioId, uid...
+
+    // garante padrão
+    req.user = {
+      uid: decoded.uid,
+      role: decoded.role,
+      condominioID: decoded.condominioID,
+      predioID: decoded.predioID,
+      apartamentoID: decoded.aptoID,
+    };
+
     next();
   } catch (err) {
     console.error("Token inválido:", err);
@@ -24,8 +33,7 @@ async function authenticateToken(req, res, next) {
 }
 
 /**
- * Restringe por role (RBAC)
- * Ex: requireRole("dono", "superadmin")
+ * RBAC
  */
 function requireRole(...rolesPermitidos) {
   return (req, res, next) => {
@@ -36,58 +44,7 @@ function requireRole(...rolesPermitidos) {
   };
 }
 
-/**
- * Garante que o recurso pertence ao mesmo prédio
- * Superadmin ignora escopo
- */
-async function requireMesmoPredio(req, res, next) {
-  try {
-    if (req.user.role === "superadmin") {
-      return next();
-    }
-
-    const predioId = req.user.predioId;
-    const db = admin.database();
-
-    // valida por UID de inquilino
-    if (req.body?.uid) {
-      const snap = await db.ref(`Usuarios/${req.body.uid}`).once("value");
-
-      if (!snap.exists()) {
-        return res.status(404).json({ error: "Usuário não encontrado" });
-      }
-
-      if (snap.val().predioId !== predioId) {
-        return res.status(403).json({ error: "Usuário fora do seu prédio" });
-      }
-    }
-
-    // valida por apartamento
-    if (req.body?.apartamento) {
-      const snap = await db
-        .ref(`Apartamentos/${req.body.apartamento}`)
-        .once("value");
-
-      if (!snap.exists()) {
-        return res.status(404).json({ error: "Apartamento não encontrado" });
-      }
-
-      if (snap.val().predioId !== predioId) {
-        return res
-          .status(403)
-          .json({ error: "Apartamento fora do seu prédio" });
-      }
-    }
-
-    next();
-  } catch (err) {
-    console.error("Erro requireMesmoPredio:", err);
-    res.status(500).json({ error: "Erro de autorização" });
-  }
-}
-
 module.exports = {
   authenticateToken,
   requireRole,
-  requireMesmoPredio,
 };

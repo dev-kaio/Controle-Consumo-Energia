@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="../css/inquilinos.css" />
+    <title>Superadmin - Gerenciar Sistema</title>
+  </head>
+
+  <body>
+    <button id="themeToggle" title="Alternar tema">🌙</button>
+
+    <header>
+      <button
+        href="#"
+        onclick="
+          window.history.back();
+          return false;
+        "
+      >
+        Voltar
+      </button>
+    </header>
+
+    <h2>Gerenciar Sistema</h2>
+
+    <!-- CADASTRAR USUÁRIO (UNIFICADO) -->
+    <form id="formUsuario">
+      <h3 style="margin-bottom: 10px">Cadastrar Usuário</h3>
+      <select id="tipoUsuario">
+        <option value="inquilino">Inquilino</option>
+        <option value="admin">Admin</option>
+      </select>
+      <input type="text" id="nome" placeholder="Nome" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="senha" placeholder="Senha (solicitar troca de senha)" />
+      <input
+        type="text"
+        id="condominioID"
+        placeholder="Condomínio ID (ex: condominio_1)"
+      />
+      <input
+        type="text"
+        id="apartamento"
+        placeholder="Apartamento (ex: apt_101)"
+      />
+      <button type="submit">Cadastrar</button>
+    </form>
+
+    <!-- FILTRO -->
+    <div class="filtro-container">
+      <div class="filtro-group">
+        <input type="text" id="filtroNome" placeholder="Buscar por nome..." />
+      </div>
+      <div class="filtro-group">
+        <select id="filtroCondominio">
+          <option value="">Todos os Condomínios</option>
+        </select>
+      </div>
+      <div class="filtro-group botoes">
+        <button id="expandirTodos">Expandir Todos</button>
+        <button id="colapsarTodos">Colapsar Todos</button>
+      </div>
+    </div>
+
+    <!-- LISTA DE CONDOMÍNIOS -->
+    <div id="listaCondominios"></div>
+
+    <style>
+      .filtro-container {
+        max-width: 1100px;
+        margin: 0 auto 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .filtro-group {
+        display: flex;
+        gap: 8px;
+      }
+
+      .filtro-group input,
+      .filtro-group select {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        font-size: 14px;
+        min-width: 180px;
+      }
+
+      body.dark .filtro-group input,
+      body.dark .filtro-group select {
+        background: #111827;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+
+      .filtro-group input:focus,
+      .filtro-group select:focus {
+        outline: none;
+        border-color: #6366f1;
+      }
+
+      .filtro-group button {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        background: #6366f1;
+        color: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .filtro-group button:hover {
+        background: #4f46e5;
+      }
+
+      #listaCondominios {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      #formUsuario {
+        max-width: 420px;
+        margin: 0 auto 24px;
+        background: #ffffff4e;
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      body.dark #formUsuario {
+        background: #1f2937;
+      }
+
+      #formUsuario button {
+        margin-top: 8px;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #6366f1;
+        color: #fff;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      #formUsuario button:hover {
+        background: #4f46e5;
+      }
+
+      #formUsuario input,
+      #formUsuario select {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        font-size: 14px;
+      }
+
+      body.dark #formUsuario input,
+      body.dark #formUsuario select {
+        background: #111827;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+
+      @media (max-width: 768px) {
+        .filtro-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .filtro-group {
+          justify-content: center;
+        }
+
+        .filtro-group input,
+        .filtro-group select {
+          width: 100%;
+          min-width: auto;
+        }
+      }
+    </style>
+
+    <script type="module" src="../js/superadmin.js"></script>
+    <script src="../js/tema.js"></script>
+  </body>
+</html>

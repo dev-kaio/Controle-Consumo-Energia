@@ -10,6 +10,8 @@
 </head>
 
 <body style="display: flex; flex-direction: column;">
+  <button id="themeToggle" title="Alternar tema">🌙</button>
+
   <div class="container-title">Controle de energia na palma da sua mão</div>
   <div class="container">
     <div id="login-form" class="form-section active">
@@ -27,53 +29,11 @@
         <p id="mensagemL"></p>
         <button type="submit" id="login-button">Entrar</button>
       </form>
-      <!-- <div class="link">
-        Não tem uma conta?
-        <a href="#" onclick="toggleForms('register')">Cadastre-se</a>
-      </div> -->
-    </div>
-
-    <!-- <div id="register-form" class="form-section">
-      <h2>Cadastrar</h2>
-      <form id="formRegistro">
-        <div class="form-group">
-          <label for="register-email">Email</label>
-          <input type="email" id="register-email" required />
-        </div>
-        <div class="form-group">
-          <label for="register-password">Senha</label>
-          <input type="password" id="register-password" required />
-          <span class="toggle-password" id="toggle-register-password"></span>
-        </div>
-        <p id="mensagem"></p>
-        <button type="submit" id="register-button">Cadastrar</button>
-      </form>
-      <div class="link">
-        Já tem uma conta?
-        <a href="#" onclick="toggleForms('login')">Entrar</a>
-      </div>
     </div>
   </div>
 
-  <script>
-    function toggleForms(formId) {
-      const loginForm = document.getElementById("login-form");
-      const registerForm = document.getElementById("register-form");
-
-      if (formId === "login") {
-        loginForm.classList.add("active");
-        registerForm.classList.remove("active");
-      } else {
-        loginForm.classList.remove("active");
-        registerForm.classList.add("active");
-      }
-    }
-  </script> -->
-
-    <script type="module" src="auth/login.js"></script>
-</body>
-
-</html>
+  <script type="module" src="auth/login.js"></script>
+  <script type="module" src="./js/tema.js"></script>
 </body>
 
 </html>

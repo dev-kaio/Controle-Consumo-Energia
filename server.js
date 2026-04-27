@@ -43,12 +43,14 @@ require("./routes/espsync");
 const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
 
-
 const rotaDB = require("./routes/firebase");
 app.use("/firebase", rotaDB);
 
 const usuariosRoutes = require("./routes/usuarios");
 app.use("/usuarios", usuariosRoutes);
+
+const superadminRoutes = require("./routes/superadmin");
+app.use("/superadmin", superadminRoutes);
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));

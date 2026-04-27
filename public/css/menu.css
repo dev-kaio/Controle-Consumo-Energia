@@ -22,6 +22,29 @@ body.dark {
   color: #e5e7eb;
 }
 
+/* Header */
+
+header {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+}
+
+header button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+body.dark header button {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
 /* =========================
    MENU BUTTON
 ========================= */
@@ -312,7 +335,7 @@ body.dark .media-consumo-container > div {
 .media-consumo-container h3 {
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  color: black;
 }
 
 body.dark .media-consumo-container h3 {
@@ -324,7 +347,7 @@ body.dark .media-consumo-container h3 {
   font-size: 22px;
   font-weight: 600;
   margin-top: 6px;
-  color: #111827;
+  color: black;
 }
 
 body.dark .media-consumo-container p {
@@ -340,13 +363,13 @@ body.dark .media-consumo-container p {
   border-radius: 10px;
   border: 1px solid #d1d5db;
   background: #ffffff;
+  color: black;
   cursor: pointer;
 }
 
 body.dark #trocarDisposicao {
   background: #1f2937;
   border-color: #374151;
-  color: #e5e7eb;
 }
 
 #themeToggle {
