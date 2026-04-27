@@ -1,49 +1,37 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
+#include <ArduinoJson.h> // n esquecer de instalar a biblioteca ArduinoJson
 #include <time.h>
 
-// ========================
 // WIFI
-// ========================
 const char *ssid = "";
 const char *password = "";
 
-// ========================
-// FIREBASE
-// ========================
-const char *firebaseUrl =
-    "https://controle-energia-d3121-default-rtdb.firebaseio.com/Esp32/apto101.json";
+const char *serverUrl = "http://192.168.0.6:3000/esp/dados";
 
-// ========================
 // INTERVALOS
-// ========================
-#define READ_INTERVAL 1000    // 1s
-#define SAMPLE_INTERVAL 10000 // 10s
-#define SEND_INTERVAL 60000   // 60s
+#define READ_INTERVAL 1000
+#define SAMPLE_INTERVAL 10000
+#define SEND_INTERVAL 60000
 
 unsigned long lastReadTime = 0;
 unsigned long lastSampleTime = 0;
 unsigned long lastSendTime = 0;
 
-// ========================
 // BUFFER
-// ========================
 #define MAX_SAMPLES 6
 
 float bufferKwh[MAX_SAMPLES];
+float bufferPotencia[MAX_SAMPLES];
+float bufferCorrente[MAX_SAMPLES];
 String bufferTimestamps[MAX_SAMPLES];
 int bufferIndex = 0;
 
-// ========================
-// Variáveis de energia
-// ========================
-float potenciaWatts = 100.0; // potência instantânea
-float energiaKwh = 0.0;      // energia acumulada
+// VARIÁVEIS
+float potenciaWatts = 100.0;
+float energiaKwh = 0.0;
 
-// ========================
-// Timestamp
-// ========================
+// TIMESTAMP
 String getTimestampISO()
 {
   struct tm timeinfo;
@@ -51,48 +39,61 @@ String getTimestampISO()
   {
     return "1970-01-01T00:00:00Z";
   }
+
   char buffer[25];
   strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
   return String(buffer);
 }
 
-// ========================
-// Envio em lote
-// ========================
-void enviarBufferFirebase()
+// ENVIO
+void enviarParaBackend()
 {
   if (WiFi.status() != WL_CONNECTED || bufferIndex == 0)
     return;
 
-  DynamicJsonDocument doc(2048);
-  JsonArray arr = doc.to<JsonArray>();
+  JsonDocument doc;
+
+  doc["aptoID"] = "apto_101";
+
+  JsonArray arr = doc["leituras"].to<JsonArray>();
 
   for (int i = 0; i < bufferIndex; i++)
   {
-    JsonObject item = arr.createNestedObject();
+    JsonObject item = arr.add<JsonObject>();
     item["timestamp"] = bufferTimestamps[i];
     item["valor"] = bufferKwh[i];
-    // item["reais"] = bufferKwh[i] * 0.95; // tarifa
+    item["potencia"] = bufferPotencia[i];
+    item["corrente"] = bufferCorrente[i];
   }
 
   String json;
   serializeJson(doc, json);
 
-  Serial.println("Enviando lote:");
+  Serial.println("Enviando:");
   Serial.println(json);
 
   HTTPClient http;
-  http.begin(firebaseUrl);
+  http.begin(serverUrl);
   http.addHeader("Content-Type", "application/json");
-  http.POST(json);
-  http.end();
+  http.addHeader("x-api-key", "123456");
 
-  bufferIndex = 0;
+  int httpCode = http.POST(json);
+
+  Serial.print("HTTP: ");
+  Serial.println(httpCode);
+
+  if (httpCode == 200)
+  {
+    bufferIndex = 0;
+  }
+
+  http.end();
 }
 
 void setup()
 {
   Serial.begin(115200);
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED)
@@ -102,6 +103,7 @@ void setup()
   }
 
   Serial.println("\nWiFi conectado!");
+
   configTime(0, 0, "pool.ntp.org");
 }
 
@@ -109,9 +111,7 @@ void loop()
 {
   unsigned long now = millis();
 
-  // ===========================
-  // Leitura + integração (1s)
-  // ===========================
+  // LEITURA (1s)
   if (now - lastReadTime >= READ_INTERVAL)
   {
     lastReadTime = now;
@@ -121,7 +121,6 @@ void loop()
     if (potenciaWatts < 0)
       potenciaWatts = 0;
 
-    // INTEGRAÇÃO DE ENERGIA
     energiaKwh += (potenciaWatts * 1.0) / 3600000.0;
 
     Serial.print("W: ");
@@ -130,9 +129,7 @@ void loop()
     Serial.println(energiaKwh, 6);
   }
 
-  // ===========================
-  // Salvar a cada 10s
-  // ===========================
+  // AMOSTRA (10s)
   if (now - lastSampleTime >= SAMPLE_INTERVAL)
   {
     lastSampleTime = now;
@@ -140,20 +137,21 @@ void loop()
     if (bufferIndex < MAX_SAMPLES)
     {
       bufferKwh[bufferIndex] = energiaKwh;
+      bufferPotencia[bufferIndex] = potenciaWatts;
+      bufferCorrente[bufferIndex] = potenciaWatts / 220.0; // exemplo simples
+
       bufferTimestamps[bufferIndex] = getTimestampISO();
+
       bufferIndex++;
 
-      Serial.print("Amostra kWh salva: ");
-      Serial.println(energiaKwh, 6);
+      Serial.println("Amostra salva");
     }
   }
 
-  // ===========================
-  // Enviar a cada 60s
-  // ===========================
+  // ENVIO (60s)
   if (now - lastSendTime >= SEND_INTERVAL)
   {
     lastSendTime = now;
-    enviarBufferFirebase();
+    enviarParaBackend();
   }
 }

@@ -37,7 +37,8 @@ const db = admin.database();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-require("./routes/espsync");
+const espSyncRoutes = require("./routes/espsync");
+app.use(espSyncRoutes);
 
 //Rotas Externas
 const authRouter = require("./routes/auth");
