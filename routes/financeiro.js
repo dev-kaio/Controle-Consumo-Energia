@@ -6,6 +6,7 @@ const db = admin.database();
 const { authenticateToken } = require("./requires");
 const { calcularKwhFaturado } = require("../utils/consumoUtils");
 const { buscarTarifaVigente } = require("../utils/tarifaUtils");
+const { normalizarAptoId } = require("../utils/aptoUtils");
 
 const REGEX_COMPETENCIA = /^\d{4}-\d{2}$/;
 
@@ -13,8 +14,12 @@ const REGEX_COMPETENCIA = /^\d{4}-\d{2}$/;
 // numa competência (mês) específica.
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const { apartamentoId, competencia } = req.query;
-    const { role, apartamentoId: aptToken } = req.user;
+    const { competencia } = req.query;
+    const { role } = req.user;
+    // Normaliza para o padrão "apto_XXX" — a claim já vem com prefixo,
+    // mas a query do frontend às vezes manda só o número.
+    const apartamentoId = normalizarAptoId(req.query.apartamentoId);
+    const aptToken = normalizarAptoId(req.user.apartamentoId);
 
     if (!apartamentoId || !competencia) {
       return res
@@ -40,6 +45,11 @@ router.get("/", authenticateToken, async (req, res) => {
       return res.status(404).json({ erro: "Apartamento não encontrado" });
     }
 
+    // Admin só pode consultar apartamentos do próprio condomínio
+    if (role === "admin" && aptoData.condominioID !== req.user.condominioID) {
+      return res.status(403).json({ erro: "Acesso negado" });
+    }
+
     const tarifa = await buscarTarifaVigente(db, aptoData.condominioID, competencia);
 
     if (!tarifa) {
@@ -54,7 +64,7 @@ router.get("/", authenticateToken, async (req, res) => {
     const fim = new Date(Date.UTC(ano, mes, 1));
 
     const snapshot = await db
-      .ref(`leituras/apto_${apartamentoId}/consumo`)
+      .ref(`leituras/${apartamentoId}/consumo`)
       .once("value");
     const registros = snapshot.val();
 

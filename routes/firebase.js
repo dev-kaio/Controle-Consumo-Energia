@@ -4,6 +4,9 @@ const admin = require("firebase-admin");
 
 const db = admin.database();
 
+const { authenticateToken } = require("./requires");
+const { normalizarAptoId } = require("../utils/aptoUtils");
+
 function calcularIntervalo(filtro) {
   const agora = new Date();
   let inicio;
@@ -37,179 +40,126 @@ function calcularIntervalo(filtro) {
   };
 }
 
-async function buscarDadosPorTipo(
-  tipoFirebase, // consumo | autoconsumo | geracao
-  tipoRetorno,
-  filtro,
-  inicio,
-  fim,
-  apartamentoId,
-) {
-  let dataInicio, dataFim;
+// Lê as leituras de UM apartamento e devolve só as que caem no intervalo.
+async function lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim) {
+  const snapshot = await db
+    .ref(`leituras/${aptoId}/${tipoDado}`)
+    .once("value");
 
-  if (filtro) {
-    const intervalo = calcularIntervalo(filtro);
-    if (!intervalo) throw new Error("Filtro inválido");
-    dataInicio = new Date(intervalo.inicio);
-    dataFim = new Date(intervalo.fim);
-  } else if (inicio && fim) {
-    dataInicio = new Date(inicio);
-    dataFim = new Date(fim);
-  } else {
-    throw new Error("Parâmetros inválidos");
-  }
+  const registros = snapshot.val();
+  if (!registros) return [];
 
   const resultado = [];
-
-  // CASO COM APARTAMENTO
-  if (apartamentoId) {
-    const snapshot = await db
-      .ref(`leituras/apto_${apartamentoId}/${tipoFirebase}`)
-      .once("value");
-
-    const registros = snapshot.val();
-    if (!registros) return [];
-
-    for (const item of Object.values(registros)) {
-      const data = new Date(item.timestamp);
-
-      if (data >= dataInicio && data <= dataFim) {
-        resultado.push({
-          timestamp: item.timestamp,
-          valorKWh: item.valorKWh,
-          tipo: tipoRetorno,
-          aptoID: apartamentoId,
-        });
-      }
-    }
-
-    return resultado;
-  }
-
-  // TODOS APARTAMENTOS
-  const snapshotTodos = await db.ref(`leituras`).once("value");
-  const todos = snapshotTodos.val();
-
-  if (!todos) return [];
-
-  for (const [aptoKey, aptoData] of Object.entries(todos)) {
-    const numero = aptoKey.replace("apto_", "");
-
-    const registros = aptoData[tipoFirebase];
-    if (!registros) continue;
-
-    for (const item of Object.values(registros)) {
-      const data = new Date(item.timestamp);
-
-      if (data >= dataInicio && data <= dataFim) {
-        resultado.push({
-          timestamp: item.timestamp,
-          valorKWh: item.valorKWh,
-          tipo: tipoRetorno,
-          aptoID: `apto_${numero}`,
-        });
-      }
+  for (const item of Object.values(registros)) {
+    const data = new Date(item.timestamp);
+    if (data >= dataInicio && data <= dataFim) {
+      resultado.push({
+        timestamp: item.timestamp,
+        valorKWh: item.valorKWh,
+        tipo: tipoDado,
+        aptoID: aptoId,
+      });
     }
   }
-
   return resultado;
 }
 
-const { authenticateToken } = require("./requires");
+// Lista os IDs de apartamento visíveis para o usuário:
+// - superadmin: todos
+// - admin: apenas os do próprio condomínio
+async function listarAptosVisiveis(usuario) {
+  const snapshot = await db.ref("apartamentos").once("value");
+  const apartamentos = snapshot.val() || {};
 
-router.get("/consumo", authenticateToken, async (req, res) => {
-  try {
-    const { filtro, inicio, fim, apartamentoId } = req.query;
-    const { role, apartamentoId: aptToken } = req.user;
+  return Object.entries(apartamentos)
+    .filter(([, apto]) => {
+      if (usuario.role === "superadmin") return true;
+      return apto.condominioID === usuario.condominioID;
+    })
+    .map(([aptoKey]) => normalizarAptoId(aptoKey));
+}
 
-    let aptFinal = apartamentoId;
+// Cria o handler de /consumo, /autoconsumo e /geracao — a lógica é idêntica,
+// só muda o tipo de dado lido em leituras/{apto}/{tipoDado}.
+function criarHandlerDeLeitura(tipoDado) {
+  return async (req, res) => {
+    try {
+      const { filtro, inicio, fim } = req.query;
+      // O frontend historicamente manda ora "apartamentoId", ora "aptoID" —
+      // aceitamos os dois para não quebrar chamadas existentes.
+      const aptoQuery = normalizarAptoId(
+        req.query.apartamentoId || req.query.aptoID,
+      );
+      const { role, condominioID } = req.user;
+      const aptoToken = normalizarAptoId(req.user.apartamentoId);
 
-    if (role === "inquilino") {
-      // Inquilino só vê o próprio ap
-      aptFinal = aptToken;
-
-      // Tentou forçar outro?
-      if (apartamentoId && apartamentoId !== aptToken) {
-        return res.status(403).json({ erro: "Acesso negado" });
+      let dataInicio, dataFim;
+      if (filtro) {
+        const intervalo = calcularIntervalo(filtro);
+        if (!intervalo) {
+          return res.status(400).json({ erro: "Filtro inválido" });
+        }
+        dataInicio = new Date(intervalo.inicio);
+        dataFim = new Date(intervalo.fim);
+      } else if (inicio && fim) {
+        dataInicio = new Date(inicio);
+        dataFim = new Date(fim);
+      } else {
+        return res.status(400).json({ erro: "Parâmetros inválidos" });
       }
-    }
 
-    const dados = await buscarDadosPorTipo(
-      "consumo",
-      "consumo",
-      filtro,
-      inicio,
-      fim,
-      aptFinal,
-    );
+      // ---- Controle de acesso por papel ----
+      let aptosAlvo;
 
-    res.json(dados);
-  } catch (error) {
-    console.error("Erro em /consumo:", error);
-    res.status(400).json({ erro: error.message });
-  }
-});
-
-router.get("/autoconsumo", authenticateToken, async (req, res) => {
-  try {
-    const { filtro, inicio, fim, apartamentoId } = req.query;
-    const { role, apartamentoId: aptToken } = req.user;
-
-    let aptFinal = apartamentoId;
-
-    if (role === "inquilino") {
-      aptFinal = aptToken;
-
-      if (apartamentoId && apartamentoId !== aptToken) {
-        return res.status(403).json({ erro: "Acesso negado" });
+      if (role === "inquilino") {
+        // Inquilino só vê o próprio apartamento, sempre.
+        if (!aptoToken) {
+          return res
+            .status(403)
+            .json({ erro: "Usuário sem apartamento vinculado" });
+        }
+        if (aptoQuery && aptoQuery !== aptoToken) {
+          return res.status(403).json({ erro: "Acesso negado" });
+        }
+        aptosAlvo = [aptoToken];
+      } else if (aptoQuery) {
+        // Admin pediu um apartamento específico: precisa ser do condomínio dele.
+        if (role !== "superadmin") {
+          const aptoSnap = await db
+            .ref(`apartamentos/${aptoQuery}`)
+            .once("value");
+          const aptoData = aptoSnap.val();
+          if (!aptoData || aptoData.condominioID !== condominioID) {
+            return res.status(403).json({ erro: "Acesso negado" });
+          }
+        }
+        aptosAlvo = [aptoQuery];
+      } else {
+        // Sem apartamento: admin recebe todos os do seu condomínio,
+        // superadmin recebe todos do sistema.
+        aptosAlvo = await listarAptosVisiveis(req.user);
       }
+
+      const porApto = await Promise.all(
+        aptosAlvo.map((aptoId) =>
+          lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim),
+        ),
+      );
+
+      res.json(porApto.flat());
+    } catch (error) {
+      console.error(`Erro em /${tipoDado}:`, error);
+      res.status(500).json({ erro: "Erro ao buscar dados" });
     }
+  };
+}
 
-    const dados = await buscarDadosPorTipo(
-      "autoconsumo",
-      "autoconsumo",
-      filtro,
-      inicio,
-      fim,
-      aptFinal,
-    );
-
-    res.json(dados);
-  } catch (error) {
-    console.error("Erro em /autoconsumo:", error);
-    res.status(400).json({ erro: error.message });
-  }
-});
-
-router.get("/geracao", authenticateToken, async (req, res) => {
-  try {
-    const { filtro, inicio, fim, apartamentoId } = req.query;
-    const { role, apartamentoId: aptToken } = req.user;
-
-    let aptFinal = apartamentoId;
-
-    if (role === "inquilino") {
-      aptFinal = aptToken;
-
-      if (apartamentoId && apartamentoId !== aptToken) {
-        return res.status(403).json({ erro: "Acesso negado" });
-      }
-    }
-
-    const dados = await buscarDadosPorTipo(
-      "geracao",
-      "geracao",
-      filtro,
-      inicio,
-      fim,
-      aptFinal,
-    );
-
-    res.json(dados);
-  } catch (error) {
-    console.error("Erro em /geracao:", error);
-    res.status(400).json({ erro: error.message });
-  }
-});
+router.get("/consumo", authenticateToken, criarHandlerDeLeitura("consumo"));
+router.get(
+  "/autoconsumo",
+  authenticateToken,
+  criarHandlerDeLeitura("autoconsumo"),
+);
+router.get("/geracao", authenticateToken, criarHandlerDeLeitura("geracao"));
 
 module.exports = router;

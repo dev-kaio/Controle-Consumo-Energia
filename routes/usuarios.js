@@ -5,6 +5,41 @@ const db = admin.database();
 
 const { authenticateToken, requireRole } = require("./requires");
 
+// Busca o registro de um usuário e valida se quem chamou pode mexer nele:
+// - superadmin pode mexer em qualquer um (menos em outro superadmin)
+// - admin só pode mexer em inquilinos do próprio condomínio
+// Devolve { userData } ou { erro: { status, mensagem } }.
+async function validarAcessoAoUsuario(reqUser, uidAlvo) {
+  const snap = await db.ref(`usuarios/${uidAlvo}`).once("value");
+  if (!snap.exists()) {
+    return { erro: { status: 404, mensagem: "Usuário não encontrado" } };
+  }
+
+  const userData = snap.val();
+
+  if (userData.tipo === "superadmin") {
+    return {
+      erro: { status: 403, mensagem: "Superadmin não pode ser alterado por aqui" },
+    };
+  }
+
+  if (reqUser.role !== "superadmin") {
+    if (userData.condominioID !== reqUser.condominioID) {
+      return { erro: { status: 403, mensagem: "Acesso negado" } };
+    }
+    if (userData.tipo !== "inquilino") {
+      return {
+        erro: {
+          status: 403,
+          mensagem: "Admin só pode alterar inquilinos",
+        },
+      };
+    }
+  }
+
+  return { userData };
+}
+
 // Criar usuario (admin e superadmin)
 router.post(
   "/criar",
@@ -32,16 +67,22 @@ router.post(
         }
       }
 
-      // Se não for superadmin, só pode criar inquilino
-      if (req.user.role !== "superadmin" && tipo === "admin") {
+      // Só existem dois tipos criáveis por esta rota. Superadmin nunca é
+      // criado via API — se aceitássemos qualquer string aqui, um admin
+      // poderia criar um usuário superadmin e escalar privilégio.
+      const tipoFinal = tipo || "inquilino";
+      if (!["inquilino", "admin"].includes(tipoFinal)) {
+        return res.status(400).json({ erro: "Tipo de usuário inválido" });
+      }
+
+      // Admin só pode criar inquilino
+      if (req.user.role !== "superadmin" && tipoFinal !== "inquilino") {
         return res.status(403).json({ erro: "Sem permissão para criar admin" });
       }
 
       // Se for inquilino, precisa de apartamentoID
-      if (tipo === "inquilino" || !tipo) {
-        if (!aptoID) {
-          return res.status(400).json({ erro: "Apartamento é obrigatório" });
-        }
+      if (tipoFinal === "inquilino" && !aptoID) {
+        return res.status(400).json({ erro: "Apartamento é obrigatório" });
       }
 
       // cria auth user PRIMEIRO (para ter o uid)
@@ -53,7 +94,7 @@ router.post(
       const uid = userRecord.uid;
 
       // Se for inquilino, cria apartamento se não existir
-      if (tipo === "inquilino" || !tipo) {
+      if (tipoFinal === "inquilino") {
         const aptoSnap = await db.ref(`apartamentos/${aptoID}`).once("value");
 
         // Se apartamento não existe, cria automaticamente com moradores
@@ -74,12 +115,12 @@ router.post(
       const userData = {
         nome,
         email,
-        tipo: tipo || "inquilino",
+        tipo: tipoFinal,
         ativo: true,
         condominioID: condoID,
       };
 
-      if (tipo === "inquilino" || !tipo) {
+      if (tipoFinal === "inquilino") {
         userData.aptoID = aptoID;
       }
 
@@ -104,7 +145,31 @@ router.post(
     const { uid, dados } = req.body;
 
     try {
-      await db.ref(`usuarios/${uid}`).update(dados);
+      if (!uid || !dados || typeof dados !== "object") {
+        return res.status(400).json({ erro: "uid e dados são obrigatórios" });
+      }
+
+      const acesso = await validarAcessoAoUsuario(req.user, uid);
+      if (acesso.erro) {
+        return res.status(acesso.erro.status).json({ erro: acesso.erro.mensagem });
+      }
+
+      // Whitelist de campos editáveis. Campos sensíveis (tipo, condominioID)
+      // ficam de fora de propósito: aceitar o body inteiro permitiria a um
+      // admin se promover a superadmin ou mover usuários de condomínio.
+      const CAMPOS_PERMITIDOS = ["nome", "email", "aptoID", "ativo"];
+      const atualizacao = {};
+      for (const campo of CAMPOS_PERMITIDOS) {
+        if (campo in dados) atualizacao[campo] = dados[campo];
+      }
+
+      if (Object.keys(atualizacao).length === 0) {
+        return res
+          .status(400)
+          .json({ erro: "Nenhum campo editável informado" });
+      }
+
+      await db.ref(`usuarios/${uid}`).update(atualizacao);
 
       res.json({
         sucesso: true,
@@ -124,15 +189,16 @@ router.post(
     const { uid } = req.body;
 
     try {
-      const userSnap = await db.ref(`usuarios/${uid}`).once("value");
-
-      if (!userSnap.exists()) {
-        return res.status(404).json({ erro: "Usuário não encontrado" });
+      if (!uid) {
+        return res.status(400).json({ erro: "uid é obrigatório" });
       }
 
-      const userData = userSnap.val();
+      const acesso = await validarAcessoAoUsuario(req.user, uid);
+      if (acesso.erro) {
+        return res.status(acesso.erro.status).json({ erro: acesso.erro.mensagem });
+      }
 
-      const aptoID = userData.aptoID;
+      const aptoID = acesso.userData.aptoID;
 
       // remove auth
       await admin.auth().deleteUser(uid);
