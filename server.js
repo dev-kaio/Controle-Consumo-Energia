@@ -53,6 +53,12 @@ app.use("/usuarios", usuariosRoutes);
 const superadminRoutes = require("./routes/superadmin");
 app.use("/superadmin", superadminRoutes);
 
+const tarifasRoutes = require("./routes/tarifas");
+app.use("/tarifas", tarifasRoutes);
+
+const financeiroRoutes = require("./routes/financeiro");
+app.use("/financeiro", financeiroRoutes);
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
