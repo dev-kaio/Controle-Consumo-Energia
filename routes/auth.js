@@ -20,16 +20,10 @@ router.post("/registrar", authenticateToken, (req, res) => {
 
 router.post("/role", authenticateToken, async (req, res) => {
   try {
-    const { tipo } = req.body;
     const uid = req.user.uid;
-
-    if (!["superadmin", "admin", "inquilino"].includes(tipo)) {
-      return res.status(400).json({ error: "Tipo de usuário inválido" });
-    }
 
     const db = admin.database();
 
-    // pega dados do usuário no banco
     const userSnap = await db.ref(`usuarios/${uid}`).once("value");
     const userData = userSnap.val();
 
@@ -37,10 +31,18 @@ router.post("/role", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado no banco" });
     }
 
+    // O tipo NUNCA vem do body — sempre do que já está salvo no banco.
+    // Isso evita que o próprio usuário escolha virar admin/superadmin
+    // chamando essa rota diretamente com um payload arbitrário.
+    const tipo = userData.tipo;
+
+    if (!["superadmin", "admin", "inquilino"].includes(tipo)) {
+      return res.status(400).json({ error: "Usuário sem tipo válido cadastrado" });
+    }
+
     let claims = {
       role: tipo,
     };
-
     if (tipo === "admin") {
       if (!userData.condominioID) {
         return res.status(400).json({ error: "Admin sem condominio" });

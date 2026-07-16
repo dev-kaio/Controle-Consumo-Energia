@@ -22,7 +22,7 @@ async function authenticateToken(req, res, next) {
       role: decoded.role,
       condominioID: decoded.condominioID,
       predioID: decoded.predioID,
-      apartamentoID: decoded.aptoID,
+      apartamentoId: decoded.aptoID,
     };
 
     next();

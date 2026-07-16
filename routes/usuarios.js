@@ -13,11 +13,6 @@ router.post(
   async (req, res) => {
     const { nome, email, senha, condominioID, tipo, aptoID } = req.body;
 
-    // LOG DEBUG BACKEND
-    console.log("=== DEBUG BACKEND - req.body ===");
-    console.log(JSON.stringify(req.body, null, 2));
-    console.log("req.user:", req.user);
-
     try {
       // Superadmin pode escolher condominioID, admin pega do claim
       let condoID;

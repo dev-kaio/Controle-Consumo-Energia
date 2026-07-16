@@ -1,8 +1,8 @@
-import { auth, db, verificarToken, getUsuarioLogado } from "../auth/firebaseConfig.js";
 import {
-  ref,
-  get,
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  auth,
+  verificarToken,
+  getUsuarioLogado,
+} from "../auth/firebaseConfig.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   await verificarToken(["superadmin"]);
@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Mostrar/ocultar campo apartamento conforme tipo
   tipoSelect.addEventListener("change", () => {
-    apartamentoInput.style.display = tipoSelect.value === "inquilino" ? "block" : "none";
+    apartamentoInput.style.display =
+      tipoSelect.value === "inquilino" ? "block" : "none";
   });
 
   // Identificar se está em dark mode
@@ -29,24 +30,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     return document.body.classList.contains("dark");
   }
 
-  // Buscar dados
+  // Buscar dados (agora via backend, não mais leitura direta do Firebase)
   async function carregarDados() {
     try {
-      const usuariosSnap = await get(ref(db, "usuarios"));
-      todosUsuarios = usuariosSnap.val() || {};
+      const token = await auth.currentUser.getIdToken();
+      const headers = { Authorization: `Bearer ${token}` };
 
-      const condosSnap = await get(ref(db, "condominios"));
-      todosCondominios = condosSnap.val() || {};
+      const [respUsuarios, respCondominios] = await Promise.all([
+        fetch("/superadmin/usuarios", { headers }),
+        fetch("/superadmin/condominios", { headers }),
+      ]);
+
+      if (!respUsuarios.ok || !respCondominios.ok) {
+        throw new Error("Falha ao buscar dados do superadmin");
+      }
+
+      const dadosUsuarios = await respUsuarios.json();
+      const dadosCondominios = await respCondominios.json();
+
+      todosUsuarios = dadosUsuarios.usuarios || {};
+      todosCondominios = dadosCondominios.condominios || {};
 
       popularFiltroCondominios();
       renderizar();
     } catch (err) {
       console.error("Erro ao buscar dados:", err);
+      container.innerHTML =
+        '<p style="padding:20px;color:#b91c1c">Não foi possível carregar os dados. Tente recarregar a página.</p>';
     }
   }
 
   function popularFiltroCondominios() {
-    filtroCondominio.innerHTML = '<option value="">Todos os Condomínios</option>';
+    filtroCondominio.innerHTML =
+      '<option value="">Todos os Condomínios</option>';
     for (const condoId in todosCondominios) {
       const condo = todosCondominios[condoId];
       const option = document.createElement("option");
@@ -161,7 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     for (const u of usuarios) {
       const tr = document.createElement("tr");
       tr.style.borderBottom = "1px solid " + style.rowBorder;
-      
+
       const isAdmin = u.tipo === "admin";
       if (isAdmin) {
         tr.style.background = style.adminBg;
@@ -211,15 +227,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const condominioID = document.getElementById("condominioID").value.trim();
     const apartamento = document.getElementById("apartamento").value.trim();
 
-    // LOG PARA DEBUG
-    console.log("=== DEBUG - Dados do form ===");
-    console.log("tipo:", tipo);
-    console.log("nome:", nome);
-    console.log("email:", email);
-    console.log("senha:", senha ? "***" : "vazia");
-    console.log("condominioID:", condominioID);
-    console.log("apartamento:", apartamento);
-
     if (!nome || !email || !senha || !condominioID) {
       alert("Preencha todos os campos!");
       return;
@@ -238,9 +245,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (tipo === "inquilino") {
         body.aptoID = apartamento;
       }
-
-      console.log("=== DEBUG - Body enviado ===");
-      console.log(JSON.stringify(body, null, 2));
 
       const response = await fetch("/usuarios/criar", {
         method: "POST",
@@ -295,9 +299,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const observer = new MutationObserver(() => {
       renderizar();
     });
-    observer.observe(document.body, { 
-      attributes: true, 
-      attributeFilter: ["class"] 
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
     });
   }
 
