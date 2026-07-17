@@ -1,95 +1,127 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menu - Palm Energy</title>
+    <title>Meu Consumo - Palm Energy</title>
     <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
     <link rel="stylesheet" href="../css/menu.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
 
   <body>
-    <button id="themeToggle" title="Alternar tema">🌙</button>
+    <!-- Header fixo: menu + marca + filtro + tema (IDs fazem parte do
+         contrato com sidebar.js e tema.js — não renomear) -->
+    <header class="app-header">
+      <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+      <span class="brand"><span class="bolt">⚡</span><span class="brand-nome">Palm Energy</span></span>
+      <span class="spacer"></span>
 
-    <button class="menu-btn" id="menuBtn">☰</button>
+      <div class="filter-container">
+        <button class="filter-btn" id="filterBtn">Filtrar ▾</button>
+        <div class="filter-menu" id="filterMenu">
+          <button data-filter="hora">Última Hora</button>
+          <button data-filter="dia">Hoje</button>
+          <button data-filter="semana">Última Semana</button>
+          <button data-filter="mes">Último Mês</button>
+          <button data-filter="ano">Último Ano</button>
+          <button data-filter="inicio">Desde o Início</button>
+
+          <div class="tipo-selecao" id="tipoSelecionado">
+            <p><strong>Tipos de Dados:</strong></p>
+            <label><input type="checkbox" value="consumo" checked /> Consumo</label>
+            <label><input type="checkbox" value="autoconsumo" checked /> Autoconsumo</label>
+            <label><input type="checkbox" value="geracao" checked /> Geração</label>
+          </div>
+          <hr />
+
+          <div class="custom-range">
+            <label>Início:</label>
+            <input type="datetime-local" id="inicioFiltro" />
+            <label>Fim:</label>
+            <input type="datetime-local" id="fimFiltro" />
+            <button id="aplicarIntervalo">Aplicar</button>
+          </div>
+        </div>
+      </div>
+
+      <button id="themeToggle" title="Alternar tema">🌙</button>
+    </header>
 
     <div class="sidebar" id="sidebar">
-      <br />
       <a href="./config.html">Configurações</a>
       <a href="../index.html" id="logout">Sair</a>
     </div>
 
-    <div class="filter-container">
-      <button class="filter-btn" id="filterBtn">Filtrar</button>
-      <div class="filter-menu" id="filterMenu">
-        <button data-filter="hora">Última Hora</button>
-        <button data-filter="dia">Hoje</button>
-        <button data-filter="semana">Última Semana</button>
-        <button data-filter="mes">Último Mês</button>
-        <button data-filter="ano">Último Ano</button>
-        <button data-filter="inicio">Desde o Início</button>
+    <main class="dashboard">
+      <!-- ===== Visão geral ===== -->
+      <span class="section-title">Visão geral</span>
 
-        <div class="tipo-selecao" id="tipoSelecionado">
-          <p><strong>Tipos de Dados:</strong></p>
-          <label
-            ><input type="checkbox" value="consumo" checked /> Consumo</label
-          ><br />
-          <label
-            ><input type="checkbox" value="autoconsumo" checked />
-            Autoconsumo</label
-          ><br />
-          <label
-            ><input type="checkbox" value="geracao" checked /> Geração</label
-          >
+      <div class="kpi-grid">
+        <!-- Potência atual: placeholder — plugar a leitura mais recente
+             (campo `potencia`) quando houver endpoint. A matemática do anel:
+             stroke-dashoffset = circunferência × (1 − percentual),
+             circunferência = 2π × r = 2π × 42 ≈ 263.9 -->
+        <div class="kpi-card kpi-card--gauge kpi-card--geracao">
+          <div class="gauge">
+            <svg viewBox="0 0 100 100">
+              <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
+              <circle
+                class="gauge-fill"
+                id="gaugePotenciaFill"
+                cx="50"
+                cy="50"
+                r="42"
+                stroke-dasharray="263.9"
+                stroke-dashoffset="263.9"
+              ></circle>
+            </svg>
+          </div>
+          <div>
+            <span class="kpi-label">Potência Atual</span>
+            <div class="kpi-value" id="valorPotenciaAtual">—</div>
+            <span class="kpi-hint" id="statusPotenciaAtual">Aguardando dado do medidor</span>
+          </div>
         </div>
-        <hr />
 
-        <div class="custom-range">
-          <label>Início:</label>
-          <input type="datetime-local" id="inicioFiltro" />
-          <label>Fim:</label>
-          <input type="datetime-local" id="fimFiltro" />
-          <button id="aplicarIntervalo">Aplicar</button>
+        <!-- Valor da conta: placeholder — preencher com GET /financeiro -->
+        <div class="kpi-card kpi-card--money kpi-card--consumo">
+          <span class="kpi-label"><span class="kpi-icon">💰</span> Valor da Conta</span>
+          <div class="kpi-value" id="valorContaAtual">R$ —,--</div>
+          <span class="kpi-hint" id="competenciaContaAtual">Competência atual</span>
         </div>
       </div>
-    </div>
-    <div class="chart-container">
-      <div
-        id="inquilinoContainer"
-        style="display: none; padding: 100px; border-radius: 10px"
-      ></div>
 
-      <div id="graficoContainer">
-        <canvas id="meuGrafico"></canvas>
+      <!-- Médias — preenchidas pelo grafico.js (IDs fazem parte do contrato) -->
+      <div id="mediaContainer" class="media-consumo-container">
+        <div class="kpi-card--consumo">
+          <h3 id="tituloMediaConsumo"></h3>
+          <p id="valorMediaConsumo" style="color: rgb(102, 6, 235)"></p>
+        </div>
+        <div class="kpi-card--autoconsumo">
+          <h3 id="tituloMediaAutoconsumo"></h3>
+          <p id="valorMediaAutoconsumo" style="color: rgb(0, 166, 90)"></p>
+        </div>
+        <div class="kpi-card--geracao">
+          <h3 id="tituloMediaGeracao"></h3>
+          <p id="valorMediaGeracao" style="color: rgb(243, 156, 18)"></p>
+        </div>
       </div>
-    </div>
 
-    <button
-      id="trocarDisposicao"
-      style="
-        background-color: rgb(255, 255, 0, 0.7);
-        display: flex;
-        align-self: center;
-      "
-    >
-      Trocar Disposição
-    </button>
+      <!-- ===== Gráfico ===== -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>Balanço energético</h2>
+          <button id="trocarDisposicao">Trocar Disposição</button>
+        </div>
 
-    <div id="mediaContainer" class="media-consumo-container">
-      <div>
-        <h3 id="tituloMediaConsumo"></h3>
-        <p id="valorMediaConsumo" style="color: rgb(102, 6, 235)"></p>
+        <div id="inquilinoContainer" style="display: none"></div>
+
+        <div id="graficoContainer">
+          <canvas id="meuGrafico"></canvas>
+        </div>
       </div>
-      <div>
-        <h3 id="tituloMediaAutoconsumo"></h3>
-        <p id="valorMediaAutoconsumo" style="color: rgba(0, 166, 90, 0.7)"></p>
-      </div>
-      <div>
-        <h3 id="tituloMediaGeracao"></h3>
-        <p id="valorMediaGeracao" style="color: rgba(243, 156, 18, 0.7)"></p>
-      </div>
-    </div>
+    </main>
   </body>
   <script type="module" src="../js/grafico.js"></script>
   <script type="module" src="../js/sidebar.js"></script>

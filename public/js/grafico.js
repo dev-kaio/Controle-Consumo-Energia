@@ -208,39 +208,31 @@ document.addEventListener("DOMContentLoaded", () => {
     filtro,
   }) {
     const div = document.createElement("div");
-
-    div.style.cssText = `
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    background: #f9f9f9;
-  `;
+    div.className = "tenant-card";
 
     // Estrutura fixa via innerHTML; nome/apartamento entram por textContent
     // para um nome malicioso não virar HTML executável (XSS).
     div.innerHTML = `
-    <p><strong>Apartamento:</strong> <span class="card-apto"></span></p>
-    <p><strong>Inquilino:</strong> <span class="card-nome"></span></p>
+    <div class="tenant-apto"></div>
+    <div class="tenant-nome"></div>
 
-    <p><strong>Consumo (${filtro}):</strong>
-      <span style="color:rgba(102, 6, 235, 0.7)">${consumo.toFixed(2)} kWh </span>
-    </p>
-
-    <p><strong>Autoconsumo (${filtro}):</strong>
-      <span style="color:rgba(0, 166, 90, 0.7)">${autoconsumo.toFixed(2)} kWh </span>
-    </p>
-
-    <p><strong>Geração (${filtro}): </strong>
-      <span style="color:rgba(243, 156, 18, 0.7)">${geracao.toFixed(2)} kWh </span>
-    </p>
+    <div class="tenant-linha">
+      <span>Consumo (${filtro})</span>
+      <span class="tenant-valor tenant-valor--consumo">${consumo.toFixed(2)} kWh</span>
+    </div>
+    <div class="tenant-linha">
+      <span>Autoconsumo (${filtro})</span>
+      <span class="tenant-valor tenant-valor--autoconsumo">${autoconsumo.toFixed(2)} kWh</span>
+    </div>
+    <div class="tenant-linha">
+      <span>Geração (${filtro})</span>
+      <span class="tenant-valor tenant-valor--geracao">${geracao.toFixed(2)} kWh</span>
+    </div>
   `;
 
-    div.querySelector(".card-apto").textContent = (apartamento || "").replace(
-      "apto_",
-      "",
-    );
-    div.querySelector(".card-nome").textContent = nome || "";
+    div.querySelector(".tenant-apto").textContent =
+      "Apto " + (apartamento || "—").replace("apto_", "");
+    div.querySelector(".tenant-nome").textContent = nome || "";
 
     return div;
   }
