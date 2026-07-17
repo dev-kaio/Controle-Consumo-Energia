@@ -46,6 +46,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     localStorage.setItem("token", token);
     localStorage.setItem("tipoUsuario", perfil.tipo);
+    localStorage.setItem("nomeUsuario", perfil.nome || "");
     localStorage.setItem("aptoID", perfil.aptoID || "");
     localStorage.setItem("condominioID", perfil.condominioID || "");
 

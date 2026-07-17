@@ -1,51 +1,72 @@
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { auth } from "../auth/firebaseConfig.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // Nem toda página que usa este script tem sidebar (config.html não tem) —
-  // os elementos são opcionais para o script não quebrar no primeiro
-  // addEventListener e derrubar o resto da página junto.
-  const menuBtn = document.getElementById("menuBtn");
-  const sidebar = document.getElementById("sidebar");
+// Página de configurações: dados da conta + redefinição de senha.
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("voltar").addEventListener("click", (e) => {
+    e.preventDefault();
+    window.history.back();
+  });
 
-  if (menuBtn && sidebar) {
-    menuBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("active");
-    });
+  // ----- Minha conta (dados salvos no login) -----
+  const ROTULOS_TIPO = {
+    superadmin: "Dono do sistema",
+    admin: "Administrador do condomínio",
+    inquilino: "Inquilino",
+  };
+
+  const tipo = localStorage.getItem("tipoUsuario") || "";
+  const aptoID = localStorage.getItem("aptoID") || "";
+  const condominioID = localStorage.getItem("condominioID") || "";
+  const nome = localStorage.getItem("nomeUsuario") || "";
+
+  document.getElementById("contaNome").textContent = nome || "—";
+  document.getElementById("contaTipo").textContent =
+    ROTULOS_TIPO[tipo] || tipo || "—";
+
+  if (aptoID) {
+    document.getElementById("linhaApto").style.display = "";
+    document.getElementById("contaApto").textContent = aptoID;
+  }
+  if (condominioID) {
+    document.getElementById("linhaCondominio").style.display = "";
+    document.getElementById("contaCondominio").textContent = condominioID;
   }
 
-  document.getElementById("senha-btn").addEventListener("click", alterarSenha);
+  // Email vem do Firebase Auth (fonte confiável); também pré-preenche o
+  // formulário de redefinição pra ninguém precisar digitar o próprio email
+  const inputEmail = document.getElementById("alterarSenhaEmail");
+  const parar = auth.onAuthStateChanged((user) => {
+    parar();
+    if (user?.email) {
+      document.getElementById("contaEmail").textContent = user.email;
+      if (!inputEmail.value) inputEmail.value = user.email;
+    }
+  });
 
-  function alterarSenha() {
-    const modal = document.getElementById("alterarSenha");
-    modal.style.display = "flex";
+  // ----- Redefinir senha -----
+  const msg = document.getElementById("msgSenha");
 
-    const formSenha = document.getElementById("formAlterarSenha");
-
-    formSenha.onsubmit = async (e) => {
+  document
+    .getElementById("formAlterarSenha")
+    .addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById("alterarSenhaEmail").value.trim();
+      const email = inputEmail.value.trim();
       if (!email) {
-        alert("Preencha o email!");
+        msg.textContent = "Preencha o email.";
+        msg.className = "msg-feedback erro";
         return;
       }
 
       try {
         await sendPasswordResetEmail(auth, email);
-        alert("E-mail de redefinição enviado!");
-        modal.style.display = "none";
-        formSenha.reset();
+        msg.textContent = "Email de redefinição enviado! Confira sua caixa de entrada.";
+        msg.className = "msg-feedback ok";
       } catch (err) {
         console.error(err);
-        alert("Erro ao enviar e-mail.");
+        msg.textContent = "Erro ao enviar o email. Confira o endereço.";
+        msg.className = "msg-feedback erro";
       }
-    };
-  }
-
-  document
-    .getElementById("fecharAlterarSenha")
-    .addEventListener("click", () => {
-      document.getElementById("alterarSenha").style.display = "none";
     });
 });

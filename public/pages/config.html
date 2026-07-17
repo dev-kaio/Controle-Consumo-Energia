@@ -1,49 +1,66 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menu - Palm Energy</title>
+    <title>Configurações - Palm Energy</title>
     <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
     <link rel="stylesheet" href="../css/menu.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
 
-  <header>
-    <button
-      href="#"
-      onclick="
-        window.history.back();
-        return false;
-      "
-    >
-      Voltar
-    </button>
-  </header>
   <body>
-    <button id="themeToggle" title="Alternar tema">🌙</button>
+    <header class="app-header">
+      <a href="#" class="voltar" id="voltar">← Voltar</a>
+      <span class="brand"><span class="bolt">⚡</span><span class="brand-nome">Palm Energy</span></span>
+      <span class="spacer"></span>
+      <button id="themeToggle" title="Alternar tema">🌙</button>
+    </header>
 
-    <button
-      class="senha-btn"
-      id="senha-btn"
-      style="background-color: rgb(255, 255, 0, 0.7)"
-    >
-      Redefinir Senha
-    </button>
+    <main class="dashboard">
+      <span class="section-title">Configurações</span>
 
-    <div id="alterarSenha" style="display: none">
-      <div class="modal-conteudo">
-        <span class="fechar" id="fecharAlterarSenha">&times;</span>
-
-        <form id="formAlterarSenha">
-          <h2 style="color: white">Alterar Senha</h2>
-          <p style="color: white">Informe o email para redefinição da senha</p>
-
-          <input type="email" id="alterarSenhaEmail" placeholder="Email" />
-          <button type="submit">Enviar</button>
-        </form>
+      <!-- MINHA CONTA -->
+      <div class="panel">
+        <h2>Minha conta</h2>
+        <p class="panel-desc">Dados do usuário logado.</p>
+        <table class="data-table">
+          <tbody>
+            <tr><td>Nome</td><td id="contaNome">—</td></tr>
+            <tr><td>Email</td><td id="contaEmail">—</td></tr>
+            <tr><td>Perfil</td><td id="contaTipo">—</td></tr>
+            <tr id="linhaApto" style="display: none"><td>Apartamento</td><td id="contaApto">—</td></tr>
+            <tr id="linhaCondominio" style="display: none"><td>Condomínio</td><td id="contaCondominio">—</td></tr>
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      <!-- SEGURANÇA -->
+      <div class="panel">
+        <h2>Segurança</h2>
+        <p class="panel-desc">
+          Enviamos um link de redefinição de senha para o seu email.
+        </p>
+        <form id="formAlterarSenha" class="form-linha">
+          <div class="campo">
+            <label for="alterarSenhaEmail">Email</label>
+            <input type="email" id="alterarSenhaEmail" placeholder="Email" />
+          </div>
+          <button type="submit" id="senha-btn" class="btn-primary">
+            Enviar link de redefinição
+          </button>
+        </form>
+        <p class="msg-feedback" id="msgSenha"></p>
+      </div>
+
+      <!-- APARÊNCIA -->
+      <div class="panel">
+        <h2>Aparência</h2>
+        <p class="panel-desc">
+          Use o botão 🌙/☀️ no topo pra alternar entre tema claro e escuro.
+          A escolha fica salva neste dispositivo.
+        </p>
+      </div>
+    </main>
   </body>
   <script type="module" src="../js/sidebar-config.js"></script>
   <script src="../js/tema.js"></script>

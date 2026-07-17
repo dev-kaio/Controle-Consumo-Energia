@@ -2,52 +2,9 @@
    PALM ENERGY — design system do dashboard (ver docs/DESIGN-SYSTEM.md)
 
    Fontes: Space Grotesk (títulos/números) + Inter (corpo/UI).
-   Cores: nenhuma inventada — a paleta que já existia virou variável.
+   Variáveis de cor/tipografia vêm de variables.css (compartilhado).
 ================================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
-
-/* =========================
-   VARIÁVEIS
-========================= */
-:root {
-  --color-bg: #eef0f4;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f6f7f9;
-  --color-border: #e2e5ea;
-  --color-text: #1f2933;
-  --color-text-muted: #6b7280;
-
-  --color-accent: rgb(102, 6, 235); /* consumo / marca */
-  --color-accent-soft: rgba(102, 6, 235, 0.1);
-  --color-autoconsumo: rgb(0, 166, 90);
-  --color-autoconsumo-soft: rgba(0, 166, 90, 0.12);
-  --color-geracao: rgb(243, 156, 18);
-  --color-geracao-soft: rgba(243, 156, 18, 0.14);
-  --color-danger: #b91c1c;
-
-  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.07);
-  --shadow-pop: 0 12px 30px rgba(16, 24, 40, 0.14);
-  --radius-card: 16px;
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-}
-
-body.dark {
-  --color-bg: #0f1522;
-  --color-surface: #1f2937;
-  --color-surface-alt: #111827;
-  --color-border: #374151;
-  --color-text: #e5e7eb;
-  --color-text-muted: #9ca3af;
-
-  --color-accent: rgb(146, 90, 245);
-  --color-accent-soft: rgba(146, 90, 245, 0.16);
-  --color-autoconsumo-soft: rgba(0, 166, 90, 0.18);
-  --color-geracao-soft: rgba(243, 156, 18, 0.18);
-
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-pop: 0 12px 30px rgba(0, 0, 0, 0.55);
-}
+@import url("./variables.css");
 
 /* =========================
    RESET + BASE
@@ -787,6 +744,73 @@ input[type="datetime-local"]:focus {
 .data-table .editar-btn:hover,
 .data-table .senha-btn:hover {
   border-color: var(--color-accent);
+}
+
+/* =========================
+   ACCORDION (lista de condomínios do superadmin)
+========================= */
+.accordion-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.accordion-item + .accordion-item {
+  margin-top: 14px;
+}
+
+.accordion-header {
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+}
+
+.accordion-header:hover {
+  background: var(--color-surface-alt);
+}
+
+.accordion-header .condo-nome {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.accordion-header .condo-info {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.accordion-header .arrow {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.accordion-content {
+  display: none;
+  padding: 0 20px 16px;
+}
+
+/* linha de admin destacada na tabela do superadmin */
+.data-table tr.linha-admin td {
+  background: var(--color-accent-soft);
+  font-weight: 600;
+}
+
+/* link "voltar" do header */
+.app-header .voltar {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 8px 4px;
+}
+
+.app-header .voltar:hover {
+  color: var(--color-accent);
 }
 
 /* =========================

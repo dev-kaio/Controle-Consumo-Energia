@@ -1,84 +1,62 @@
-@import url("https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap");
+/* ==================================================================
+   PALM ENERGY — página de login (index.html)
+   Variáveis e fontes vêm de variables.css (mesmo design system do
+   dashboard — ver docs/DESIGN-SYSTEM.md).
+================================================================== */
+@import url("./variables.css");
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
-  font-family: "Orbitron", sans-serif;
-  background-color: #afafb0;
-  background-image: url("../assets/logolight.png");
-  background-repeat: no-repeat;
-  background-position: center top;
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 95vh;
-  margin: 0;
   padding: 1rem;
-}
-img {
-  width: 128px;
-  height: 128px;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* DARK MODE */
-body.dark {
-  background-color: #111827;
-  background-image: url("../assets/logodark.png");
-}
-
-body.dark .container {
-  background-color: #1f2937;
-}
-
-body.dark h2 {
-  color: #e5e7eb;
-}
-
-body.dark label {
-  color: #9ca3af;
-}
-
-body.dark input[type="text"],
-body.dark input[type="password"],
-body.dark input[type="email"] {
-  background: #111827;
-  border-color: #374151;
-  color: #e5e7eb;
-}
-
-body.dark .container:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 12px 28px rgba(0, 0, 0, 0.2);
-}
-
-body.dark .container-title {
-  color: #e5e7eb;
-}
-
-img {
-  width: 128px;
-  height: 128px;
-}
-
-.container {
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 350px;
-  text-align: center;
-  transition: box-shadow 0.3s ease;
-}
-
+/* Marca acima do card */
 .container-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   text-align: center;
-  padding: 2rem;
-  width: 100%;
-  max-width: 350px;
-  text-align: center;
-  color: white;
+  max-width: 380px;
+  margin-bottom: 20px;
 }
 
-.container:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12), 0 12px 28px rgba(0, 0, 0, 0.1);
+.container-title .bolt {
+  color: var(--color-geracao);
+}
+
+.container-title .tagline {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Card de login */
+.container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
 }
 
 .form-section {
@@ -89,8 +67,9 @@ img {
 }
 
 h2 {
-  margin-bottom: 1rem;
-  color: #333;
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin-bottom: 1.2rem;
 }
 
 .form-group {
@@ -101,126 +80,90 @@ h2 {
 
 label {
   display: block;
-  margin-bottom: 0.5rem;
-  margin-left: 10px;
-  color: #555;
+  margin-bottom: 0.4rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 input[type="text"],
 input[type="password"],
 input[type="email"] {
   width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* mais espaço pro olho */
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  box-sizing: border-box;
-  font-size: 1rem;
+  padding: 0.75rem 2.5rem 0.75rem 0.85rem; /* espaço pro olho */
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-accent);
 }
 
 .toggle-password {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
   position: absolute;
-  right: 10px;
-  top: 70%;
-  transform: translateY(-50%);
+  right: 12px;
+  bottom: 12px;
 }
 
-button {
+button[type="submit"] {
   width: 100%;
-  padding: 0.75rem;
-  background-color: rgb(102, 6, 235);
-  color: #fff;
+  padding: 0.8rem;
+  background: var(--color-accent);
+  color: #ffffff;
   border: none;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 1rem;
-  transition: background-color 0.3s ease;
-}
-button:hover {
-  background-color: rgb(102, 6, 235, 0.8);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 0.4rem;
 }
 
-p {
-  color: rgb(102, 6, 235);
+button[type="submit"]:hover {
+  filter: brightness(1.1);
 }
 
-.link {
-  margin-top: 1rem;
-}
-.link a {
-  color: rgb(102, 6, 235);
-  text-decoration: none;
-  cursor: pointer;
-}
-.link a:hover {
-  text-decoration: underline;
+button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
+/* mensagem de erro/aviso do login */
+#mensagemL {
+  color: var(--color-danger);
+  font-size: 13px;
+  min-height: 18px;
+  margin-bottom: 4px;
+}
+
+/* Botão de tema flutuante (página sem header) */
 #themeToggle {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 18px;
+  box-shadow: var(--shadow-card);
 }
 
-body.dark #themeToggle {
-  background: #1f2937;
-  border-color: #374151;
-  color: #e5e7eb;
+#themeToggle:hover {
+  border-color: var(--color-accent);
 }
-
-/* Ajustes para celular */
-/* @media (max-width: 1490px) {
-  body {
-    padding: 0.5rem;
-    align-items: center;
-    background-position: top;
-    background-size: 100px 100px;
-  }
-
-  .container {
-    padding: 1.5rem;
-    border-radius: 15px;
-    max-width: 70%;
-    margin-left: 0;
-  }
-
-  .container-title {
-    margin-left: 0;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-  }
-
-  input[type="text"],
-  input[type="password"],
-  input[type="email"] {
-    font-size: 0.95rem;
-    padding: 0.65rem 2.2rem 0.65rem 0.65rem;
-  }
-
-  button {
-    font-size: 0.95rem;
-    padding: 0.65rem;
-  }
-
-  .toggle-password {
-    width: 20px;
-    height: 20px;
-    right: 8px;
-  }
-} */

@@ -1,9 +1,7 @@
-import {
-  auth,
-  verificarToken,
-  getUsuarioLogado,
-} from "../auth/firebaseConfig.js";
+import { auth, signOut, verificarToken } from "../auth/firebaseConfig.js";
 
+// Painel do superadmin: cadastro de usuários (admin/inquilino) e visão de
+// todos os usuários agrupados por condomínio. Tudo via backend.
 document.addEventListener("DOMContentLoaded", async () => {
   await verificarToken(["superadmin"]);
 
@@ -11,29 +9,76 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filtroNome = document.getElementById("filtroNome");
   const filtroCondominio = document.getElementById("filtroCondominio");
 
-  let todosUsuarios = [];
+  let todosUsuarios = {};
   let todosCondominios = {};
 
   // Formulário unificado
   const formUsuario = document.getElementById("formUsuario");
   const tipoSelect = document.getElementById("tipoUsuario");
-  const apartamentoInput = document.getElementById("apartamento");
+  const condominioSelect = document.getElementById("condominioID");
+  const apartamentoSelect = document.getElementById("apartamento");
+  const campoApartamento = document.getElementById("campoApartamento");
+  const msgUsuario = document.getElementById("msgUsuario");
 
-  // Mostrar/ocultar campo apartamento conforme tipo
-  tipoSelect.addEventListener("change", () => {
-    apartamentoInput.style.display =
-      tipoSelect.value === "inquilino" ? "block" : "none";
+  document.getElementById("logout").addEventListener("click", async (e) => {
+    e.preventDefault();
+    await signOut();
+    localStorage.clear();
   });
 
-  // Identificar se está em dark mode
-  function isDarkMode() {
-    return document.body.classList.contains("dark");
+  function feedback(texto, ok) {
+    msgUsuario.textContent = texto;
+    msgUsuario.className = `msg-feedback ${ok ? "ok" : "erro"}`;
   }
 
-  // Buscar dados (agora via backend, não mais leitura direta do Firebase)
+  async function obterToken() {
+    if (auth.currentUser) return auth.currentUser.getIdToken();
+    return new Promise((resolve) => {
+      const parar = auth.onAuthStateChanged((user) => {
+        parar();
+        resolve(user ? user.getIdToken() : null);
+      });
+    });
+  }
+
+  // Campo apartamento só aparece pra inquilino
+  tipoSelect.addEventListener("change", () => {
+    campoApartamento.style.display =
+      tipoSelect.value === "inquilino" ? "" : "none";
+  });
+
+  // Apartamentos disponíveis dependem do condomínio escolhido
+  condominioSelect.addEventListener("change", carregarApartamentosDoCondominio);
+
+  async function carregarApartamentosDoCondominio() {
+    const condoId = condominioSelect.value;
+    apartamentoSelect.innerHTML = "";
+    if (!condoId) return;
+
+    try {
+      const token = await obterToken();
+      const resp = await fetch(
+        `/estrutura/apartamentos?condominioID=${encodeURIComponent(condoId)}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!resp.ok) return;
+
+      const { apartamentos } = await resp.json();
+      for (const aptoID of Object.keys(apartamentos || {})) {
+        const op = document.createElement("option");
+        op.value = aptoID;
+        op.textContent = aptoID;
+        apartamentoSelect.appendChild(op);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar apartamentos:", err);
+    }
+  }
+
+  // Buscar dados (sempre via backend, nunca Firebase client SDK)
   async function carregarDados() {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
       const headers = { Authorization: `Bearer ${token}` };
 
       const [respUsuarios, respCondominios] = await Promise.all([
@@ -45,44 +90,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Falha ao buscar dados do superadmin");
       }
 
-      const dadosUsuarios = await respUsuarios.json();
-      const dadosCondominios = await respCondominios.json();
+      todosUsuarios = (await respUsuarios.json()).usuarios || {};
+      todosCondominios = (await respCondominios.json()).condominios || {};
 
-      todosUsuarios = dadosUsuarios.usuarios || {};
-      todosCondominios = dadosCondominios.condominios || {};
-
-      popularFiltroCondominios();
+      popularSelectsCondominio();
+      await carregarApartamentosDoCondominio();
       renderizar();
     } catch (err) {
       console.error("Erro ao buscar dados:", err);
-      container.innerHTML =
-        '<p style="padding:20px;color:#b91c1c">Não foi possível carregar os dados. Tente recarregar a página.</p>';
+      container.textContent =
+        "Não foi possível carregar os dados. Tente recarregar a página.";
     }
   }
 
-  function popularFiltroCondominios() {
+  function popularSelectsCondominio() {
     filtroCondominio.innerHTML =
       '<option value="">Todos os Condomínios</option>';
+    condominioSelect.innerHTML = "";
+
     for (const condoId in todosCondominios) {
       const condo = todosCondominios[condoId];
-      const option = document.createElement("option");
-      option.value = condoId;
-      option.textContent = `${condo.nome} (${condoId})`;
-      filtroCondominio.appendChild(option);
-    }
-  }
 
-  function getTableStyle() {
-    const dark = isDarkMode();
-    return {
-      tableBg: dark ? "#1f2937" : "#ffffff4e",
-      headerBg: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
-      rowBorder: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
-      rowHover: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-      text: dark ? "#e5e7eb" : "#1f2933",
-      headerBgAccordion: dark ? "#374151" : "#f0f0f0",
-      adminBg: dark ? "#6366f1" : "#6366f1",
-    };
+      const opFiltro = document.createElement("option");
+      opFiltro.value = condoId;
+      opFiltro.textContent = `${condo.nome} (${condoId})`;
+      filtroCondominio.appendChild(opFiltro);
+
+      const opForm = opFiltro.cloneNode(true);
+      condominioSelect.appendChild(opForm);
+    }
   }
 
   function renderizar() {
@@ -90,7 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const nomeFiltro = filtroNome.value.toLowerCase();
     const condoFiltro = filtroCondominio.value;
-    const style = getTableStyle();
 
     const usuariosPorCondominio = {};
 
@@ -117,60 +152,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         return 0;
       });
 
-      const accordion = criarAccordion(condoId, condo, usuarios, style);
-      container.appendChild(accordion);
+      container.appendChild(criarAccordion(condoId, condo, usuarios));
     }
   }
 
-  function criarAccordion(condoId, condo, usuarios, style) {
+  // Visual inteiro via classes CSS (menu.css) — o tema claro/escuro é
+  // resolvido pelas variáveis, sem re-renderizar nada ao trocar de tema.
+  function criarAccordion(condoId, condo, usuarios) {
     const div = document.createElement("div");
     div.className = "accordion-item";
-    div.style.marginBottom = "20px";
-    div.style.border = "1px solid " + style.rowBorder;
-    div.style.borderRadius = "5px";
-
-    const nomeCondo = condo?.nome || "Sem Condomínio";
-    const local = condo?.localizacao || "";
 
     const header = document.createElement("div");
     header.className = "accordion-header";
-    header.style.padding = "15px";
-    header.style.background = style.headerBgAccordion;
-    header.style.cursor = "pointer";
-    header.style.display = "flex";
-    header.style.justifyContent = "space-between";
-    header.style.alignItems = "center";
-    header.style.color = style.text;
     // Dados dinâmicos via textContent — nome/localização de condomínio
     // não podem entrar como HTML (XSS).
     header.innerHTML = `
-      <span><strong class="condo-nome"></strong> <span class="condo-info"></span></span>
+      <span><span class="condo-nome"></span> <span class="condo-info"></span></span>
       <span class="arrow">▼</span>
     `;
-    header.querySelector(".condo-nome").textContent = nomeCondo;
-    header.querySelector(".condo-info").textContent = `(ID: ${condoId}) - ${local}`;
+    header.querySelector(".condo-nome").textContent =
+      condo?.nome || "Sem Condomínio";
+    header.querySelector(".condo-info").textContent =
+      `(${condoId})${condo?.localizacao ? " — " + condo.localizacao : ""}`;
 
     const conteudo = document.createElement("div");
     conteudo.className = "accordion-content";
-    conteudo.style.display = "none";
-    conteudo.style.padding = "10px";
 
     const tabela = document.createElement("table");
-    tabela.className = "tabela-superadmin";
-    tabela.style.width = "100%";
-    tabela.style.borderCollapse = "collapse";
-    tabela.style.background = style.tableBg;
-    tabela.style.borderRadius = "16px";
-    tabela.style.overflow = "hidden";
-
+    tabela.className = "data-table";
     tabela.innerHTML = `
-      <thead style="background: ${style.headerBg}">
+      <thead>
         <tr>
-          <th style="padding:14px 16px;text-align:left;color:${style.text}">Nome</th>
-          <th style="padding:14px 16px;text-align:left;color:${style.text}">Tipo</th>
-          <th style="padding:14px 16px;text-align:left;color:${style.text}">Condomínio ID</th>
-          <th style="padding:14px 16px;text-align:left;color:${style.text}">Apartamento</th>
-          <th style="padding:14px 16px;text-align:left;color:${style.text}">Status</th>
+          <th>Nome</th>
+          <th>Perfil</th>
+          <th>Apartamento</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -180,34 +196,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     for (const u of usuarios) {
       const tr = document.createElement("tr");
-      tr.style.borderBottom = "1px solid " + style.rowBorder;
+      if (u.tipo === "admin") tr.className = "linha-admin";
 
-      const isAdmin = u.tipo === "admin";
-      if (isAdmin) {
-        tr.style.background = style.adminBg;
-      }
-
-      const textColor = isAdmin ? "#ffffff" : style.text;
-
-      tr.addEventListener("mouseenter", () => {
-        tr.style.background = isAdmin ? "#4f46e5" : style.rowHover;
-      });
-      tr.addEventListener("mouseleave", () => {
-        tr.style.background = isAdmin ? style.adminBg : "transparent";
-      });
-
-      // Células criadas com textContent — nome/tipo/IDs vindos do banco
-      // nunca são interpretados como HTML (XSS).
+      // Células com textContent — dados do banco nunca viram HTML (XSS)
       const celulas = [
         u.nome || "-",
-        isAdmin ? "Admin" : u.tipo,
-        u.condominioID || "-",
+        u.tipo === "admin" ? "Admin" : u.tipo,
         u.aptoID || "-",
         u.ativo ? "Ativo" : "Inativo",
       ];
       for (const valor of celulas) {
         const td = document.createElement("td");
-        td.style.cssText = `padding:14px 16px;color:${textColor}`;
         td.textContent = valor;
         tr.appendChild(td);
       }
@@ -217,9 +216,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     conteudo.appendChild(tabela);
 
     header.addEventListener("click", () => {
-      const isOpen = conteudo.style.display === "block";
-      conteudo.style.display = isOpen ? "none" : "block";
-      header.querySelector(".arrow").textContent = isOpen ? "▼" : "▲";
+      const aberto = conteudo.style.display === "block";
+      conteudo.style.display = aberto ? "none" : "block";
+      header.querySelector(".arrow").textContent = aberto ? "▼" : "▲";
     });
 
     div.appendChild(header);
@@ -228,32 +227,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     return div;
   }
 
-  // Cadastrar Usuário (unificado)
+  // Cadastrar usuário (unificado)
   formUsuario.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const tipo = document.getElementById("tipoUsuario").value;
+    const tipo = tipoSelect.value;
     const nome = document.getElementById("nome").value.trim();
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value.trim();
-    const condominioID = document.getElementById("condominioID").value.trim();
-    const apartamento = document.getElementById("apartamento").value.trim();
+    const condominioID = condominioSelect.value;
+    const apartamento = apartamentoSelect.value;
 
     if (!nome || !email || !senha || !condominioID) {
-      alert("Preencha todos os campos!");
+      feedback("Preencha todos os campos!", false);
       return;
     }
 
     if (tipo === "inquilino" && !apartamento) {
-      alert("Inquilino precisa de apartamento!");
+      feedback("Inquilino precisa de apartamento (cadastre na Estrutura)", false);
       return;
     }
 
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
 
       const body = { nome, email, senha, condominioID, tipo };
-
       if (tipo === "inquilino") {
         body.aptoID = apartamento;
       }
@@ -268,17 +266,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (response.ok) {
-        alert(`${tipo === "admin" ? "Admin" : "Inquilino"} criado!`);
+        feedback(`${tipo === "admin" ? "Admin" : "Inquilino"} criado!`, true);
         formUsuario.reset();
-        apartamentoInput.style.display = "none";
+        campoApartamento.style.display = "";
         carregarDados();
       } else {
         const err = await response.json();
-        alert("Erro: " + err.erro);
+        feedback("Erro: " + (err.erro || response.status), false);
       }
     } catch (err) {
       console.error(err);
-      alert("Erro ao criar usuário.");
+      feedback("Erro ao criar usuário.", false);
     }
   });
 
@@ -288,34 +286,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Expandir/Colapsar
   document.getElementById("expandirTodos").addEventListener("click", () => {
-    const contents = container.querySelectorAll(".accordion-content");
-    const arrows = container.querySelectorAll(".arrow");
-    contents.forEach((c, i) => {
+    container.querySelectorAll(".accordion-content").forEach((c) => {
       c.style.display = "block";
-      if (arrows[i]) arrows[i].textContent = "▲";
+    });
+    container.querySelectorAll(".arrow").forEach((a) => {
+      a.textContent = "▲";
     });
   });
 
   document.getElementById("colapsarTodos").addEventListener("click", () => {
-    const contents = container.querySelectorAll(".accordion-content");
-    const arrows = container.querySelectorAll(".arrow");
-    contents.forEach((c, i) => {
+    container.querySelectorAll(".accordion-content").forEach((c) => {
       c.style.display = "none";
-      if (arrows[i]) arrows[i].textContent = "▼";
+    });
+    container.querySelectorAll(".arrow").forEach((a) => {
+      a.textContent = "▼";
     });
   });
-
-  // Atualizar quando tema mudar
-  const themeToggle = document.getElementById("themeToggle");
-  if (themeToggle) {
-    const observer = new MutationObserver(() => {
-      renderizar();
-    });
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-  }
 
   carregarDados();
 });

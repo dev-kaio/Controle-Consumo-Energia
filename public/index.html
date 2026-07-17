@@ -5,14 +5,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Palm Energy - Entrar</title>
-  <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
+  <link rel="icon" href="./assets/favicon.png" type="image/x-icon" />
   <link rel="stylesheet" href="./css/style.css">
 </head>
 
-<body style="display: flex; flex-direction: column;">
+<body>
   <button id="themeToggle" title="Alternar tema">🌙</button>
 
-  <div class="container-title">Controle de energia na palma da sua mão</div>
+  <div class="container-title">
+    <span class="bolt">⚡</span> Palm Energy
+    <span class="tagline">Controle de energia na palma da sua mão</span>
+  </div>
+
   <div class="container">
     <div id="login-form" class="form-section active">
       <h2>Entrar</h2>
@@ -33,7 +37,7 @@
   </div>
 
   <script type="module" src="auth/login.js"></script>
-  <script type="module" src="./js/tema.js"></script>
+  <script src="./js/tema.js"></script>
 </body>
 
 </html>

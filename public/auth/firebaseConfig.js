@@ -1,4 +1,3 @@
-import { getDatabase } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {
   getAuth,
@@ -6,6 +5,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
+// Config PÚBLICA do Firebase (por design — identifica o projeto, não dá
+// acesso a nada; o acesso é controlado pelas regras e pelo backend).
+//
+// O frontend usa o Firebase SÓ para autenticação. Nenhuma página lê o
+// Realtime Database direto — todo dado passa pelo backend, que aplica as
+// regras de acesso por papel/condomínio.
 const firebaseConfig = {
   apiKey: "AIzaSyDHqqnE10yGmOkIVt5mpXyW4-rKUUZbrJY",
   authDomain: "controle-energia-d3121.firebaseapp.com",
@@ -18,7 +23,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app);
 
 async function signOut() {
   try {
@@ -30,8 +34,6 @@ async function signOut() {
 }
 
 async function verificarToken(rolesPermitidos = []) {
-  const auth = getAuth();
-
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = "/index.html";
@@ -65,22 +67,9 @@ async function verificarToken(rolesPermitidos = []) {
       }
     } catch (error) {
       console.error("Erro ao validar token:", error);
-      await signOut(auth);
-      window.location.href = "/index.html";
+      await signOut();
     }
   });
 }
 
-/**
- * Retorna dados do usuário logado do localStorage
- */
-function getUsuarioLogado() {
-  return {
-    tipo: localStorage.getItem("tipoUsuario") || null,
-    condominioID: localStorage.getItem("condominioID") || null,
-    aptoID: localStorage.getItem("aptoID") || null,
-    uid: null, // UID vem do Firebase Auth, não do localStorage
-  };
-}
-
-export { app, auth, db, signOut, verificarToken, getUsuarioLogado };
+export { app, auth, signOut, verificarToken };
