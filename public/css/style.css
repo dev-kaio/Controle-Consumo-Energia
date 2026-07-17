@@ -96,7 +96,7 @@ input[type="email"] {
   background: var(--color-surface-alt);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px; /* nunca menor que 16px: iOS dá zoom no foco */
 }
 
 input:focus {
@@ -148,10 +148,15 @@ button[type="submit"]:disabled {
   margin-bottom: 4px;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
 /* Botão de tema flutuante (página sem header) */
 #themeToggle {
   position: fixed;
-  bottom: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   right: 20px;
   width: 44px;
   height: 44px;

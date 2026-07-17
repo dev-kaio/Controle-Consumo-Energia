@@ -815,10 +815,31 @@ input[type="datetime-local"]:focus {
 
 /* =========================
    RESPONSIVO
+   O sistema é usado principalmente no CELULAR — mobile não é exceção,
+   é o caso principal. Três degraus: 900px (tablet), 700px (celular),
+   480px (celular pequeno).
 ========================= */
+
+/* Toque: sem flash azul de tap e sem zoom automático de texto */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Celulares com notch (PWA standalone): header e sidebar respeitam
+   a área segura do sistema */
+.app-header {
+  padding-top: env(safe-area-inset-top);
+  height: calc(60px + env(safe-area-inset-top));
+}
+
+.sidebar {
+  padding-top: calc(76px + env(safe-area-inset-top));
+}
+
 @media (max-width: 900px) {
   .dashboard {
-    padding: 76px 14px 30px;
+    padding: calc(76px + env(safe-area-inset-top)) 14px 30px;
   }
 
   .media-consumo-container {
@@ -830,22 +851,105 @@ input[type="datetime-local"]:focus {
   }
 }
 
+@media (max-width: 700px) {
+  /* iOS dá zoom em input com fonte < 16px — no celular tudo vira 16px */
+  .campo input,
+  .campo select,
+  input[type="datetime-local"] {
+    font-size: 16px;
+  }
+
+  /* Formulários empilham: um campo por linha, botão em largura total */
+  .form-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .campo {
+    min-width: 0;
+  }
+
+  .form-linha .btn-primary {
+    width: 100%;
+    padding: 13px;
+  }
+
+  /* Tabelas nunca espremem as colunas: rolagem horizontal dentro
+     do próprio card */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th,
+  .data-table td {
+    white-space: nowrap;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .chart-card {
+    padding: 14px;
+  }
+
+  /* Sidebar não cobre a tela toda — dá pra tocar fora pra fechar */
+  .sidebar {
+    width: min(280px, 82vw);
+  }
+
+  /* Alvos de toque ≥ 44px nos botões de ação da tabela */
+  .data-table .status-btn,
+  .data-table .editar-btn,
+  .data-table .senha-btn,
+  .data-table .deletar-btn,
+  .data-table .link-consumo {
+    padding: 10px 12px;
+  }
+}
+
 @media (max-width: 480px) {
+  .app-header {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 8px;
+  }
+
   .app-header .brand .brand-nome {
     display: none; /* só o raio ⚡ em telas mínimas */
   }
 
   .filter-menu {
-    width: calc(100vw - 24px);
-    right: -8px;
+    position: fixed;
+    top: calc(56px + env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
   }
 
   #graficoContainer {
     height: 300px;
   }
 
+  .kpi-card .kpi-value {
+    font-size: 22px;
+  }
+
   .kpi-card--gauge {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; /* gauge ao lado do número cabe bem até 320px */
+    gap: 14px;
+  }
+
+  .gauge {
+    width: 68px;
+    height: 68px;
+  }
+
+  .modal-conteudo {
+    padding: 20px 18px;
   }
 }

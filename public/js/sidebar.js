@@ -13,6 +13,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     sidebar.classList.toggle("active");
   });
 
+  // Tocar/clicar fora fecha a sidebar (essencial no celular)
+  document.addEventListener("click", (e) => {
+    if (
+      sidebar.classList.contains("active") &&
+      !sidebar.contains(e.target) &&
+      !menuBtn.contains(e.target)
+    ) {
+      sidebar.classList.remove("active");
+    }
+  });
+
   // Nem toda página tem filtro (ex: estrutura.html) — os elementos são
   // opcionais pra este script servir qualquer página com sidebar.
   const filterBtn = document.getElementById("filterBtn");

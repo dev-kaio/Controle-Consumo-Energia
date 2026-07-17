@@ -79,9 +79,35 @@ A lógica de busca/agrupamento de dados em `grafico.js` não foi alterada,
 só a função `criarCardInquilino` (trocou estilo inline por classes CSS,
 mesmos dados exibidos).
 
-## Responsivo
+## Responsivo (mobile é o caso principal, não exceção)
 
-`menu.css` tem breakpoints em 900px e 480px cobrindo header, cards e
-gráfico. **Nunca testado num navegador de verdade** (ambiente sem
-renderização) — validar visualmente é o primeiro passo antes de confiar
-nisso 100%.
+O sistema é usado principalmente no celular. `menu.css` tem três degraus:
+
+- **900px** (tablet): dashboard estreita, médias empilham, gráfico 380px
+- **700px** (celular): formulários empilham (um campo por linha, botão em
+  largura total), tabelas ganham rolagem horizontal dentro do card
+  (`display: block; overflow-x: auto`), inputs sobem pra **16px** (fonte
+  menor que isso faz o iOS dar zoom no foco), alvos de toque ≥ 44px
+- **480px** (celular pequeno): marca vira só o ⚡, filtro vira painel fixo
+  em largura total, gauge encolhe pra 68px
+
+Extras de toque: `-webkit-tap-highlight-color: transparent`, sidebar fecha
+ao tocar fora (sidebar.js), e `env(safe-area-inset-*)` no header/sidebar/
+dashboard pra celular com notch em modo standalone.
+
+**Nunca testado num navegador de verdade** (ambiente sem renderização) —
+validar visualmente antes de confiar 100%.
+
+## PWA
+
+O sistema é instalável como app (Android/iOS/desktop):
+
+- `public/manifest.json` — nome, cores da marca (`#6606eb`), ícones 192/512
+  + maskable (gerados por `scripts/gerar-icones.py`), `display: standalone`
+- `public/sw.js` — service worker. Estratégia: **API nunca passa pelo
+  cache** (dado sensível/sempre-fresco); navegação é rede-primeiro com
+  fallback pro cache e por último `offline.html`; estáticos (CSS/JS/fontes/
+  CDN) são stale-while-revalidate. Pra forçar atualização nos clientes
+  instalados: subir a versão da constante `CACHE`.
+- `public/js/pwa.js` — registra o SW; incluído no `<head>` de toda página
+  junto com `manifest`/`theme-color`/`apple-touch-icon`.
