@@ -83,7 +83,19 @@ router.post("/role", authenticateToken, async (req, res) => {
 
     await admin.auth().setCustomUserClaims(uid, claims);
 
-    res.json({ ok: true, claims });
+    // Devolve também o perfil básico: o frontend usa isso no login em vez
+    // de ler usuarios/{uid} direto pelo client SDK do Firebase.
+    res.json({
+      ok: true,
+      claims,
+      perfil: {
+        nome: userData.nome || null,
+        tipo,
+        aptoID: userData.aptoID || null,
+        condominioID: userData.condominioID || null,
+        ativo: userData.ativo !== false,
+      },
+    });
   } catch (err) {
     console.error("Erro ao definir claims:", err);
     res.status(500).json({ error: "Erro ao definir role" });

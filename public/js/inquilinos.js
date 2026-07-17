@@ -1,14 +1,5 @@
-import {
-  auth,
-  db,
-  verificarToken,
-  getUsuarioLogado,
-} from "../auth/firebaseConfig.js";
+import { auth, verificarToken } from "../auth/firebaseConfig.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {
-  ref,
-  get,
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   await verificarToken(["admin", "superadmin"]);
@@ -16,8 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");
 
-  // Superadmin vê todos, admin vê só do seu condomínio
-  const usuarioLogado = getUsuarioLogado();
   const tipoUsuario = localStorage.getItem("tipoUsuario");
 
   if (tipoUsuario === "superadmin") {
@@ -72,44 +61,55 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================== */
   async function carregarInquilinos() {
     try {
-      const snapshot = await get(ref(db, "usuarios"));
-      const usuarios = snapshot.val();
+      // A filtragem por condomínio acontece no BACKEND (/usuarios/listar) —
+      // o navegador nunca recebe dados de outros condomínios.
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch("/usuarios/listar", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error("Falha ao listar inquilinos");
+
+      const { inquilinos } = await resp.json();
       tbody.innerHTML = "";
 
-      if (!usuarios) return;
+      if (!inquilinos) return;
 
-      for (const uid in usuarios) {
-        const u = usuarios[uid];
-
-        // Superadmin vê todos, admin filtra por condominioID
-        if (u.tipo !== "inquilino") continue;
-        if (
-          tipoUsuario === "admin" &&
-          u.condominioID !== usuarioLogado.condominioID
-        )
-          continue;
+      for (const uid in inquilinos) {
+        const u = inquilinos[uid];
 
         const tr = document.createElement("tr");
         if (!u.ativo) {
           tr.style.opacity = "0.5";
         }
 
+        // Estrutura fixa via innerHTML, dados do usuário via textContent —
+        // nome/apto nunca entram como HTML (evita XSS por nome malicioso).
         tr.innerHTML = `
-                    <td>${u.nome}</td>
-                    <td>${u.aptoID.replace("apto_", "")}</td>
-                    <td>${u.ativo ? "Ativo" : "Inativo"}</td>
+                    <td class="cel-nome"></td>
+                    <td class="cel-apto"></td>
+                    <td class="cel-status"></td>
                     <td style="display:flex; gap:10px; justify-content:center;">
-                        <button class="status-btn">
-                            ${u.ativo ? "Desativar" : "Ativar"}
-                        </button>
+                        <button class="status-btn"></button>
                         <button class="editar-btn">Editar</button>
                         <button class="senha-btn">Alterar Senha</button>
                         <button class="deletar-btn">Deletar</button>
-                        <a href="menu.html?apartamento=${
-                          u.aptoID
-                        }" style="color:purple; text-decoration: none; border-radius: 20px; padding: 10px; background-color: rgb(255, 255, 0, 0.7); ">Gerenciar Consumo</a>
+                        <a class="link-consumo" style="color:purple; text-decoration: none; border-radius: 20px; padding: 10px; background-color: rgb(255, 255, 0, 0.7); ">Gerenciar Consumo</a>
                     </td>
                 `;
+
+        tr.querySelector(".cel-nome").textContent = u.nome || "";
+        tr.querySelector(".cel-apto").textContent = (u.aptoID || "").replace(
+          "apto_",
+          "",
+        );
+        tr.querySelector(".cel-status").textContent = u.ativo
+          ? "Ativo"
+          : "Inativo";
+        tr.querySelector(".status-btn").textContent = u.ativo
+          ? "Desativar"
+          : "Ativar";
+        tr.querySelector(".link-consumo").href =
+          "menu.html?apartamento=" + encodeURIComponent(u.aptoID || "");
 
         tr.querySelector(".status-btn").addEventListener("click", () =>
           desativar(uid, !u.ativo),

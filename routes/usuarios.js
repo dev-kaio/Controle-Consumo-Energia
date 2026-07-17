@@ -40,6 +40,43 @@ async function validarAcessoAoUsuario(reqUser, uidAlvo) {
   return { userData };
 }
 
+// Listar inquilinos (admin vê só os do próprio condomínio; superadmin vê todos).
+// Existe para o frontend não precisar ler o nó "usuarios" direto pelo client
+// SDK do Firebase — todo acesso a dados passa pelo backend.
+router.get(
+  "/listar",
+  authenticateToken,
+  requireRole("admin", "superadmin"),
+  async (req, res) => {
+    try {
+      const snapshot = await db.ref("usuarios").once("value");
+      const todos = snapshot.val() || {};
+
+      const inquilinos = {};
+      for (const [uid, u] of Object.entries(todos)) {
+        if (u.tipo !== "inquilino") continue;
+        if (
+          req.user.role !== "superadmin" &&
+          u.condominioID !== req.user.condominioID
+        )
+          continue;
+        // Devolve só o que a tela precisa — nada de vazar campos extras
+        inquilinos[uid] = {
+          nome: u.nome,
+          email: u.email,
+          aptoID: u.aptoID || null,
+          ativo: u.ativo !== false,
+          condominioID: u.condominioID,
+        };
+      }
+
+      res.json({ inquilinos });
+    } catch (error) {
+      res.status(500).json({ erro: error.message });
+    }
+  },
+);
+
 // Criar usuario (admin e superadmin)
 router.post(
   "/criar",

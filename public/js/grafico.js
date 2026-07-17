@@ -1,10 +1,17 @@
-import { signOut, db } from "../auth/firebaseConfig.js";
-import {
-  ref,
-  get,
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { signOut, auth } from "../auth/firebaseConfig.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Token SEMPRE fresco: o do localStorage expira em 1h e o dashboard fica
+  // aberto por muito mais tempo que isso. O SDK renova sozinho via getIdToken.
+  async function obterToken() {
+    if (auth.currentUser) return auth.currentUser.getIdToken();
+    return new Promise((resolve) => {
+      const parar = auth.onAuthStateChanged((user) => {
+        parar();
+        resolve(user ? user.getIdToken() : localStorage.getItem("token"));
+      });
+    });
+  }
   const urlParams = new URLSearchParams(window.location.search);
   const aptoSelecionado = urlParams.get("aptoID");
 
@@ -115,25 +122,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   async function buscarInquilinos() {
-    const snapshot = await get(ref(db, "usuarios"));
-    const usuarios = snapshot.val();
+    // Lista via backend (/usuarios/listar), que já filtra pelo condomínio
+    // do admin — o navegador não lê mais o nó "usuarios" direto do Firebase.
+    try {
+      const token = await obterToken();
+      const resp = await fetch("/usuarios/listar", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) return [];
 
-    if (!usuarios) return [];
+      const { inquilinos } = await resp.json();
 
-    const inquilinos = [];
-
-    for (const uid in usuarios) {
-      const u = usuarios[uid];
-      if (u.tipo === "inquilino" && u.ativo) {
-          inquilinos.push({
-            uid,
-            nome: u.nome,
-            aptoID: u.aptoID,
-          });
-      }
+      return Object.entries(inquilinos || {})
+        .filter(([, u]) => u.ativo)
+        .map(([uid, u]) => ({ uid, nome: u.nome, aptoID: u.aptoID }));
+    } catch (err) {
+      console.error("Erro ao buscar inquilinos:", err);
+      return [];
     }
-
-    return inquilinos;
   }
 
   function agruparPorApartamento(dadosPorTipo) {
@@ -211,15 +217,17 @@ document.addEventListener("DOMContentLoaded", () => {
     background: #f9f9f9;
   `;
 
+    // Estrutura fixa via innerHTML; nome/apartamento entram por textContent
+    // para um nome malicioso não virar HTML executável (XSS).
     div.innerHTML = `
-    <p><strong>Apartamento:</strong> ${apartamento.replace("apto_", "")}</p>
-    <p><strong>Inquilino:</strong> ${nome}</p>
+    <p><strong>Apartamento:</strong> <span class="card-apto"></span></p>
+    <p><strong>Inquilino:</strong> <span class="card-nome"></span></p>
 
     <p><strong>Consumo (${filtro}):</strong>
       <span style="color:rgba(102, 6, 235, 0.7)">${consumo.toFixed(2)} kWh </span>
     </p>
 
-    <p><strong>Autoconsumo (${filtro}):</strong> 
+    <p><strong>Autoconsumo (${filtro}):</strong>
       <span style="color:rgba(0, 166, 90, 0.7)">${autoconsumo.toFixed(2)} kWh </span>
     </p>
 
@@ -227,6 +235,12 @@ document.addEventListener("DOMContentLoaded", () => {
       <span style="color:rgba(243, 156, 18, 0.7)">${geracao.toFixed(2)} kWh </span>
     </p>
   `;
+
+    div.querySelector(".card-apto").textContent = (apartamento || "").replace(
+      "apto_",
+      "",
+    );
+    div.querySelector(".card-nome").textContent = nome || "";
 
     return div;
   }
@@ -440,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const dadosTotais = {};
-    const token = localStorage.getItem("token");
+    const token = await obterToken();
 
     for (let tipo of tiposSelecionados) {
       const url = `/firebase/${tipoParaEndpoint[tipo]}?${new URLSearchParams(

@@ -141,10 +141,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     header.style.justifyContent = "space-between";
     header.style.alignItems = "center";
     header.style.color = style.text;
+    // Dados dinâmicos via textContent — nome/localização de condomínio
+    // não podem entrar como HTML (XSS).
     header.innerHTML = `
-      <span><strong>${nomeCondo}</strong> (ID: ${condoId}) - ${local}</span>
+      <span><strong class="condo-nome"></strong> <span class="condo-info"></span></span>
       <span class="arrow">▼</span>
     `;
+    header.querySelector(".condo-nome").textContent = nomeCondo;
+    header.querySelector(".condo-info").textContent = `(ID: ${condoId}) - ${local}`;
 
     const conteudo = document.createElement("div");
     conteudo.className = "accordion-content";
@@ -192,13 +196,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         tr.style.background = isAdmin ? style.adminBg : "transparent";
       });
 
-      tr.innerHTML = `
-        <td style="padding:14px 16px;color:${textColor}">${u.nome || "-"}</td>
-        <td style="padding:14px 16px;color:${textColor}">${isAdmin ? "Admin" : u.tipo}</td>
-        <td style="padding:14px 16px;color:${textColor}">${u.condominioID || "-"}</td>
-        <td style="padding:14px 16px;color:${textColor}">${u.aptoID ? u.aptoID.replace("apto_", "") : "-"}</td>
-        <td style="padding:14px 16px;color:${textColor}">${u.ativo ? "Ativo" : "Inativo"}</td>
-      `;
+      // Células criadas com textContent — nome/tipo/IDs vindos do banco
+      // nunca são interpretados como HTML (XSS).
+      const celulas = [
+        u.nome || "-",
+        isAdmin ? "Admin" : u.tipo,
+        u.condominioID || "-",
+        u.aptoID ? u.aptoID.replace("apto_", "") : "-",
+        u.ativo ? "Ativo" : "Inativo",
+      ];
+      for (const valor of celulas) {
+        const td = document.createElement("td");
+        td.style.cssText = `padding:14px 16px;color:${textColor}`;
+        td.textContent = valor;
+        tr.appendChild(td);
+      }
       tbody.appendChild(tr);
     }
 

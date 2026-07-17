@@ -2,12 +2,17 @@ import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10
 import { auth } from "../auth/firebaseConfig.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Nem toda página que usa este script tem sidebar (config.html não tem) —
+  // os elementos são opcionais para o script não quebrar no primeiro
+  // addEventListener e derrubar o resto da página junto.
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
 
-  menuBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("active");
-  });
+  if (menuBtn && sidebar) {
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+    });
+  }
 
   document.getElementById("senha-btn").addEventListener("click", alterarSenha);
 
@@ -43,12 +48,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     .addEventListener("click", () => {
       document.getElementById("alterarSenha").style.display = "none";
     });
-
-  const tipo = localStorage.getItem("tipoUsuario");
-
-  const linkInquilinos = document.getElementById("linkInquilinos");
-
-  if (tipo !== "dono") {
-    linkInquilinos.style.display = "none";
-  }
 });
