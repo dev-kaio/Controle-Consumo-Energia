@@ -48,7 +48,7 @@ tarifas/{condominioID}/{competencia}/
 - **Fallback automático**: se não existe tarifa cadastrada pra competência
   exata, cai pra competência cadastrada mais recente ANTERIOR (não precisa
   recadastrar todo mês se não mudou nada). Lógica em
-  `utils/tarifaUtils.js#buscarTarifaVigente`.
+  `backend/utils/tarifaUtils.js#buscarTarifaVigente`.
 - Responsável por cadastrar/editar: **superadmin** (decisão que já vinha
   de conversas anteriores — se isso mudar pra ser por `admin` de cada
   condomínio, é uma troca pequena de `requireRole` nas rotas de tarifa).
@@ -60,7 +60,7 @@ tarifas/{condominioID}/{competencia}/
 firmware) zera esse contador. Calcular "última leitura menos primeira"
 ingenuamente erra quando há reinício no meio do período.
 
-`utils/consumoUtils.js#calcularKwhFaturado` resolve isso: soma os deltas
+`backend/utils/consumoUtils.js#calcularKwhFaturado` resolve isso: soma os deltas
 positivos entre leituras consecutivas; quando o delta é negativo (a
 leitura caiu = reinício detectado), soma o valor da leitura atual inteiro
 (assume que ela já representa o acumulado desde o reset). Testado com
@@ -87,10 +87,10 @@ trivial de fazer depois se quiserem esse visual.
 
 ## Arquivos
 
-- `utils/consumoUtils.js` — `calcularKwhFaturado(leituras)`
-- `utils/tarifaUtils.js` — `buscarTarifaVigente(db, condominioID, competencia)`
-- `routes/tarifas.js` — CRUD de tarifas (`POST /tarifas`, `GET /tarifas/:condominioID`), só superadmin
-- `routes/financeiro.js` — `GET /financeiro?apartamentoId=&competencia=AAAA-MM`, calcula o boletim completo
+- `backend/utils/consumoUtils.js` — `calcularKwhFaturado(leituras)`
+- `backend/utils/tarifaUtils.js` — `buscarTarifaVigente(db, condominioID, competencia)`
+- `backend/routes/tarifas.js` — CRUD de tarifas (`POST /tarifas`, `GET /tarifas/:condominioID`), só superadmin
+- `backend/routes/financeiro.js` — `GET /financeiro?apartamentoId=&competencia=AAAA-MM`, calcula o boletim completo
 
 ## Escopo consciente (não implementado de propósito)
 

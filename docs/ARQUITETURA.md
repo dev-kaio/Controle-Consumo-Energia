@@ -27,7 +27,7 @@ IDs de apartamento são **compostos**: `condominio-predio-numero`
 (ex: `sol-blocoA-101`). Único por construção — dois condomínios podem ter
 apto 101 sem colisão — e o próprio ID já diz a quem pertence. Cada segmento
 aceita só letras e números (o hífen é o separador); validação em
-`utils/idUtils.js`.
+`backend/utils/idUtils.js`.
 
 ```
 condominios/
@@ -99,7 +99,7 @@ tarifas/
 
 ### Seed do banco de teste
 
-`npm run seed -- --confirmo` (ou `node scripts/seed.js --confirmo`) apaga
+`npm run seed -- --confirmo` (ou `node backend/scripts/seed.js --confirmo`) apaga
 os nós de dados e recria: condomínio `sol` (blocoA/blocoB), 6 aptos,
 usuários de teste (`super@teste.com`, `admin.sol@teste.com`,
 `ana@teste.com`, `bruno@teste.com` — senha `palm123`), dispositivos com
@@ -111,11 +111,11 @@ A ESP acumula `energiaKwh` em RAM e nunca zera sozinha, exceto em reinício
 (queda de energia/wifi, atualização de firmware). Calcular consumo de um
 período **não é** "última leitura menos primeira" ingenuamente — se houve
 reinício no meio, isso subestima (ou dá negativo). A função
-`utils/consumoUtils.js#calcularKwhFaturado` já trata isso somando deltas
+`backend/utils/consumoUtils.js#calcularKwhFaturado` já trata isso somando deltas
 positivos e tratando quedas como reinício (soma o valor pós-reset inteiro).
 Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 
-## Firmware ESP32 (`esp.cpp`)
+## Firmware ESP32 (`firmware/esp.cpp`)
 
 - Leitura Modbus: hoje **substituída por simulação** para testes de
   integração (potência/corrente/energia geradas por `random()`).
@@ -155,18 +155,18 @@ Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 
 ## Frontend — páginas e o que cada uma depende
 
-- `public/pages/menu.html` — dashboard do admin (link pra gestão de
+- `frontend/pages/menu.html` — dashboard do admin (link pra gestão de
   inquilinos + superadmin condicional)
-- `public/pages/menu-inquilino.html` — dashboard do inquilino (mesma base,
+- `frontend/pages/menu-inquilino.html` — dashboard do inquilino (mesma base,
   sem os links de gestão)
-- `public/pages/admin.html` — gestão de inquilinos (**ainda não recebeu o
+- `frontend/pages/admin.html` — gestão de inquilinos (**ainda não recebeu o
   mesmo tratamento visual que `menu.html`/`menu-inquilino.html`**)
-- `public/pages/superadmin.html` — cadastro de usuários + (futuro) painel
+- `frontend/pages/superadmin.html` — cadastro de usuários + (futuro) painel
   de tarifas
-- `public/js/grafico.js` — o "cérebro" do dashboard: busca dados, monta o
+- `frontend/js/grafico.js` — o "cérebro" do dashboard: busca dados, monta o
   gráfico Chart.js, alterna layout gráfico/lista, calcula médias. Compartilhado
   entre `menu.html` e `menu-inquilino.html` (detecta qual página é pelo
   `window.location.pathname`).
-- `public/js/sidebar.js` / `public/js/tema.js` — sidebar deslizante e tema
+- `frontend/js/sidebar.js` / `frontend/js/tema.js` — sidebar deslizante e tema
   claro/escuro, usados em quase toda página autenticada. **Não renomear
   os IDs que eles usam sem atualizar os dois juntos.**

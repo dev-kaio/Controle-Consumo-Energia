@@ -39,3 +39,23 @@ O sistema permite:
 
 ## Estrutura do Projeto
 
+```
+backend/    Node.js + Express + Firebase Admin (API; em dev também serve o frontend)
+frontend/   HTML/CSS/JS estático (PWA) — fala com a API só por HTTP
+firmware/   Código da ESP32 (esp.cpp)
+docs/       Arquitetura, segurança, tarifas, design system
+```
+
+`backend/` e `frontend/` estão preparados para virar repositórios separados.
+
+## Como rodar
+
+```bash
+cd backend
+npm install
+cp .env.example .env   # preencher credenciais do Firebase
+npm run dev            # http://localhost:3000
+```
+
+Na raiz do monorepo, `npm run dev`, `npm test` e `npm run seed` encaminham
+para o backend.

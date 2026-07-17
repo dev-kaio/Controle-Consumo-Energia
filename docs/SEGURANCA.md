@@ -15,14 +15,14 @@ que já está salvo em `usuarios/{uid}/tipo` no banco. Validado com teste
 isolado simulando `req.user` antes/depois.
 
 **Atenção:** o campo salvo em `usuarios/{uid}` precisa se chamar exatamente
-`tipo` (é o que `routes/usuarios.js` grava). Se um fluxo futuro de cadastro
+`tipo` (é o que `backend/routes/usuarios.js` grava). Se um fluxo futuro de cadastro
 usar outro nome de campo, essa rota quebra silenciosamente (retorna 400
 "sem tipo válido").
 
 ## ✅ Corrigido: vazamento de dados entre inquilinos (`apartamentoID` vs `apartamentoId`)
 
-**Era:** `routes/requires.js` salvava o claim como `apartamentoID`
-(maiúsculo), `routes/firebase.js` lia como `apartamentoId` (minúsculo).
+**Era:** `backend/routes/requires.js` salvava o claim como `apartamentoID`
+(maiúsculo), `backend/routes/firebase.js` lia como `apartamentoId` (minúsculo).
 JS é case-sensitive → o valor sempre vinha `undefined` → inquilino sem
 passar `apartamentoId` explícito na query recebia dados de **todos** os
 apartamentos.
@@ -32,7 +32,7 @@ dois lugares. Validado com teste isolado reproduzindo o cenário antes/depois.
 
 ## ✅ Corrigido: senha em texto puro em log
 
-**Era:** `routes/usuarios.js` (backend) e `public/js/superadmin.js`
+**Era:** `backend/routes/usuarios.js` (backend) e `frontend/js/superadmin.js`
 (frontend) logavam `req.body`/`body` inteiro no console, incluindo senha
 em texto puro, tanto no servidor quanto no navegador de quem estava logado.
 
@@ -65,7 +65,7 @@ confirmar `.gitignore`).
 
 ## ⏳ Pendente: ESP com API key fraca hardcoded + HTTP sem TLS
 
-`esp.cpp` manda `x-api-key: "123456"` hardcoded no firmware, e usa `http://`
+`firmware/esp.cpp` manda `x-api-key: "123456"` hardcoded no firmware, e usa `http://`
 puro (sem criptografia). Aceitável em rede doméstica de teste. Antes de
 qualquer deploy real (ex: AWS), precisa: (1) parar de hardcodar a key no
 firmware (usar um header separado não versionado, ou pelo menos trocar por

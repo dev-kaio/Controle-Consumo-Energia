@@ -8,10 +8,25 @@ virar produto comercial vendido a clientes reais (síndicos/administradoras).
 
 - **Backend:** Node.js + Express, Firebase Admin SDK (Realtime Database)
 - **Frontend:** HTML + JS puro (sem framework/bundler), Chart.js via CDN
-- **Firmware:** ESP32 (`esp.cpp`), leitura Modbus (hoje simulada em testes),
+- **Firmware:** ESP32 (`firmware/esp.cpp`), leitura Modbus (hoje simulada em testes),
   envia lotes via HTTP para o backend a cada ~60s
 - **Auth:** Firebase Authentication + custom claims (`role`, `condominioID`,
   `predioID`, `apartamentoId`)
+
+## Layout do repositório
+
+Monorepo em transição — `backend/` e `frontend/` vão virar repos separados
+(e o frontend possivelmente React). Não criar acoplamento novo entre os dois
+além de HTTP.
+
+- `backend/` — Express + Firebase Admin. Tem `package.json` próprio; `.env`
+  mora aqui. Em dev também serve o frontend estático (`express.static` no
+  `server.js` — é a única linha que morre na separação).
+- `frontend/` — estático puro (index.html, pages/, js/, css/, sw.js). Fala
+  com o backend só por fetch relativo (`/auth/...`, `/usuarios/...`).
+- `firmware/` — `esp.cpp` da ESP32.
+- `docs/` — compartilhada enquanto for monorepo.
+- `package.json` da raiz só encaminha (`npm run dev` → `backend/`).
 
 ## Arquitetura em uma frase
 
@@ -26,20 +41,20 @@ direto (isso já foi corrigido no superadmin, mas ainda existe em
 `inquilino` (mora em 1 apto) → `admin` (gerencia 1 condomínio) → `superadmin`
 (acesso global, gerencia tarifas). Definidos via custom claims no token do
 Firebase Auth, aplicados pelo middleware `authenticateToken`/`requireRole`
-em `routes/requires.js`.
+em `backend/routes/requires.js`.
 
 ## Regras que não podem ser quebradas sem avisar
 
 - **Nunca reintroduzir** os bugs de segurança já corrigidos — ver
-  `docs/SEGURANCA.md` antes de mexer em `routes/auth.js`, `routes/requires.js`
-  ou `routes/firebase.js`.
-- **Preservar** o contrato de `public/js/sidebar.js` e `public/js/tema.js`:
+  `docs/SEGURANCA.md` antes de mexer em `backend/routes/auth.js`, `backend/routes/requires.js`
+  ou `backend/routes/firebase.js`.
+- **Preservar** o contrato de `frontend/js/sidebar.js` e `frontend/js/tema.js`:
   IDs `menuBtn`, `sidebar`, `filterBtn`, `filterMenu`, `themeToggle`,
   `superadminLink`, e as classes `.active` (sidebar) e `.dark` (body) não
   podem ser renomeados sem atualizar esses dois arquivos junto.
 - **IDs de apartamento** são compostos: `condominio-predio-numero`
   (ex: `sol-blocoA-101`). Cada segmento só aceita letras e números — o
-  hífen é o separador. Validação/montagem em `utils/idUtils.js`; nunca
+  hífen é o separador. Validação/montagem em `backend/utils/idUtils.js`; nunca
   montar esse ID na mão. Leituras são particionadas por mês:
   `leituras/{aptoID}/{tipo}/{AAAA-MM}/{pushId}` (ver `docs/ARQUITETURA.md`).
 - **Tarifas (TUSD/TE/IP-CIP)** já vêm "com tributos" (ICMS/PIS/COFINS

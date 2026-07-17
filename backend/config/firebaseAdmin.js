@@ -1,7 +1,10 @@
 // Inicialização única do Firebase Admin SDK a partir do .env.
 // Usado pelo server.js e pelos scripts (ex: scripts/seed.js) — assim a
 // configuração vive num lugar só.
-require("dotenv").config();
+// O path ancorado no arquivo (não no cwd) deixa o .env ser achado
+// rodando de qualquer diretório (raiz do monorepo ou backend/).
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const admin = require("firebase-admin");
 

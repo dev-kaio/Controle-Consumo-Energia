@@ -16,7 +16,7 @@ dado real entra no banco antes deste checklist**:
 - [ ] Copiar os valores do JSON baixado pro `.env` local (nomes documentados
       no `.env.example`)
 - [ ] Trocar `ESP_KEY` por valor forte (`openssl rand -hex 32`) e colocar o
-      MESMO valor no firmware `esp.cpp` (hoje hardcoded `"123456"`)
+      MESMO valor no firmware `firmware/esp.cpp` (hoje hardcoded `"123456"`)
 - [ ] Migrar a comunicação da ESP pra HTTPS
 
 ### Demais itens
@@ -50,7 +50,7 @@ dado real entra no banco antes deste checklist**:
 
 ## Design / frontend
 
-- [ ] Aplicar o mesmo tratamento visual em `public/pages/admin.html`
+- [ ] Aplicar o mesmo tratamento visual em `frontend/pages/admin.html`
       (gestão de inquilinos) — ficou de fora do primeiro passe
 - [ ] Plugar dado real no card "Potência Atual" (pegar a leitura mais
       recente de `potencia` por apartamento)

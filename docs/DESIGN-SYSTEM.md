@@ -1,7 +1,7 @@
 # Design system do dashboard
 
-Aplicado hoje em `public/pages/menu.html` e `public/pages/menu-inquilino.html`
-+ `public/css/menu.css`. **`public/pages/admin.html` ainda não recebeu esse
+Aplicado hoje em `frontend/pages/menu.html` e `frontend/pages/menu-inquilino.html`
++ `frontend/css/menu.css`. **`frontend/pages/admin.html` ainda não recebeu esse
 tratamento** — usa o visual antigo.
 
 ## Direção
@@ -37,7 +37,7 @@ repetidos hardcoded em vários arquivos.
 --color-autoconsumo(-soft), --color-geracao(-soft), --color-danger
 ```
 
-Definidas em `public/css/menu.css`. **Não existem ainda em `style.css`**
+Definidas em `frontend/css/menu.css`. **Não existem ainda em `style.css`**
 (a página de login não passou por esse refactor) — se quiserem consistência
 total, extrair pra um arquivo `variables.css` compartilhado é o próximo
 passo natural.
@@ -102,12 +102,12 @@ validar visualmente antes de confiar 100%.
 
 O sistema é instalável como app (Android/iOS/desktop):
 
-- `public/manifest.json` — nome, cores da marca (`#6606eb`), ícones 192/512
-  + maskable (gerados por `scripts/gerar-icones.py`), `display: standalone`
-- `public/sw.js` — service worker. Estratégia: **API nunca passa pelo
+- `frontend/manifest.json` — nome, cores da marca (`#6606eb`), ícones 192/512
+  + maskable (gerados por `frontend/scripts/gerar-icones.py`), `display: standalone`
+- `frontend/sw.js` — service worker. Estratégia: **API nunca passa pelo
   cache** (dado sensível/sempre-fresco); navegação é rede-primeiro com
   fallback pro cache e por último `offline.html`; estáticos (CSS/JS/fontes/
   CDN) são stale-while-revalidate. Pra forçar atualização nos clientes
   instalados: subir a versão da constante `CACHE`.
-- `public/js/pwa.js` — registra o SW; incluído no `<head>` de toda página
+- `frontend/js/pwa.js` — registra o SW; incluído no `<head>` de toda página
   junto com `manifest`/`theme-color`/`apple-touch-icon`.
