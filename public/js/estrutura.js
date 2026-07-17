@@ -50,27 +50,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   let apartamentos = {};
 
   // ---------- carregamento ----------
-  async function carregarTudo() {
-    const [rCondos, rAptos, rDisps] = await Promise.all([
+  // Cada submit recarrega só o que aquele form mexeu — criar um medidor não
+  // precisa rebuscar condomínios/aptos, e vice-versa.
+  async function carregarEstrutura() {
+    const [rCondos, rAptos] = await Promise.all([
       api("/estrutura/condominios"),
       api("/estrutura/apartamentos"),
-      api("/estrutura/dispositivos"),
     ]);
     condominios = rCondos.condominios || {};
     apartamentos = rAptos.apartamentos || {};
 
     renderizarPredios();
     renderizarAptos();
-    renderizarDispositivos(rDisps.dispositivos || {});
     preencherSelects();
 
+    if (souSuperadmin) preencherSelectTarifas();
+  }
+
+  async function carregarDispositivos() {
+    const rDisps = await api("/estrutura/dispositivos");
+    renderizarDispositivos(rDisps.dispositivos || {});
+  }
+
+  async function carregarTudo() {
     if (souSuperadmin) {
       document.getElementById("painelCondominio").style.display = "";
       document.getElementById("painelTarifas").style.display = "";
       document.querySelector("[data-so-superadmin]").style.display = "";
-      preencherSelectTarifas();
-      await carregarTarifas();
     }
+
+    await Promise.all([carregarEstrutura(), carregarDispositivos()]);
+    if (souSuperadmin) await carregarTarifas();
   }
 
   function renderizarPredios() {
@@ -155,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         feedback("msgCondominio", "Condomínio criado!", true);
         e.target.reset();
-        await carregarTudo();
+        await carregarEstrutura();
       } catch (err) {
         feedback("msgCondominio", err.message, false);
       }
@@ -178,7 +188,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       feedback("msgPredio", "Prédio criado!", true);
       e.target.reset();
-      await carregarTudo();
+      await carregarEstrutura();
     } catch (err) {
       feedback("msgPredio", err.message, false);
     }
@@ -206,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       feedback("msgApto", `Apartamento ${r.aptoID} criado!`, true);
       e.target.reset();
-      await carregarTudo();
+      await carregarEstrutura();
     } catch (err) {
       feedback("msgApto", err.message, false);
     }
@@ -232,7 +242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("chaveBox").style.display = "";
 
         e.target.reset();
-        await carregarTudo();
+        await carregarDispositivos();
       } catch (err) {
         feedback("msgDispositivo", err.message, false);
       }

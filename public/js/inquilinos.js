@@ -9,6 +9,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");
 
+  // Feedback inline (mesmo padrão de estrutura.js) — nada de alert()
+  function feedback(id, texto, ok) {
+    const el = document.getElementById(id);
+    el.textContent = texto;
+    el.className = `msg-feedback ${ok ? "ok" : "erro"}`;
+  }
+
+  function limparFeedback(id) {
+    const el = document.getElementById(id);
+    el.textContent = "";
+    el.className = "msg-feedback";
+  }
+
   // Os selects de apartamento vêm da estrutura cadastrada — com ID composto
   // (sol-blocoA-101), digitar na mão seria fonte constante de erro.
   async function carregarApartamentos() {
@@ -59,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const aptoID = document.getElementById("apartamento").value.trim();
 
     if (!nome || !email || !senha || !aptoID) {
-      alert("Preencha todos os campos!");
+      feedback("msgInquilino", "Preencha todos os campos!", false);
       return;
     }
 
@@ -79,12 +92,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(corpo.erro || `Erro ${resp.status}`);
       }
 
-      alert("Inquilino criado!");
+      feedback("msgInquilino", "Inquilino criado!", true);
       form.reset();
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert(err.message || "Erro ao criar inquilino.");
+      feedback("msgInquilino", err.message || "Erro ao criar inquilino.", false);
     }
   });
 
@@ -176,6 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function editar(uid, u) {
     const modal = document.getElementById("modalEditar");
     modal.style.display = "flex";
+    limparFeedback("msgEditar");
 
     document.getElementById("editarNome").value = u.nome;
     document.getElementById("editarEmail").value = u.email;
@@ -202,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const aptoID = document.getElementById("editarApartamento").value.trim();
 
       if (!nome || !email || !aptoID) {
-        alert("Preencha todos os campos!");
+        feedback("msgEditar", "Preencha todos os campos!", false);
         return;
       }
 
@@ -225,12 +239,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           throw new Error(corpo.erro || `Erro ${resp.status}`);
         }
 
-        alert("Inquilino atualizado!");
         modal.style.display = "none";
+        feedback("msgLista", "Inquilino atualizado!", true);
         carregarInquilinos();
       } catch (err) {
         console.error(err);
-        alert(err.message || "Erro ao atualizar inquilino.");
+        feedback("msgEditar", err.message || "Erro ao atualizar inquilino.", false);
       }
     };
   }
@@ -245,6 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function alterarSenha() {
     const modal = document.getElementById("alterarSenha");
     modal.style.display = "flex";
+    limparFeedback("msgSenhaModal");
 
     const formSenha = document.getElementById("formAlterarSenha");
 
@@ -253,19 +268,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const email = document.getElementById("alterarSenhaEmail").value.trim();
       if (!email) {
-        alert("Preencha o email!");
+        feedback("msgSenhaModal", "Preencha o email!", false);
         return;
       }
 
       try {
         // Restringir p email chegar só por condominioID e registrado no Authentication
         await sendPasswordResetEmail(auth, email);
-        alert("E-mail de redefinição enviado!");
         modal.style.display = "none";
         formSenha.reset();
+        feedback("msgLista", "E-mail de redefinição enviado!", true);
       } catch (err) {
         console.error(err);
-        alert("Erro ao enviar e-mail.");
+        feedback("msgSenhaModal", "Erro ao enviar e-mail.", false);
       }
     };
   }
@@ -302,7 +317,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert(err.message || "Erro ao atualizar status.");
+      feedback("msgLista", err.message || "Erro ao atualizar status.", false);
     }
   }
 
@@ -328,11 +343,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(corpo.erro || `Erro ${resp.status}`);
       }
 
-      alert("Inquilino deletado!");
+      feedback("msgLista", "Inquilino deletado!", true);
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert(err.message || "Erro ao deletar inquilino.");
+      feedback("msgLista", err.message || "Erro ao deletar inquilino.", false);
     }
   }
   carregarInquilinos();
