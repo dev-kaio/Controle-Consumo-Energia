@@ -1,4 +1,4 @@
-import { auth, verificarToken } from "../auth/firebaseConfig.js";
+import { auth, signOut, verificarToken } from "../auth/firebaseConfig.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -8,6 +8,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.querySelector("#tabelaInquilinos tbody");
 
   const tipoUsuario = localStorage.getItem("tipoUsuario");
+
+  document.getElementById("logout").addEventListener("click", async (e) => {
+    e.preventDefault();
+    await signOut();
+    localStorage.clear();
+  });
+
+  // Os selects de apartamento vêm da estrutura cadastrada — com ID composto
+  // (sol-blocoA-101), digitar na mão seria fonte constante de erro.
+  async function carregarApartamentos() {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch("/estrutura/apartamentos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) return;
+
+      const { apartamentos } = await resp.json();
+      for (const selectId of ["apartamento", "editarApartamento"]) {
+        const sel = document.getElementById(selectId);
+        sel.innerHTML = "";
+        for (const aptoID of Object.keys(apartamentos || {})) {
+          const op = document.createElement("option");
+          op.value = aptoID;
+          op.textContent = aptoID;
+          sel.appendChild(op);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar apartamentos:", err);
+    }
+  }
+  carregarApartamentos();
 
   if (tipoUsuario === "superadmin") {
     const superadminInfo = document.getElementById("superadmin");
@@ -93,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <button class="editar-btn">Editar</button>
                         <button class="senha-btn">Alterar Senha</button>
                         <button class="deletar-btn">Deletar</button>
-                        <a class="link-consumo" style="color:purple; text-decoration: none; border-radius: 20px; padding: 10px; background-color: rgb(255, 255, 0, 0.7); ">Gerenciar Consumo</a>
+                        <a class="link-consumo">Gerenciar Consumo</a>
                     </td>
                 `;
 
@@ -109,8 +142,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         tr.querySelector(".status-btn").textContent = u.ativo
           ? "Desativar"
           : "Ativar";
+        // grafico.js lê o parâmetro "aptoID" da URL
         tr.querySelector(".link-consumo").href =
-          "menu.html?apartamento=" + encodeURIComponent(u.aptoID || "");
+          "menu.html?aptoID=" + encodeURIComponent(u.aptoID || "");
 
         tr.querySelector(".status-btn").addEventListener("click", () =>
           desativar(uid, !u.ativo),

@@ -4,85 +4,126 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="../assets/favicon.png" type="image/x-icon" />
-    <link rel="stylesheet" href="../css/inquilinos.css" />
-    <title>Gerenciar Inquilinos</title>
+    <link rel="stylesheet" href="../css/menu.css" />
+    <title>Inquilinos - Palm Energy</title>
   </head>
 
   <body>
-    <button id="themeToggle" title="Alternar tema">🌙</button>
-
-    <header>
-      <button
-        href="#"
-        onclick="
-          window.history.back();
-          return false;
-        "
-      >
-        Voltar
-      </button>
+    <header class="app-header">
+      <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+      <span class="brand"><span class="bolt">⚡</span><span class="brand-nome">Palm Energy</span></span>
+      <span class="spacer"></span>
+      <button id="themeToggle" title="Alternar tema">🌙</button>
     </header>
 
-    <h2>Gerenciar Inquilinos</h2>
+    <div class="sidebar" id="sidebar">
+      <a href="./menu.html">Dashboard</a>
+      <a href="#" id="superadminLink" style="display: none">Superadmin</a>
+      <a href="./estrutura.html">Estrutura</a>
+      <a href="./config.html">Configurações</a>
+      <a href="../index.html" id="logout">Sair</a>
+    </div>
 
-    <h4 id="superadmin"></h4>
-    <!-- CADASTRAR -->
-    <form id="formInquilino">
-      <input type="text" id="nome" placeholder="Nome" />
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="senha" placeholder="Senha" />
-      <input type="text" id="apartamento" placeholder="Apartamento" />
-      <!-- Condomínio tem que vir do admin que está cadastrando-->
-      
-      <button id="cadastrarBtn" type="submit">Cadastrar</button>
-    </form>
+    <main class="dashboard">
+      <span class="section-title">Inquilinos</span>
+
+      <h4 id="superadmin"></h4>
+
+      <!-- CADASTRAR -->
+      <div class="panel">
+        <h2>Novo inquilino</h2>
+        <p class="panel-desc">
+          O apartamento precisa existir na
+          <a href="./estrutura.html">Estrutura</a> antes de cadastrar o
+          morador.
+        </p>
+        <form id="formInquilino" class="form-linha">
+          <div class="campo">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" placeholder="Nome completo" />
+          </div>
+          <div class="campo">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="email@exemplo.com" />
+          </div>
+          <div class="campo">
+            <label for="senha">Senha inicial</label>
+            <input type="password" id="senha" placeholder="Senha" />
+          </div>
+          <div class="campo">
+            <label for="apartamento">Apartamento</label>
+            <select id="apartamento"></select>
+          </div>
+          <button id="cadastrarBtn" type="submit" class="btn-primary">
+            Cadastrar
+          </button>
+        </form>
+        <p class="msg-feedback" id="msgInquilino"></p>
+      </div>
+
+      <!-- TABELA -->
+      <div class="panel">
+        <h2>Cadastrados</h2>
+        <table class="data-table" id="tabelaInquilinos">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Apartamento</th>
+              <th>Status</th>
+              <th style="text-align: center">Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
 
     <!-- MODAL EDITAR -->
-    <div id="modalEditar" style="display: none">
+    <div id="modalEditar" class="modal" style="display: none">
       <div class="modal-conteudo">
         <span class="fechar" id="fecharEditar">&times;</span>
 
         <form id="formEditarInquilino">
           <h2>Editar Inquilino</h2>
 
-          <input type="text" id="editarNome" placeholder="Nome" />
-          <input type="email" id="editarEmail" placeholder="Email" />
-          <input type="text" id="editarApartamento" placeholder="Apartamento" />
+          <div class="campo">
+            <label for="editarNome">Nome</label>
+            <input type="text" id="editarNome" placeholder="Nome" />
+          </div>
+          <div class="campo">
+            <label for="editarEmail">Email</label>
+            <input type="email" id="editarEmail" placeholder="Email" />
+          </div>
+          <div class="campo">
+            <label for="editarApartamento">Apartamento</label>
+            <select id="editarApartamento"></select>
+          </div>
 
-          <button type="submit">Salvar Alterações</button>
+          <button type="submit" class="btn-primary">Salvar Alterações</button>
         </form>
       </div>
     </div>
 
     <!-- MODAL ALTERAR SENHA -->
-    <div id="alterarSenha" style="display: none">
+    <div id="alterarSenha" class="modal" style="display: none">
       <div class="modal-conteudo">
         <span class="fechar" id="fecharAlterarSenha">&times;</span>
 
         <form id="formAlterarSenha">
           <h2>Alterar Senha</h2>
-          <p>Informe o email para redefinição da senha</p>
+          <p class="panel-desc">Informe o email para redefinição da senha</p>
 
-          <input type="email" id="alterarSenhaEmail" placeholder="Email" />
-          <button type="submit">Enviar</button>
+          <div class="campo">
+            <label for="alterarSenhaEmail">Email</label>
+            <input type="email" id="alterarSenhaEmail" placeholder="Email" />
+          </div>
+          <button type="submit" class="btn-primary">Enviar</button>
         </form>
       </div>
     </div>
 
-    <!-- TABELA -->
-    <table id="tabelaInquilinos">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Apartamento</th>
-          <th>Status</th>
-          <th style="text-align: center">Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
     <script type="module" src="../js/inquilinos.js"></script>
+    <script type="module" src="../js/sidebar.js"></script>
     <script src="../js/tema.js"></script>
   </body>
 </html>

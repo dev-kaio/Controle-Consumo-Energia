@@ -13,21 +13,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     sidebar.classList.toggle("active");
   });
 
+  // Nem toda página tem filtro (ex: estrutura.html) — os elementos são
+  // opcionais pra este script servir qualquer página com sidebar.
   const filterBtn = document.getElementById("filterBtn");
   const filterMenu = document.getElementById("filterMenu");
 
-  filterBtn.addEventListener("click", () => {
-    sidebar.classList.remove("active");
+  if (filterBtn && filterMenu) {
+    filterBtn.addEventListener("click", () => {
+      sidebar.classList.remove("active");
 
-    const isVisible = filterMenu.style.display === "block";
-    filterMenu.style.display = isVisible ? "none" : "block";
-  });
+      const isVisible = filterMenu.style.display === "block";
+      filterMenu.style.display = isVisible ? "none" : "block";
+    });
 
-  document.addEventListener("click", (e) => {
-    const isClickInsideMenu =
-      filterMenu.contains(e.target) || filterBtn.contains(e.target);
-    if (!isClickInsideMenu) {
-      filterMenu.style.display = "none";
-    }
-  });
+    document.addEventListener("click", (e) => {
+      const isClickInsideMenu =
+        filterMenu.contains(e.target) || filterBtn.contains(e.target);
+      if (!isClickInsideMenu) {
+        filterMenu.style.display = "none";
+      }
+    });
+  }
 });

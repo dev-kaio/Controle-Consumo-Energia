@@ -552,6 +552,244 @@ input[type="datetime-local"]:focus {
 }
 
 /* =========================
+   FORMULÁRIOS E TABELAS (páginas de gestão)
+========================= */
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.panel .panel-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.form-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.campo label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.campo input,
+.campo select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.btn-primary {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:hover td {
+  background: var(--color-surface-alt);
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-autoconsumo-soft);
+  color: var(--color-autoconsumo);
+}
+
+.badge--off {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+.msg-feedback {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+.msg-feedback.erro {
+  color: var(--color-danger);
+}
+
+.msg-feedback.ok {
+  color: var(--color-autoconsumo);
+}
+
+/* Aviso de chave gerada (mostrada uma única vez) */
+.chave-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--color-geracao);
+  background: var(--color-geracao-soft);
+  font-size: 13px;
+}
+
+.chave-box code {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* =========================
+   MODAIS
+========================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 21, 34, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.modal-conteudo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+  padding: 24px 28px;
+  width: min(420px, calc(100vw - 32px));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-conteudo h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.modal-conteudo form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal .fechar {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.modal .fechar:hover {
+  color: var(--color-text);
+}
+
+/* Botões de ação nas linhas da tabela de inquilinos */
+.data-table .status-btn,
+.data-table .editar-btn,
+.data-table .senha-btn,
+.data-table .deletar-btn,
+.data-table .link-consumo {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.data-table .deletar-btn {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.data-table .link-consumo {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.data-table .status-btn:hover,
+.data-table .editar-btn:hover,
+.data-table .senha-btn:hover {
+  border-color: var(--color-accent);
+}
+
+/* =========================
    RESPONSIVO
 ========================= */
 @media (max-width: 900px) {
