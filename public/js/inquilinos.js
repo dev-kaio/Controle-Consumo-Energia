@@ -98,10 +98,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 `;
 
         tr.querySelector(".cel-nome").textContent = u.nome || "";
-        tr.querySelector(".cel-apto").textContent = (u.aptoID || "").replace(
-          "apto_",
-          "",
-        );
+        // ID composto "sol-blocoA-101" → exibe "blocoA-101"
+        tr.querySelector(".cel-apto").textContent = (u.aptoID || "")
+          .split("-")
+          .slice(1)
+          .join("-");
         tr.querySelector(".cel-status").textContent = u.ativo
           ? "Ativo"
           : "Inativo";

@@ -230,8 +230,10 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
 
+    // ID composto "sol-blocoA-101" → exibe "blocoA-101" (o condomínio é
+    // óbvio pro admin logado; o prédio não, se houver mais de um)
     div.querySelector(".tenant-apto").textContent =
-      "Apto " + (apartamento || "—").replace("apto_", "");
+      "Apto " + (apartamento || "—").split("-").slice(1).join("-");
     div.querySelector(".tenant-nome").textContent = nome || "";
 
     return div;

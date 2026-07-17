@@ -117,9 +117,27 @@ router.post(
         return res.status(403).json({ erro: "Sem permissão para criar admin" });
       }
 
-      // Se for inquilino, precisa de apartamentoID
-      if (tipoFinal === "inquilino" && !aptoID) {
-        return res.status(400).json({ erro: "Apartamento é obrigatório" });
+      // Inquilino precisa de um apartamento JÁ CADASTRADO (via /estrutura/
+      // apartamentos) e que pertença ao condomínio da operação. Não se cria
+      // mais apartamento "de carona" aqui — a estrutura física é explícita.
+      if (tipoFinal === "inquilino") {
+        if (!aptoID) {
+          return res.status(400).json({ erro: "Apartamento é obrigatório" });
+        }
+
+        const aptoSnap = await db.ref(`apartamentos/${aptoID}`).once("value");
+        const apto = aptoSnap.val();
+
+        if (!apto) {
+          return res.status(404).json({
+            erro: "Apartamento não cadastrado — cadastre a estrutura primeiro",
+          });
+        }
+        if (apto.condominioID !== condoID) {
+          return res
+            .status(403)
+            .json({ erro: "Apartamento não pertence a esse condomínio" });
+        }
       }
 
       // cria auth user PRIMEIRO (para ter o uid)
@@ -129,24 +147,6 @@ router.post(
       });
 
       const uid = userRecord.uid;
-
-      // Se for inquilino, cria apartamento se não existir
-      if (tipoFinal === "inquilino") {
-        const aptoSnap = await db.ref(`apartamentos/${aptoID}`).once("value");
-
-        // Se apartamento não existe, cria automaticamente com moradores
-        if (!aptoSnap.exists()) {
-          await db.ref(`apartamentos/${aptoID}`).set({
-            condominioID: condoID,
-            moradores: {
-              [uid]: true,
-            },
-          });
-        } else {
-          // Se existe, só adiciona morador
-          await db.ref(`apartamentos/${aptoID}/moradores/${uid}`).set(true);
-        }
-      }
 
       // salva usuario
       const userData = {
@@ -206,6 +206,24 @@ router.post(
           .json({ erro: "Nenhum campo editável informado" });
       }
 
+      // Trocar de apartamento: o novo apto precisa existir e ser do MESMO
+      // condomínio do usuário (senão seria um jeito de vazar pra outro tenant)
+      if (atualizacao.aptoID) {
+        const aptoSnap = await db
+          .ref(`apartamentos/${atualizacao.aptoID}`)
+          .once("value");
+        const apto = aptoSnap.val();
+
+        if (!apto) {
+          return res.status(404).json({ erro: "Apartamento não cadastrado" });
+        }
+        if (apto.condominioID !== acesso.userData.condominioID) {
+          return res
+            .status(403)
+            .json({ erro: "Apartamento não pertence ao condomínio do usuário" });
+        }
+      }
+
       await db.ref(`usuarios/${uid}`).update(atualizacao);
 
       res.json({
@@ -235,17 +253,11 @@ router.post(
         return res.status(acesso.erro.status).json({ erro: acesso.erro.mensagem });
       }
 
-      const aptoID = acesso.userData.aptoID;
-
       // remove auth
       await admin.auth().deleteUser(uid);
 
-      // remove do apto
-      if (aptoID) {
-        await db.ref(`apartamentos/${aptoID}/moradores/${uid}`).remove();
-      }
-
-      // remove do banco
+      // remove do banco (a relação morador↔apto vive só em usuarios.aptoID,
+      // então não há mais nada pra limpar em apartamentos/)
       await db.ref(`usuarios/${uid}`).remove();
 
       res.json({

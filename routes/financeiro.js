@@ -6,25 +6,35 @@ const db = admin.database();
 const { authenticateToken } = require("./requires");
 const { calcularKwhFaturado } = require("../utils/consumoUtils");
 const { buscarTarifaVigente } = require("../utils/tarifaUtils");
-const { normalizarAptoId } = require("../utils/aptoUtils");
+const { validarAptoId } = require("../utils/idUtils");
+const { mesAnterior } = require("../utils/mesUtils");
 
 const REGEX_COMPETENCIA = /^\d{4}-\d{2}$/;
+
+function ordenarLeituras(registros) {
+  return registros
+    ? Object.values(registros)
+        .filter((r) => typeof r.valorKWh === "number" && r.timestamp)
+        .map((r) => ({ timestamp: new Date(r.timestamp), valorKWh: r.valorKWh }))
+        .sort((a, b) => a.timestamp - b.timestamp)
+    : [];
+}
 
 // Calcula o valor da conta (TUSD, TE, IP-CIP, total) de um apartamento
 // numa competência (mês) específica.
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const { competencia } = req.query;
-    const { role } = req.user;
-    // Normaliza para o padrão "apto_XXX" — a claim já vem com prefixo,
-    // mas a query do frontend às vezes manda só o número.
-    const apartamentoId = normalizarAptoId(req.query.apartamentoId);
-    const aptToken = normalizarAptoId(req.user.apartamentoId);
+    const { apartamentoId, competencia } = req.query;
+    const { role, apartamentoId: aptToken } = req.user;
 
     if (!apartamentoId || !competencia) {
       return res
         .status(400)
         .json({ erro: "apartamentoId e competencia são obrigatórios" });
+    }
+
+    if (!validarAptoId(apartamentoId)) {
+      return res.status(400).json({ erro: "apartamentoId inválido" });
     }
 
     if (!REGEX_COMPETENCIA.test(competencia)) {
@@ -58,29 +68,19 @@ router.get("/", authenticateToken, async (req, res) => {
         .json({ erro: "Nenhuma tarifa cadastrada para o condomínio deste apartamento" });
     }
 
-    // Intervalo da competência: do dia 1 do mês até o dia 1 do mês seguinte (exclusivo)
-    const [ano, mes] = competencia.split("-").map(Number);
-    const inicio = new Date(Date.UTC(ano, mes - 1, 1));
-    const fim = new Date(Date.UTC(ano, mes, 1));
+    // Graças à partição mensal, a conta de um mês lê só dois nós: o mês da
+    // competência e o mês anterior (a última leitura dele é o "baseline" —
+    // o ponto de partida do acumulado, já que valorKWh é cumulativo).
+    const base = `leituras/${apartamentoId}/consumo`;
+    const [mesSnap, anteriorSnap] = await Promise.all([
+      db.ref(`${base}/${competencia}`).once("value"),
+      db.ref(`${base}/${mesAnterior(competencia)}`).once("value"),
+    ]);
 
-    const snapshot = await db
-      .ref(`leituras/${apartamentoId}/consumo`)
-      .once("value");
-    const registros = snapshot.val();
-
-    const todas = registros
-      ? Object.values(registros)
-          .filter((r) => typeof r.valorKWh === "number" && r.timestamp)
-          .map((r) => ({ timestamp: new Date(r.timestamp), valorKWh: r.valorKWh }))
-          .sort((a, b) => a.timestamp - b.timestamp)
-      : [];
-
-    const dentroPeriodo = todas.filter(
-      (r) => r.timestamp >= inicio && r.timestamp < fim,
-    );
-    const antesDoPeriodo = todas.filter((r) => r.timestamp < inicio);
+    const dentroPeriodo = ordenarLeituras(mesSnap.val());
+    const anteriores = ordenarLeituras(anteriorSnap.val());
     const baseline =
-      antesDoPeriodo.length > 0 ? [antesDoPeriodo[antesDoPeriodo.length - 1]] : [];
+      anteriores.length > 0 ? [anteriores[anteriores.length - 1]] : [];
 
     const kwhFaturado = calcularKwhFaturado([...baseline, ...dentroPeriodo]);
 

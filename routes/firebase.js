@@ -5,7 +5,8 @@ const admin = require("firebase-admin");
 const db = admin.database();
 
 const { authenticateToken } = require("./requires");
-const { normalizarAptoId } = require("../utils/aptoUtils");
+const { validarAptoId } = require("../utils/idUtils");
+const { mesesNoIntervalo } = require("../utils/mesUtils");
 
 function calcularIntervalo(filtro) {
   const agora = new Date();
@@ -40,25 +41,44 @@ function calcularIntervalo(filtro) {
   };
 }
 
-// Lê as leituras de UM apartamento e devolve só as que caem no intervalo.
-async function lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim) {
-  const snapshot = await db
-    .ref(`leituras/${aptoId}/${tipoDado}`)
-    .once("value");
+// Lê as leituras de UM apartamento no intervalo, aproveitando a partição
+// mensal (leituras/{apto}/{tipo}/{AAAA-MM}/...): só os meses do intervalo
+// são baixados. Intervalos gigantes ("Desde o Início") leem o nó do tipo
+// inteiro de uma vez — dá no mesmo, todos os meses seriam necessários.
+const LIMITE_MESES_POR_CONSULTA = 36;
 
-  const registros = snapshot.val();
-  if (!registros) return [];
+async function lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim) {
+  const meses = mesesNoIntervalo(dataInicio, dataFim);
+
+  let porMes; // { "2026-07": { pushId: leitura, ... }, ... }
+
+  if (meses.length > LIMITE_MESES_POR_CONSULTA) {
+    const snapshot = await db.ref(`leituras/${aptoId}/${tipoDado}`).once("value");
+    porMes = snapshot.val() || {};
+  } else {
+    porMes = {};
+    const snapshots = await Promise.all(
+      meses.map((mes) =>
+        db.ref(`leituras/${aptoId}/${tipoDado}/${mes}`).once("value"),
+      ),
+    );
+    snapshots.forEach((snap, i) => {
+      if (snap.val()) porMes[meses[i]] = snap.val();
+    });
+  }
 
   const resultado = [];
-  for (const item of Object.values(registros)) {
-    const data = new Date(item.timestamp);
-    if (data >= dataInicio && data <= dataFim) {
-      resultado.push({
-        timestamp: item.timestamp,
-        valorKWh: item.valorKWh,
-        tipo: tipoDado,
-        aptoID: aptoId,
-      });
+  for (const registrosDoMes of Object.values(porMes)) {
+    for (const item of Object.values(registrosDoMes)) {
+      const data = new Date(item.timestamp);
+      if (data >= dataInicio && data <= dataFim) {
+        resultado.push({
+          timestamp: item.timestamp,
+          valorKWh: item.valorKWh,
+          tipo: tipoDado,
+          aptoID: aptoId,
+        });
+      }
     }
   }
   return resultado;
@@ -76,7 +96,7 @@ async function listarAptosVisiveis(usuario) {
       if (usuario.role === "superadmin") return true;
       return apto.condominioID === usuario.condominioID;
     })
-    .map(([aptoKey]) => normalizarAptoId(aptoKey));
+    .map(([aptoID]) => aptoID);
 }
 
 // Cria o handler de /consumo, /autoconsumo e /geracao — a lógica é idêntica,
@@ -87,11 +107,13 @@ function criarHandlerDeLeitura(tipoDado) {
       const { filtro, inicio, fim } = req.query;
       // O frontend historicamente manda ora "apartamentoId", ora "aptoID" —
       // aceitamos os dois para não quebrar chamadas existentes.
-      const aptoQuery = normalizarAptoId(
-        req.query.apartamentoId || req.query.aptoID,
-      );
+      const aptoQuery = req.query.apartamentoId || req.query.aptoID || null;
       const { role, condominioID } = req.user;
-      const aptoToken = normalizarAptoId(req.user.apartamentoId);
+      const aptoToken = req.user.apartamentoId || null;
+
+      if (aptoQuery && !validarAptoId(aptoQuery)) {
+        return res.status(400).json({ erro: "aptoID inválido" });
+      }
 
       let dataInicio, dataFim;
       if (filtro) {

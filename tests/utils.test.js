@@ -5,23 +5,54 @@ const assert = require("node:assert");
 
 const { calcularKwhFaturado } = require("../utils/consumoUtils");
 const { buscarTarifaVigente } = require("../utils/tarifaUtils");
-const { normalizarAptoId } = require("../utils/aptoUtils");
+const { validarAptoId, montarAptoId, validarSegmento } = require("../utils/idUtils");
+const { mesDaData, mesesNoIntervalo, mesAnterior } = require("../utils/mesUtils");
 
-// ---------- normalizarAptoId ----------
+// ---------- IDs compostos ----------
 
-test("normalizarAptoId adiciona prefixo quando falta", () => {
-  assert.strictEqual(normalizarAptoId("202"), "apto_202");
+test("montarAptoId monta condominio-predio-numero", () => {
+  assert.strictEqual(montarAptoId("sol", "blocoA", "101"), "sol-blocoA-101");
 });
 
-test("normalizarAptoId não duplica prefixo existente", () => {
-  assert.strictEqual(normalizarAptoId("apto_202"), "apto_202");
+test("montarAptoId rejeita segmento com hífen ou vazio", () => {
+  assert.strictEqual(montarAptoId("sol", "bloco-A", "101"), null);
+  assert.strictEqual(montarAptoId("", "blocoA", "101"), null);
+  assert.strictEqual(montarAptoId("sol", "blocoA", "../x"), null);
 });
 
-test("normalizarAptoId trata vazio/undefined/null como null", () => {
-  assert.strictEqual(normalizarAptoId(""), null);
-  assert.strictEqual(normalizarAptoId("   "), null);
-  assert.strictEqual(normalizarAptoId(undefined), null);
-  assert.strictEqual(normalizarAptoId(null), null);
+test("validarAptoId aceita só o formato composto", () => {
+  assert.strictEqual(validarAptoId("sol-blocoA-101"), true);
+  assert.strictEqual(validarAptoId("apto_101"), false);
+  assert.strictEqual(validarAptoId("sol-blocoA"), false);
+  assert.strictEqual(validarAptoId("../usuarios"), false);
+  assert.strictEqual(validarAptoId(undefined), false);
+});
+
+test("validarSegmento aceita só letras e números", () => {
+  assert.strictEqual(validarSegmento("blocoA"), true);
+  assert.strictEqual(validarSegmento("bloco A"), false);
+  assert.strictEqual(validarSegmento("bloco-A"), false);
+});
+
+// ---------- partições mensais ----------
+
+test("mesDaData formata AAAA-MM em UTC", () => {
+  assert.strictEqual(mesDaData(new Date("2026-07-16T10:00:00Z")), "2026-07");
+  assert.strictEqual(mesDaData("2026-01-05T00:00:00Z"), "2026-01");
+  assert.strictEqual(mesDaData("data inválida"), null);
+});
+
+test("mesesNoIntervalo lista as competências das pontas inclusive", () => {
+  const meses = mesesNoIntervalo(
+    new Date("2026-05-20T00:00:00Z"),
+    new Date("2026-07-03T00:00:00Z"),
+  );
+  assert.deepStrictEqual(meses, ["2026-05", "2026-06", "2026-07"]);
+});
+
+test("mesAnterior atravessa a virada de ano", () => {
+  assert.strictEqual(mesAnterior("2026-01"), "2025-12");
+  assert.strictEqual(mesAnterior("2026-07"), "2026-06");
 });
 
 // ---------- calcularKwhFaturado ----------

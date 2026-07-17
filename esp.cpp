@@ -9,6 +9,13 @@ const char *password = "";
 
 const char *serverUrl = "http://192.168.0.6:3000/esp/dados";
 
+// IDENTIDADE DO DISPOSITIVO
+// A ESP não sabe de apartamento: ela se identifica com o próprio id e a
+// chave gerada no cadastro (POST /estrutura/dispositivos, ou seed). O
+// backend resolve o apartamento pelo cadastro em dispositivos/{espId}.
+const char *espId = "esp001";
+const char *espChave = "COLE_AQUI_A_CHAVE_GERADA_NO_CADASTRO";
+
 // INTERVALOS
 #define READ_INTERVAL 1000
 #define SAMPLE_INTERVAL 10000
@@ -53,8 +60,6 @@ void enviarParaBackend()
 
   JsonDocument doc;
 
-  doc["aptoID"] = "apto_101";
-
   JsonArray arr = doc["leituras"].to<JsonArray>();
 
   for (int i = 0; i < bufferIndex; i++)
@@ -75,7 +80,8 @@ void enviarParaBackend()
   HTTPClient http;
   http.begin(serverUrl);
   http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", "123456");
+  http.addHeader("x-esp-id", espId);
+  http.addHeader("x-api-key", espChave);
 
   int httpCode = http.POST(json);
 

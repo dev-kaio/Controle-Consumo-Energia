@@ -37,9 +37,11 @@ em `routes/requires.js`.
   IDs `menuBtn`, `sidebar`, `filterBtn`, `filterMenu`, `themeToggle`,
   `superadminLink`, e as classes `.active` (sidebar) e `.dark` (body) não
   podem ser renomeados sem atualizar esses dois arquivos junto.
-- **IDs de apartamento** devem seguir o padrão `apto_XXX` (string). Existem
-  registros antigos no banco fora desse padrão (`"303"`, `"404"`) — ver
-  `docs/ARQUITETURA.md` sobre isso antes de mexer em queries por apartamento.
+- **IDs de apartamento** são compostos: `condominio-predio-numero`
+  (ex: `sol-blocoA-101`). Cada segmento só aceita letras e números — o
+  hífen é o separador. Validação/montagem em `utils/idUtils.js`; nunca
+  montar esse ID na mão. Leituras são particionadas por mês:
+  `leituras/{aptoID}/{tipo}/{AAAA-MM}/{pushId}` (ver `docs/ARQUITETURA.md`).
 - **Tarifas (TUSD/TE/IP-CIP)** já vêm "com tributos" (ICMS/PIS/COFINS
   embutidos) — nunca aplicar imposto de novo em cima. Ver
   `docs/TARIFAS-FINANCEIRO.md`.

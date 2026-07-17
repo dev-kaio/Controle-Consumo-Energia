@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         u.nome || "-",
         isAdmin ? "Admin" : u.tipo,
         u.condominioID || "-",
-        u.aptoID ? u.aptoID.replace("apto_", "") : "-",
+        u.aptoID || "-",
         u.ativo ? "Ativo" : "Inativo",
       ];
       for (const valor of celulas) {
