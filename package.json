@@ -1,24 +1,25 @@
 {
   "name": "controle-consumo-energia",
   "version": "1.0.0",
-  "description": "![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)\r ![Firebase](https://img.shields.io/badge/Firebase-ffca28?style=flat&logo=firebase&logoColor=black)\r ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)",
+  "description": "Palm Energy — monitoramento e faturamento de energia individualizado por apartamento (ESP32 + Node.js + Firebase)",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
-    "kaiolito"
+    "energia",
+    "esp32",
+    "condominio",
+    "firebase"
   ],
   "author": "dev-kaio",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.2.1",
     "express": "^5.2.1",
-    "firebase-admin": "^13.5.0",
-    "node": "^22.21.1",
-    "path": "^0.12.7",
-    "router": "^2.2.0"
+    "firebase-admin": "^13.5.0"
   },
   "repository": {
     "type": "git",

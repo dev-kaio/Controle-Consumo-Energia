@@ -4,20 +4,6 @@ const admin = require("firebase-admin");
 
 const { authenticateToken } = require("./requires");
 
-router.post("/login", authenticateToken, (req, res) => {
-  return res.json({
-    message: "Login validado com sucesso.",
-    uid: req.user.uid,
-  });
-});
-
-router.post("/registrar", authenticateToken, (req, res) => {
-  return res.json({
-    message: "Registro validado com sucesso.",
-    uid: req.user.uid,
-  });
-});
-
 router.post("/role", authenticateToken, async (req, res) => {
   try {
     const uid = req.user.uid;
