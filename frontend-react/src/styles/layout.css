@@ -1,0 +1,297 @@
+/* ==================================================================
+   PALM ENERGY — casca do app: header fixo, sidebar e menu de filtro
+   Usado pelo AppLayout/Header/Sidebar (components/layout/).
+================================================================== */
+
+/* =========================
+   HEADER FIXO
+   (menu + marca + filtro + tema juntos, nada mais flutuando solto)
+========================= */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 1000;
+}
+
+.app-header .brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header .brand .bolt {
+  color: var(--color-geracao);
+}
+
+.app-header .spacer {
+  flex: 1;
+}
+
+.menu-btn,
+.filter-btn,
+.theme-toggle {
+  font-size: 16px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.menu-btn:hover,
+.filter-btn:hover,
+.theme-toggle:hover {
+  border-color: var(--color-accent);
+}
+
+.menu-btn {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* link "voltar" do header (página de configurações) */
+.app-header .voltar {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.app-header .voltar:hover {
+  color: var(--color-accent);
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -270px;
+  width: 270px;
+  height: 100%;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding-top: 76px;
+  transition: left 0.3s ease;
+  z-index: 950;
+  box-shadow: none;
+}
+
+.sidebar.active {
+  left: 0;
+  box-shadow: var(--shadow-pop);
+}
+
+.sidebar a {
+  display: block;
+  padding: 14px 22px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+}
+
+.sidebar a:hover {
+  background: var(--color-surface-alt);
+  border-left-color: var(--color-accent);
+}
+
+/* =========================
+   FILTRO (dropdown do header)
+========================= */
+.filter-container {
+  position: relative;
+}
+
+.filter-menu {
+  display: none;
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 290px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  box-shadow: var(--shadow-pop);
+  z-index: 1001;
+}
+
+/* No React quem controla a visibilidade é a classe .aberto (estado),
+   não style.display na mão */
+.filter-menu.aberto {
+  display: block;
+}
+
+.filter-menu button[data-filter] {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: left;
+}
+
+.filter-menu button[data-filter]:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.filter-menu hr {
+  border: none;
+  height: 1px;
+  background: var(--color-border);
+  margin: 14px 0;
+}
+
+.tipo-selecao,
+.custom-range {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+}
+
+.tipo-selecao p {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.tipo-selecao label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.custom-range {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-range label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+input[type="datetime-local"] {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.btn-aplicar-intervalo {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.btn-aplicar-intervalo:hover {
+  filter: brightness(1.1);
+}
+
+/* =========================
+   LAYOUT PRINCIPAL
+========================= */
+.dashboard {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 84px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================
+   RESPONSIVO + ÁREA SEGURA (notch)
+   O sistema é usado principalmente no CELULAR — mobile não é exceção,
+   é o caso principal. Três degraus: 900px (tablet), 700px (celular),
+   480px (celular pequeno).
+========================= */
+.app-header {
+  padding-top: env(safe-area-inset-top);
+  height: calc(60px + env(safe-area-inset-top));
+}
+
+.sidebar {
+  padding-top: calc(76px + env(safe-area-inset-top));
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    padding: calc(76px + env(safe-area-inset-top)) 14px 30px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Sidebar não cobre a tela toda — dá pra tocar fora pra fechar */
+  .sidebar {
+    width: min(280px, 82vw);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 8px;
+  }
+
+  .app-header .brand .brand-nome {
+    display: none; /* só o raio ⚡ em telas mínimas */
+  }
+
+  .filter-menu {
+    position: fixed;
+    top: calc(56px + env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+}

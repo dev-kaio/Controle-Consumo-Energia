@@ -1,0 +1,149 @@
+/* ==================================================================
+   PALM ENERGY — painéis e formulários (páginas de gestão)
+   .panel é o "card branco" padrão; .form-linha + .campo montam
+   qualquer formulário; .msg-feedback é o feedback inline padrão.
+================================================================== */
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.panel .panel-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.form-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.campo label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.campo input,
+.campo select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.btn-primary {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.msg-feedback {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+.msg-feedback.erro {
+  color: var(--color-danger);
+}
+
+.msg-feedback.ok {
+  color: var(--color-autoconsumo);
+}
+
+/* Aviso de chave gerada (mostrada uma única vez) */
+.chave-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--color-geracao);
+  background: var(--color-geracao-soft);
+  font-size: 13px;
+}
+
+.chave-box code {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 700px) {
+  /* iOS dá zoom em input com fonte < 16px — no celular tudo vira 16px */
+  .campo input,
+  .campo select,
+  input[type="datetime-local"] {
+    font-size: 16px;
+  }
+
+  /* Formulários empilham: um campo por linha, botão em largura total */
+  .form-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .campo {
+    min-width: 0;
+  }
+
+  .form-linha .btn-primary {
+    width: 100%;
+    padding: 13px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+}

@@ -1,0 +1,58 @@
+/* ==================================================================
+   PALM ENERGY — modais (usados pelo components/ui/Modal.jsx)
+================================================================== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 21, 34, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.modal-conteudo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+  padding: 24px 28px;
+  width: min(420px, calc(100vw - 32px));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-conteudo h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.modal-conteudo form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal .fechar {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+}
+
+.modal .fechar:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .modal-conteudo {
+    padding: 20px 18px;
+  }
+}
