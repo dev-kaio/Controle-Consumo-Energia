@@ -2,14 +2,30 @@
 
 ## Segurança (ver `docs/SEGURANCA.md` pros detalhes de cada um)
 
-- [ ] Rotacionar credenciais do `.env` antes de qualquer dado real entrar
-      no banco (baixa urgência agora — dados de teste confirmados pelo K)
-- [ ] Trocar API key fraca hardcoded no firmware da ESP + migrar pra HTTPS
-      antes de deploy real
-- [ ] Escapar `nome`/`email` em pontos que usam `innerHTML` (XSS potencial
-      de baixo risco hoje)
-- [ ] Revisar/versionar as regras de segurança do Firebase
-- [ ] Limpar `package.json` (`node`, `path`, `router` não deveriam estar lá)
+### GATE DE PRODUÇÃO — rotação de chaves (decisão do K: fazer só ao validar pra prod)
+
+O `.env` com credenciais ficou no histórico público do git (sem rewrite, por
+escolha). As chaves atuais são de teste, então pode esperar — mas **nada de
+dado real entra no banco antes deste checklist**:
+
+- [ ] Google Cloud Console → IAM → Contas de serviço do projeto
+      `controle-energia-d3121` → conta `firebase-adminsdk-...` → aba
+      **Chaves** → apagar a chave atual
+- [ ] Firebase Console → Configurações do projeto → Contas de serviço →
+      **Gerar nova chave privada**
+- [ ] Copiar os valores do JSON baixado pro `.env` local (nomes documentados
+      no `.env.example`)
+- [ ] Trocar `ESP_KEY` por valor forte (`openssl rand -hex 32`) e colocar o
+      MESMO valor no firmware `esp.cpp` (hoje hardcoded `"123456"`)
+- [ ] Migrar a comunicação da ESP pra HTTPS
+
+### Demais itens
+
+- [x] ~~Escapar `nome`/`email` em pontos que usam `innerHTML`~~ (feito —
+      renderização via `textContent` em grafico.js/inquilinos.js/superadmin.js)
+- [x] ~~Limpar `package.json`~~ (feito — deps falsas removidas, testes reais)
+- [ ] Revisar/versionar as regras de segurança do Firebase (agora que o
+      frontend não lê mais o RTDB direto, dá pra fechar as regras de leitura)
 
 ## Arquitetura / dívida técnica
 
