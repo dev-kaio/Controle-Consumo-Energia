@@ -1,6 +1,21 @@
+import { signOut } from "../auth/firebaseConfig.js";
+
 document.addEventListener("DOMContentLoaded", async () => {
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
+
+  // Logout único pra todas as páginas com sidebar — limpa o localStorage
+  // mas preserva o tema (preferência visual não é dado de sessão).
+  const logout = document.getElementById("logout");
+  if (logout) {
+    logout.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const tema = localStorage.getItem("tema");
+      localStorage.clear();
+      if (tema) localStorage.setItem("tema", tema);
+      await signOut();
+    });
+  }
 
   const tipoUsuario = localStorage.getItem("tipoUsuario");
   const superadminLink = document.getElementById("superadminLink");

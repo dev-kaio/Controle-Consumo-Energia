@@ -3,7 +3,6 @@
    Variáveis e fontes vêm de variables.css (mesmo design system do
    dashboard — ver docs/DESIGN-SYSTEM.md).
 ================================================================== */
-@import url("./variables.css");
 
 * {
   box-sizing: border-box;

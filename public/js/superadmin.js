@@ -1,9 +1,10 @@
-import { auth, signOut, verificarToken } from "../auth/firebaseConfig.js";
+import { verificarToken, obterToken } from "../auth/firebaseConfig.js";
 
 // Painel do superadmin: cadastro de usuários (admin/inquilino) e visão de
 // todos os usuários agrupados por condomínio. Tudo via backend.
 document.addEventListener("DOMContentLoaded", async () => {
-  await verificarToken(["superadmin"]);
+  const role = await verificarToken(["superadmin"]);
+  if (!role) return; // verificarToken já redirecionou
 
   const container = document.getElementById("listaCondominios");
   const filtroNome = document.getElementById("filtroNome");
@@ -20,25 +21,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const campoApartamento = document.getElementById("campoApartamento");
   const msgUsuario = document.getElementById("msgUsuario");
 
-  document.getElementById("logout").addEventListener("click", async (e) => {
-    e.preventDefault();
-    await signOut();
-    localStorage.clear();
-  });
-
   function feedback(texto, ok) {
     msgUsuario.textContent = texto;
     msgUsuario.className = `msg-feedback ${ok ? "ok" : "erro"}`;
-  }
-
-  async function obterToken() {
-    if (auth.currentUser) return auth.currentUser.getIdToken();
-    return new Promise((resolve) => {
-      const parar = auth.onAuthStateChanged((user) => {
-        parar();
-        resolve(user ? user.getIdToken() : null);
-      });
-    });
   }
 
   // Campo apartamento só aparece pra inquilino

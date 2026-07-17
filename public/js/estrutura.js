@@ -1,29 +1,16 @@
-import { auth, signOut, verificarToken } from "../auth/firebaseConfig.js";
+import { verificarToken, obterToken } from "../auth/firebaseConfig.js";
 
 // Página de gestão da estrutura: condomínio (superadmin), prédios,
 // apartamentos, medidores ESP e tarifas (superadmin).
 // Toda leitura/escrita passa pelo backend — nada de Firebase client SDK.
+// (logout é responsabilidade do sidebar.js, comum a todas as páginas)
 document.addEventListener("DOMContentLoaded", async () => {
-  await verificarToken(["admin", "superadmin"]);
+  // A role vem das claims do token (fonte confiável) — não do localStorage,
+  // que o usuário controla e que some se outra aba der logout.
+  const role = await verificarToken(["admin", "superadmin"]);
+  if (!role) return; // verificarToken já redirecionou
 
-  const souSuperadmin = localStorage.getItem("tipoUsuario") === "superadmin";
-
-  document.getElementById("logout").addEventListener("click", async (e) => {
-    e.preventDefault();
-    await signOut();
-    localStorage.clear();
-  });
-
-  // Token sempre fresco (o SDK renova sozinho)
-  async function obterToken() {
-    if (auth.currentUser) return auth.currentUser.getIdToken();
-    return new Promise((resolve) => {
-      const parar = auth.onAuthStateChanged((user) => {
-        parar();
-        resolve(user ? user.getIdToken() : null);
-      });
-    });
-  }
+  const souSuperadmin = role === "superadmin";
 
   async function api(caminho, opcoes = {}) {
     const token = await obterToken();
@@ -201,9 +188,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("formApto").addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
-      const [condominioID, predioID] = document
-        .getElementById("aptoPredio")
-        .value.split("|");
+      const valorPredio = document.getElementById("aptoPredio").value;
+      if (!valorPredio) {
+        feedback("msgApto", "Cadastre um prédio primeiro", false);
+        return;
+      }
+      const [condominioID, predioID] = valorPredio.split("|");
       const body = {
         predioID,
         numero: document.getElementById("aptoNumero").value.trim(),

@@ -1,33 +1,14 @@
-import { signOut, auth } from "../auth/firebaseConfig.js";
+import { verificarToken, obterToken } from "../auth/firebaseConfig.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Token SEMPRE fresco: o do localStorage expira em 1h e o dashboard fica
-  // aberto por muito mais tempo que isso. O SDK renova sozinho via getIdToken.
-  async function obterToken() {
-    if (auth.currentUser) return auth.currentUser.getIdToken();
-    return new Promise((resolve) => {
-      const parar = auth.onAuthStateChanged((user) => {
-        parar();
-        resolve(user ? user.getIdToken() : localStorage.getItem("token"));
-      });
-    });
-  }
+// (logout é responsabilidade do sidebar.js, comum a todas as páginas)
+document.addEventListener("DOMContentLoaded", async () => {
+  const role = await verificarToken();
+  if (!role) return; // verificarToken já redirecionou
+
   const urlParams = new URLSearchParams(window.location.search);
   const aptoSelecionado = urlParams.get("aptoID");
 
   let filtroAtualDisplay = "Desde o início";
-
-  const btnLogout = document.getElementById("logout");
-  btnLogout.addEventListener("click", Sair);
-
-  async function Sair() {
-    try {
-      await signOut();
-      localStorage.clear();
-    } catch (error) {
-      console.log("Erro ao deslogar.");
-    }
-  }
 
   const ctx = document.getElementById("meuGrafico").getContext("2d");
 

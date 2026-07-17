@@ -1,25 +1,19 @@
-import { auth, signOut, verificarToken } from "../auth/firebaseConfig.js";
+import { auth, verificarToken, obterToken } from "../auth/firebaseConfig.js";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
+// (logout é responsabilidade do sidebar.js, comum a todas as páginas)
 document.addEventListener("DOMContentLoaded", async () => {
-  await verificarToken(["admin", "superadmin"]);
+  const role = await verificarToken(["admin", "superadmin"]);
+  if (!role) return; // verificarToken já redirecionou
 
   const form = document.getElementById("formInquilino");
   const tbody = document.querySelector("#tabelaInquilinos tbody");
-
-  const tipoUsuario = localStorage.getItem("tipoUsuario");
-
-  document.getElementById("logout").addEventListener("click", async (e) => {
-    e.preventDefault();
-    await signOut();
-    localStorage.clear();
-  });
 
   // Os selects de apartamento vêm da estrutura cadastrada — com ID composto
   // (sol-blocoA-101), digitar na mão seria fonte constante de erro.
   async function carregarApartamentos() {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
       const resp = await fetch("/estrutura/apartamentos", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -42,7 +36,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   carregarApartamentos();
 
-  if (tipoUsuario === "superadmin") {
+  // Role vem das claims do token (via verificarToken), não do localStorage
+  if (role === "superadmin") {
     const superadminInfo = document.getElementById("superadmin");
     superadminInfo.innerHTML =
       "Você está logado como Superadmin. Para cadastrar inquilino acesse a página <a href='superadmin.html'>Superadmin</a> ";
@@ -69,9 +64,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
 
-      await fetch("/usuarios/criar", {
+      const resp = await fetch("/usuarios/criar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,13 +74,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         body: JSON.stringify({ nome, email, senha, aptoID }),
       });
+      if (!resp.ok) {
+        const corpo = await resp.json().catch(() => ({}));
+        throw new Error(corpo.erro || `Erro ${resp.status}`);
+      }
 
       alert("Inquilino criado!");
       form.reset();
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert("Erro ao criar inquilino.");
+      alert(err.message || "Erro ao criar inquilino.");
     }
   });
 
@@ -96,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       // A filtragem por condomínio acontece no BACKEND (/usuarios/listar) —
       // o navegador nunca recebe dados de outros condomínios.
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
       const resp = await fetch("/usuarios/listar", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -180,7 +179,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("editarNome").value = u.nome;
     document.getElementById("editarEmail").value = u.email;
-    document.getElementById("editarApartamento").value = u.aptoID;
+
+    // Se o apto do inquilino não está mais na estrutura (removido/renomeado),
+    // setar o value falharia em silêncio e o salvar trocaria o apto sem
+    // querer — insere a opção órfã pra manter o valor atual visível.
+    const selApto = document.getElementById("editarApartamento");
+    if (u.aptoID && !selApto.querySelector(`option[value="${u.aptoID}"]`)) {
+      const op = document.createElement("option");
+      op.value = u.aptoID;
+      op.textContent = `${u.aptoID} (fora da estrutura)`;
+      selApto.appendChild(op);
+    }
+    selApto.value = u.aptoID || "";
 
     const formEditar = document.getElementById("formEditarInquilino");
 
@@ -197,9 +207,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        const token = await auth.currentUser.getIdToken();
+        const token = await obterToken();
 
-        await fetch("/usuarios/atualizar", {
+        const resp = await fetch("/usuarios/atualizar", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -210,13 +220,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             dados: { nome, email, aptoID },
           }),
         });
+        if (!resp.ok) {
+          const corpo = await resp.json().catch(() => ({}));
+          throw new Error(corpo.erro || `Erro ${resp.status}`);
+        }
 
         alert("Inquilino atualizado!");
         modal.style.display = "none";
         carregarInquilinos();
       } catch (err) {
         console.error(err);
-        alert("Erro ao atualizar inquilino.");
+        alert(err.message || "Erro ao atualizar inquilino.");
       }
     };
   }
@@ -267,9 +281,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     ========================== */
   async function desativar(uid, ativo) {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
 
-      await fetch("/usuarios/atualizar", {
+      const resp = await fetch("/usuarios/atualizar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -280,11 +294,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           dados: { ativo },
         }),
       });
+      if (!resp.ok) {
+        const corpo = await resp.json().catch(() => ({}));
+        throw new Error(corpo.erro || `Erro ${resp.status}`);
+      }
 
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert("Erro ao atualizar status.");
+      alert(err.message || "Erro ao atualizar status.");
     }
   }
 
@@ -295,9 +313,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!confirm("Tem certeza que deseja excluir este inquilino?")) return;
 
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await obterToken();
 
-      await fetch("/usuarios/deletar", {
+      const resp = await fetch("/usuarios/deletar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -305,12 +323,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         body: JSON.stringify({ uid }),
       });
+      if (!resp.ok) {
+        const corpo = await resp.json().catch(() => ({}));
+        throw new Error(corpo.erro || `Erro ${resp.status}`);
+      }
 
       alert("Inquilino deletado!");
       carregarInquilinos();
     } catch (err) {
       console.error(err);
-      alert("Erro ao deletar inquilino.");
+      alert(err.message || "Erro ao deletar inquilino.");
     }
   }
   carregarInquilinos();

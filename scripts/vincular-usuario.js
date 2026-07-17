@@ -70,8 +70,11 @@ async function main() {
 
   await db.ref(`usuarios/${user.uid}`).set(registro);
 
-  // Zera claims antigas — o login (/auth/role) define as novas na hora
+  // Zera claims antigas — o login (/auth/role) define as novas na hora.
+  // revoke: tokens já emitidos com as claims antigas valeriam por até 1h;
+  // revogar força re-login em todas as sessões abertas dessa conta.
   await admin.auth().setCustomUserClaims(user.uid, null);
+  await admin.auth().revokeRefreshTokens(user.uid);
 
   console.log(`Vinculado: ${email} → ${tipo}${extra ? ` (${extra})` : ""}`);
   console.log("Claims antigas zeradas — basta logar de novo que o backend define as novas.");

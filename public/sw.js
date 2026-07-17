@@ -2,16 +2,19 @@
  * Service worker do Palm Energy.
  *
  * Estratégia (pensada pra app com dado sensível e sempre-fresco):
- * - API (/auth, /firebase, /usuarios, ...): NUNCA passa pelo cache.
- *   Dado de consumo/financeiro/usuário tem que vir sempre do servidor.
- * - Navegação (HTML): rede primeiro; se offline, tenta o cache e por
- *   último a página offline.html.
- * - Estáticos (css/js/imagens/fontes/CDN): stale-while-revalidate —
- *   responde do cache na hora e atualiza em segundo plano.
+ * - Só entra no cache o que é COMPROVADAMENTE estático (allow-list por
+ *   tipo/extensão + CDNs conhecidos). Tudo que não casa com a allow-list
+ *   passa direto pra rede — uma rota de API nova jamais é cacheada por
+ *   esquecimento (com deny-list, era o modo de falha padrão).
+ * - Navegação (HTML): rede primeiro; só respostas 200 entram no cache
+ *   (nunca uma página de erro); se offline, cache e por último offline.html.
+ * - Estáticos: stale-while-revalidate — responde do cache na hora e
+ *   atualiza em segundo plano (com waitUntil, senão o navegador mata o
+ *   worker antes do cache.put e o asset fica velho pra sempre).
  *
  * Pra forçar atualização geral nos clientes: subir a versão do CACHE.
  */
-const CACHE = "palm-energy-v1";
+const CACHE = "palm-energy-v2";
 
 const PRECACHE = [
   "/",
@@ -24,23 +27,36 @@ const PRECACHE = [
   "/assets/icon-512.png",
 ];
 
-// Prefixos de API — o service worker não intercepta nada disso
-const PREFIXOS_API = [
-  "/auth",
-  "/firebase",
-  "/usuarios",
-  "/superadmin",
-  "/tarifas",
-  "/financeiro",
-  "/estrutura",
-  "/esp",
+// Hosts externos cujos estáticos podem ser cacheados (fontes, Chart.js)
+const CDNS_PERMITIDOS = [
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "cdn.jsdelivr.net",
+  "www.gstatic.com",
 ];
+
+const EXTENSOES_ESTATICAS =
+  /\.(css|js|mjs|png|jpg|jpeg|svg|webp|ico|woff2?|ttf|json)$/;
+
+// Um request só é cacheável se for inequivocamente um asset estático.
+function ehEstatico(req, url) {
+  if (url.origin === self.location.origin) {
+    // manifest e assets por extensão; NUNCA caminhos de API (que não
+    // têm extensão de arquivo — /auth/role, /firebase/consumo, ...)
+    return EXTENSOES_ESTATICAS.test(url.pathname);
+  }
+  return CDNS_PERMITIDOS.includes(url.hostname);
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
+      .then((cache) =>
+        // allSettled: um asset renomeado/404 não pode impedir a instalação
+        // da versão nova inteira do service worker
+        Promise.allSettled(PRECACHE.map((item) => cache.add(item))),
+      )
       .then(() => self.skipWaiting()),
   );
 });
@@ -64,21 +80,19 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // API: sempre rede, sem cache (dados sensíveis e sempre-frescos)
-  if (
-    url.origin === self.location.origin &&
-    PREFIXOS_API.some((p) => url.pathname.startsWith(p))
-  ) {
-    return;
-  }
-
   // Navegação (abrir/recarregar página): rede primeiro
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
         .then((resp) => {
-          const copia = resp.clone();
-          caches.open(CACHE).then((cache) => cache.put(req, copia));
+          // Só HTML saudável entra no cache — uma página de erro cacheada
+          // seria servida no lugar da offline.html depois
+          if (resp.ok) {
+            const copia = resp.clone();
+            event.waitUntil(
+              caches.open(CACHE).then((cache) => cache.put(req, copia)),
+            );
+          }
           return resp;
         })
         .catch(async () => {
@@ -89,15 +103,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Estáticos (mesma origem ou CDN de fontes/Chart.js):
-  // cache primeiro, atualiza em segundo plano
+  // Fora da allow-list de estáticos: rede direto, sem tocar no cache.
+  // (APIs autenticadas caem aqui por construção — sem lista pra manter.)
+  if (!ehEstatico(req, url)) return;
+
+  // Estático: cache primeiro, atualiza em segundo plano.
+  // Respostas "opaque" (status 0) são o normal para CDN carregado via
+  // <script>/url() sem CORS — aceitas SÓ porque o host já passou pela
+  // allow-list acima (o custo de quota fica limitado a assets conhecidos).
   event.respondWith(
     caches.match(req).then((emCache) => {
       const daRede = fetch(req)
         .then((resp) => {
-          if (resp.ok || resp.type === "opaque") {
+          const cacheavel =
+            resp.ok ||
+            (resp.type === "opaque" && url.origin !== self.location.origin);
+          if (cacheavel) {
             const copia = resp.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copia));
+            event.waitUntil(
+              caches.open(CACHE).then((cache) => cache.put(req, copia)),
+            );
           }
           return resp;
         })

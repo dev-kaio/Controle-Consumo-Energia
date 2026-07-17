@@ -1,8 +1,11 @@
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { auth } from "../auth/firebaseConfig.js";
+import { auth, verificarToken } from "../auth/firebaseConfig.js";
 
 // Página de configurações: dados da conta + redefinição de senha.
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const role = await verificarToken();
+  if (!role) return; // verificarToken já redirecionou
+
   document.getElementById("voltar").addEventListener("click", (e) => {
     e.preventDefault();
     window.history.back();

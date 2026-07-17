@@ -41,10 +41,11 @@ loginForm.addEventListener("submit", async (e) => {
     const { perfil } = await response.json();
 
     // Força um token novo já com as claims recém-definidas
-    const token = await user.getIdToken(true);
+    await user.getIdToken(true);
     await auth.currentUser.reload();
 
-    localStorage.setItem("token", token);
+    // O token JAMAIS vai pro localStorage (XSS roubaria a sessão) — quem
+    // precisa dele usa obterToken() do firebaseConfig, sempre fresco.
     localStorage.setItem("tipoUsuario", perfil.tipo);
     localStorage.setItem("nomeUsuario", perfil.nome || "");
     localStorage.setItem("aptoID", perfil.aptoID || "");

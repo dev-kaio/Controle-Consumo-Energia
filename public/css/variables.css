@@ -3,7 +3,6 @@
    Compartilhadas por todas as páginas: importar este arquivo no topo
    de cada CSS (menu.css, style.css). Nenhuma cor é inventada fora daqui.
 ================================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 :root {
   --color-bg: #eef0f4;

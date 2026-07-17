@@ -33,43 +33,67 @@ async function signOut() {
   }
 }
 
-async function verificarToken(rolesPermitidos = []) {
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "/index.html";
-      return;
-    }
-
-    try {
-      // pega token com claims atualizadas
-      const tokenResult = await user.getIdTokenResult(true);
-      const role = tokenResult.claims.role;
-
-      // se não tiver role definida
-      if (!role) {
-        alert("Usuário sem permissão.");
-        window.location.href = "/index.html";
-        return;
-      }
-
-      // valida roles permitidas
-      if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(role)) {
-        alert("Acesso negado");
-
-        // redireciona baseado no tipo
-        if (role === "inquilino") {
-          window.location.href = "/pages/menu-inquilino.html";
-        } else {
-          window.location.href = "/pages/menu.html";
-        }
-
-        return;
-      }
-    } catch (error) {
-      console.error("Erro ao validar token:", error);
-      await signOut();
-    }
+// Espera o Firebase restaurar a sessão e devolve o usuário (ou null).
+// auth.currentUser é null até o onAuthStateChanged disparar no primeiro
+// carregamento — quem precisa de token no load usa isso, nunca currentUser.
+function esperarUsuario() {
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  return new Promise((resolve) => {
+    const parar = onAuthStateChanged(auth, (user) => {
+      parar();
+      resolve(user);
+    });
   });
 }
 
-export { app, auth, signOut, verificarToken };
+// Token sempre fresco (o SDK renova sozinho antes de expirar).
+async function obterToken() {
+  const user = await esperarUsuario();
+  return user ? user.getIdToken() : null;
+}
+
+// Valida sessão + papel e SÓ RESOLVE depois da checagem — o código da
+// página deve dar `await` nisso antes de buscar qualquer dado.
+// Devolve a role do token (fonte confiável: claims, não localStorage).
+async function verificarToken(rolesPermitidos = []) {
+  const user = await esperarUsuario();
+
+  if (!user) {
+    window.location.href = "/index.html";
+    return null;
+  }
+
+  try {
+    const tokenResult = await user.getIdTokenResult();
+    const role = tokenResult.claims.role;
+
+    // se não tiver role definida
+    if (!role) {
+      alert("Usuário sem permissão.");
+      window.location.href = "/index.html";
+      return null;
+    }
+
+    // valida roles permitidas
+    if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(role)) {
+      alert("Acesso negado");
+
+      // redireciona baseado no tipo
+      if (role === "inquilino") {
+        window.location.href = "/pages/menu-inquilino.html";
+      } else {
+        window.location.href = "/pages/menu.html";
+      }
+
+      return null;
+    }
+
+    return role;
+  } catch (error) {
+    console.error("Erro ao validar token:", error);
+    await signOut();
+    return null;
+  }
+}
+
+export { app, auth, signOut, verificarToken, obterToken };
