@@ -1,8 +1,9 @@
 # Design system do dashboard
 
-Aplicado hoje em `frontend/pages/menu.html` e `frontend/pages/menu-inquilino.html`
-+ `frontend/css/menu.css`. **`frontend/pages/admin.html` ainda não recebeu esse
-tratamento** — usa o visual antigo.
+Vive em `frontend/src/styles/` (SPA React): `variables.css` são os
+tokens; os componentes ficam quebrados por área (`base`, `layout`,
+`dashboard`, `forms`, `tables`, `modal`, `login`). Aplicado em TODAS as
+telas. Não renomear seletor sem atualizar o arquivo de style junto.
 
 ## Direção
 
@@ -21,7 +22,7 @@ páginas renderizavam com a fonte padrão do navegador. Corrigido:
 - **Inter** (400/500/600/700) — corpo, labels, UI. Números usam
   `font-variant-numeric: tabular-nums` pra alinhar (kWh, kW, R$).
 
-Importadas via `@import` no topo de `menu.css` (Google Fonts).
+Importadas via `<link>` (com preconnect) no `frontend/index.html`.
 
 ## Cores
 
@@ -37,10 +38,8 @@ repetidos hardcoded em vários arquivos.
 --color-autoconsumo(-soft), --color-geracao(-soft), --color-danger
 ```
 
-Definidas em `frontend/css/menu.css`. **Não existem ainda em `style.css`**
-(a página de login não passou por esse refactor) — se quiserem consistência
-total, extrair pra um arquivo `variables.css` compartilhado é o próximo
-passo natural.
+Definidas em `frontend/src/styles/variables.css` (`:root` + `body.dark`) —
+compartilhadas por todas as telas, login incluso.
 
 ## Componentes principais
 
@@ -100,14 +99,15 @@ validar visualmente antes de confiar 100%.
 
 ## PWA
 
-O sistema é instalável como app (Android/iOS/desktop):
+O sistema é instalável como app (Android/iOS/desktop). Manifest e
+service worker são GERADOS no build pelo `vite-plugin-pwa` (config no
+`frontend/vite.config.js`):
 
-- `frontend/manifest.json` — nome, cores da marca (`#6606eb`), ícones 192/512
-  + maskable (gerados por `frontend/scripts/gerar-icones.py`), `display: standalone`
-- `frontend/sw.js` — service worker. Estratégia: **API nunca passa pelo
-  cache** (dado sensível/sempre-fresco); navegação é rede-primeiro com
-  fallback pro cache e por último `offline.html`; estáticos (CSS/JS/fontes/
-  CDN) são stale-while-revalidate. Pra forçar atualização nos clientes
-  instalados: subir a versão da constante `CACHE`.
-- `frontend/js/pwa.js` — registra o SW; incluído no `<head>` de toda página
-  junto com `manifest`/`theme-color`/`apple-touch-icon`.
+- Manifest: nome, cores da marca (`#6606eb`), ícones 192/512 + maskable
+  (gerados por `frontend/scripts/gerar-icones.py` em `public/assets/`),
+  `display: standalone`.
+- Service worker (Workbox, `autoUpdate`): **API nunca passa pelo cache**
+  (fora do precache e com denylist de navegação); shell + estáticos
+  ficam no precache com hash (nunca ficam velhos); fontes do Google em
+  stale-while-revalidate. Publicar um build novo atualiza os clientes
+  sozinho — sem constante de versão pra lembrar de subir.

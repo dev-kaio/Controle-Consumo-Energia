@@ -7,7 +7,9 @@ virar produto comercial vendido a clientes reais (síndicos/administradoras).
 ## Stack
 
 - **Backend:** Node.js + Express, Firebase Admin SDK (Realtime Database)
-- **Frontend:** HTML + JS puro (sem framework/bundler), Chart.js via CDN
+- **Frontend:** React + Vite (JavaScript puro, SEM TypeScript — decisão
+  de simplicidade), react-router-dom, Chart.js via react-chartjs-2,
+  PWA via vite-plugin-pwa. Ver `frontend/README.md` pro mapa de pastas.
 - **Firmware:** ESP32 (`firmware/esp.cpp`), leitura Modbus (hoje simulada em testes),
   envia lotes via HTTP para o backend a cada ~60s
 - **Auth:** Firebase Authentication + custom claims (`role`, `condominioID`,
@@ -15,15 +17,15 @@ virar produto comercial vendido a clientes reais (síndicos/administradoras).
 
 ## Layout do repositório
 
-Monorepo em transição — `backend/` e `frontend/` vão virar repos separados
-(e o frontend possivelmente React). Não criar acoplamento novo entre os dois
-além de HTTP.
+Monorepo em transição — `backend/` e `frontend/` vão virar repos separados.
+Não criar acoplamento novo entre os dois além de HTTP.
 
 - `backend/` — Express + Firebase Admin. Tem `package.json` próprio; `.env`
-  mora aqui. Em dev também serve o frontend estático (`express.static` no
-  `server.js` — é a única linha que morre na separação).
-- `frontend/` — estático puro (index.html, pages/, js/, css/, sw.js). Fala
-  com o backend só por fetch relativo (`/auth/...`, `/usuarios/...`).
+  mora aqui. Serve o BUILD do frontend (`frontend/dist`) + fallback SPA
+  (últimas linhas do `server.js` — somem na separação).
+- `frontend/` — SPA React (Vite). Fala com o backend só por fetch relativo
+  (`/auth/...`, `/usuarios/...`); em dev o proxy do `vite.config.js`
+  repassa pro :3000 — **rota nova no backend = prefixo novo no proxy**.
 - `firmware/` — `esp.cpp` da ESP32.
 - `docs/` — compartilhada enquanto for monorepo.
 - `package.json` da raiz só encaminha (`npm run dev` → `backend/`).
@@ -31,10 +33,9 @@ além de HTTP.
 ## Arquitetura em uma frase
 
 `ESP32 → Backend (Express) → Firebase`. A ESP nunca fala com o Firebase
-direto — isso é proposital (ver `docs/ARQUITETURA.md`). O frontend também
-deve preferir sempre passar pelo backend em vez de ler o Firebase client SDK
-direto (isso já foi corrigido no superadmin, mas ainda existe em
-`grafico.js` para a lista de usuários — ver `docs/SEGURANCA.md`).
+direto — isso é proposital (ver `docs/ARQUITETURA.md`). O frontend usa o
+Firebase client SDK SÓ para autenticação (`frontend/src/auth/firebase.js`);
+todo dado passa pelo backend via `frontend/src/api/`.
 
 ## Papéis (roles)
 
@@ -48,10 +49,12 @@ em `backend/routes/requires.js`.
 - **Nunca reintroduzir** os bugs de segurança já corrigidos — ver
   `docs/SEGURANCA.md` antes de mexer em `backend/routes/auth.js`, `backend/routes/requires.js`
   ou `backend/routes/firebase.js`.
-- **Preservar** o contrato de `frontend/js/sidebar.js` e `frontend/js/tema.js`:
-  IDs `menuBtn`, `sidebar`, `filterBtn`, `filterMenu`, `themeToggle`,
-  `superadminLink`, e as classes `.active` (sidebar) e `.dark` (body) não
-  podem ser renomeados sem atualizar esses dois arquivos junto.
+- **Contrato do frontend React**: tema = `useTema` + classe `dark` no
+  `<body>` + localStorage `tema` (única coisa que vive no localStorage —
+  perfil/role vêm do `AuthContext` via POST /auth/role, NUNCA do
+  localStorage). Sidebar/links por papel = `components/layout/Sidebar.jsx`.
+  Os seletores CSS de `frontend/src/styles/` são o design system — não
+  renomear classe sem atualizar o style junto.
 - **IDs de apartamento** são compostos: `condominio-predio-numero`
   (ex: `sol-blocoA-101`). Cada segmento só aceita letras e números — o
   hífen é o separador. Validação/montagem em `backend/utils/idUtils.js`; nunca

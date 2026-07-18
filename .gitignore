@@ -16,3 +16,4 @@ node_modules/
 # Saídas geradas
 graphify-out/
 __pycache__/
+.gstack/

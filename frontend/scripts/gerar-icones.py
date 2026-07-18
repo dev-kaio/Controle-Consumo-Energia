@@ -38,14 +38,16 @@ def desenhar(tamanho, maskable=False, cantos_arredondados=True):
 
 from pathlib import Path
 
-# Caminhos ancorados na raiz do frontend — o script funciona de qualquer diretório
+# Caminhos ancorados na raiz do frontend — o script funciona de qualquer
+# diretório. No app React os estáticos moram em public/ (o Vite copia
+# public/* pra raiz do build).
 RAIZ = Path(__file__).resolve().parent.parent
 
 saidas = {
-    RAIZ / "assets/icon-192.png": desenhar(192),
-    RAIZ / "assets/icon-512.png": desenhar(512),
-    RAIZ / "assets/icon-512-maskable.png": desenhar(512, maskable=True),
-    RAIZ / "assets/icon-180.png": desenhar(180),
+    RAIZ / "public/assets/icon-192.png": desenhar(192),
+    RAIZ / "public/assets/icon-512.png": desenhar(512),
+    RAIZ / "public/assets/icon-512-maskable.png": desenhar(512, maskable=True),
+    RAIZ / "public/assets/icon-180.png": desenhar(180),
 }
 
 for caminho, img in saidas.items():

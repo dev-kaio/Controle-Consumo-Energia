@@ -30,7 +30,7 @@ O sistema permite:
 ## Tecnologias Utilizadas
 
 - **Hardware**: ESP32 
-- **Frontend**: HTML, CSS, JavaScript  
+- **Frontend**: React + Vite (PWA)  
 - **Backend**: Node.js com Express  
 - **Banco de dados**: Firebase Realtime Database  
 - **Autenticação**: Firebase Authentication  
@@ -40,8 +40,8 @@ O sistema permite:
 ## Estrutura do Projeto
 
 ```
-backend/    Node.js + Express + Firebase Admin (API; em dev também serve o frontend)
-frontend/   HTML/CSS/JS estático (PWA) — fala com a API só por HTTP
+backend/    Node.js + Express + Firebase Admin (API; serve o build do frontend)
+frontend/   SPA React + Vite (PWA) — fala com a API só por HTTP
 firmware/   Código da ESP32 (esp.cpp)
 docs/       Arquitetura, segurança, tarifas, design system
 ```
@@ -51,11 +51,20 @@ docs/       Arquitetura, segurança, tarifas, design system
 ## Como rodar
 
 ```bash
+# backend (API na porta 3000)
 cd backend
 npm install
 cp .env.example .env   # preencher credenciais do Firebase
-npm run dev            # http://localhost:3000
+npm run dev
+
+# frontend em desenvolvimento (porta 5173, hot reload)
+cd frontend
+npm install
+npm run dev
 ```
+
+Para rodar só com o backend (como em produção): `cd frontend && npm run build`
+e abrir http://localhost:3000. Detalhes em `frontend/README.md`.
 
 Na raiz do monorepo, `npm run dev`, `npm test` e `npm run seed` encaminham
 para o backend.

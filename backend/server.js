@@ -8,10 +8,12 @@ require("./config/firebaseAdmin");
 
 app.use(express.json());
 
-// Em dev o backend serve o frontend estático — quando os projetos virarem
-// repos separados (ou o frontend virar React), essas linhas saem e o
+// Serve o BUILD do frontend React (frontend/dist — gerado por
+// `npm run build` lá). Em dev normalmente se usa o servidor do Vite
+// (frontend: npm run dev, porta 5173, com proxy pra cá).
+// Quando os projetos virarem repos separados, essas linhas saem e o
 // frontend passa a ser servido por conta própria (aí entra CORS aqui).
-const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+const FRONTEND_DIR = path.join(__dirname, "..", "frontend", "dist");
 app.use(express.static(FRONTEND_DIR));
 
 const espSyncRoutes = require("./routes/espsync");
@@ -39,7 +41,13 @@ app.use("/financeiro", financeiroRoutes);
 const estruturaRoutes = require("./routes/estrutura");
 app.use("/estrutura", estruturaRoutes);
 
-app.get("/", (req, res) => {
+// Fallback do SPA: qualquer GET que não casou com API nem arquivo
+// estático devolve o index.html — o React Router resolve a rota no
+// navegador (é o que faz F5 em /dashboard funcionar).
+// PRECISA ser o último middleware; e no Express 5 é app.use, não
+// app.get("*") (o path-to-regexp v8 rejeita "*").
+app.use((req, res, next) => {
+  if (req.method !== "GET") return next(); // POST desconhecido → 404 normal
   res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });
 

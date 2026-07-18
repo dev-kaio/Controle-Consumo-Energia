@@ -153,20 +153,24 @@ Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 | `/tarifas/:condominioID` | GET | `requireRole("superadmin")` | Lista tarifas cadastradas de um condomínio |
 | `/financeiro` | GET | `authenticateToken` (inquilino só vê o próprio apto) | Calcula TUSD/TE/IP-CIP/total de um apto numa competência |
 
-## Frontend — páginas e o que cada uma depende
+## Frontend — SPA React
 
-- `frontend/pages/menu.html` — dashboard do admin (link pra gestão de
-  inquilinos + superadmin condicional)
-- `frontend/pages/menu-inquilino.html` — dashboard do inquilino (mesma base,
-  sem os links de gestão)
-- `frontend/pages/admin.html` — gestão de inquilinos (**ainda não recebeu o
-  mesmo tratamento visual que `menu.html`/`menu-inquilino.html`**)
-- `frontend/pages/superadmin.html` — cadastro de usuários + (futuro) painel
-  de tarifas
-- `frontend/js/grafico.js` — o "cérebro" do dashboard: busca dados, monta o
-  gráfico Chart.js, alterna layout gráfico/lista, calcula médias. Compartilhado
-  entre `menu.html` e `menu-inquilino.html` (detecta qual página é pelo
-  `window.location.pathname`).
-- `frontend/js/sidebar.js` / `frontend/js/tema.js` — sidebar deslizante e tema
-  claro/escuro, usados em quase toda página autenticada. **Não renomear
-  os IDs que eles usam sem atualizar os dois juntos.**
+O frontend é um SPA React (Vite) — mapa de pastas completo em
+`frontend/README.md`. O essencial pra arquitetura:
+
+- **Rotas** (`frontend/src/App.jsx`): `/` login, `/dashboard` (mesma
+  página pra admin e inquilino, parametrizada pela role + `?aptoID=`),
+  `/inquilinos`, `/estrutura`, `/superadmin`, `/config`. Proteção por
+  papel via `RequireRole` (as claims continuam sendo a fonte, via
+  POST /auth/role no restore da sessão).
+- **Dados**: toda chamada HTTP mora em `frontend/src/api/` (o token vai
+  no header em `api/http.js`). O Firebase client SDK é usado SÓ pra
+  autenticação (`frontend/src/auth/firebase.js`).
+- **Dashboard**: `hooks/useConsumo.js` busca os 3 tipos em paralelo e
+  agrega com as funções puras de `utils/agregacao.js` (chave numérica
+  de tempo; testadas com `npm test`).
+- **Servir em produção**: `npm run build` gera `frontend/dist`; o
+  backend serve o dist com fallback SPA (qualquer GET desconhecido →
+  index.html, pro F5 em `/dashboard` funcionar). Em dev, servidor do
+  Vite (:5173) com proxy pro backend (:3000) — rota nova no backend
+  exige o prefixo no proxy do `vite.config.js`.
