@@ -44,28 +44,34 @@ export default function AccordionCondominio({
                 <td>{u.aptoID || "-"}</td>
                 <td>{u.ativo ? "Ativo" : "Inativo"}</td>
                 <td style={{ textAlign: "center" }}>
-                  <MenuAcoes>
-                    <button
-                      type="button"
-                      onClick={() => aoAlterarSenha(u.uid, u)}
-                    >
-                      Alterar senha
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => aoAlternarStatus(u.uid, !u.ativo)}
-                    >
-                      {u.ativo ? "Desativar" : "Ativar"}
-                    </button>
-                    {/* Ver consumo só faz sentido pra inquilino (quem tem apto) */}
-                    {u.tipo === "inquilino" && u.aptoID && (
-                      <Link
-                        to={`/dashboard?aptoID=${encodeURIComponent(u.aptoID)}`}
+                  {/* Superadmin não pode ser alterado por aqui (o backend
+                      devolve 403), então nem mostramos o menu na linha dele. */}
+                  {u.tipo === "superadmin" ? (
+                    "-"
+                  ) : (
+                    <MenuAcoes>
+                      <button
+                        type="button"
+                        onClick={() => aoAlterarSenha(u.uid, u)}
                       >
-                        Ver consumo
-                      </Link>
-                    )}
-                  </MenuAcoes>
+                        Alterar senha
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => aoAlternarStatus(u.uid, !u.ativo)}
+                      >
+                        {u.ativo ? "Desativar" : "Ativar"}
+                      </button>
+                      {/* Ver consumo só faz sentido pra inquilino (tem apto) */}
+                      {u.tipo === "inquilino" && u.aptoID && (
+                        <Link
+                          to={`/dashboard?aptoID=${encodeURIComponent(u.aptoID)}`}
+                        >
+                          Ver consumo
+                        </Link>
+                      )}
+                    </MenuAcoes>
+                  )}
                 </td>
               </tr>
             ))}

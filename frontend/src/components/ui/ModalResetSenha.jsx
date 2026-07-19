@@ -18,19 +18,25 @@ export default function ModalResetSenha({ emailInicial = "", aoFechar }) {
       return;
     }
     setEnviando(true);
+    const MSG_NEUTRA = {
+      texto: "Se o email existir, o link de redefinição foi enviado.",
+      ok: true,
+    };
     try {
       await sendPasswordResetEmail(auth, email);
-      setMsg({
-        texto: "Se o email existir, o link de redefinição foi enviado.",
-        ok: true,
-      });
+      setMsg(MSG_NEUTRA);
     } catch (err) {
       console.error(err);
-      // Não revela se o email existe (evita enumeração de contas).
-      setMsg({
-        texto: "Se o email existir, o link de redefinição foi enviado.",
-        ok: true,
-      });
+      // Erros que o usuário PODE corrigir viram mensagem clara. Os demais
+      // (ex.: auth/user-not-found) ficam neutros pra não revelar se o email
+      // existe (evita enumeração de contas).
+      if (err.code === "auth/invalid-email") {
+        setMsg({ texto: "E-mail inválido.", ok: false });
+      } else if (err.code === "auth/network-request-failed") {
+        setMsg({ texto: "Falha de conexão. Tente novamente.", ok: false });
+      } else {
+        setMsg(MSG_NEUTRA);
+      }
     }
     setEnviando(false);
   }

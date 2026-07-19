@@ -5,11 +5,11 @@ import {
   listarTodosUsuarios,
   listarTodosCondominios,
 } from "../api/superadmin.js";
-import { atualizarUsuario } from "../api/usuarios.js";
 import FormUsuario from "../components/superadmin/FormUsuario.jsx";
 import ListaUsuarios from "../components/superadmin/ListaUsuarios.jsx";
 import ModalNovaSenha from "../components/ui/ModalNovaSenha.jsx";
 import MsgFeedback from "../components/ui/MsgFeedback.jsx";
+import useAlternarStatus from "../hooks/useAlternarStatus.js";
 
 export default function Superadmin() {
   const [usuarios, setUsuarios] = useState({});
@@ -38,14 +38,7 @@ export default function Superadmin() {
     carregar();
   }, [carregar]);
 
-  async function alternarStatus(uid, ativo) {
-    try {
-      await atualizarUsuario(uid, { ativo });
-      carregar();
-    } catch (err) {
-      setErro({ texto: err.message, ok: false });
-    }
-  }
+  const alternarStatus = useAlternarStatus(carregar, setErro);
 
   return (
     <>

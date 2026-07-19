@@ -3,8 +3,9 @@
 // aberto; os componentes só exibem e disparam callbacks.
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { listarInquilinos, atualizarUsuario } from "../api/usuarios.js";
+import { listarInquilinos } from "../api/usuarios.js";
 import { listarApartamentos } from "../api/estrutura.js";
+import useAlternarStatus from "../hooks/useAlternarStatus.js";
 import FormInquilino from "../components/inquilinos/FormInquilino.jsx";
 import TabelaInquilinos from "../components/inquilinos/TabelaInquilinos.jsx";
 import ModalEditar from "../components/inquilinos/ModalEditar.jsx";
@@ -35,14 +36,7 @@ export default function Inquilinos() {
       .catch((err) => console.error("Erro ao carregar apartamentos:", err));
   }, [carregar]);
 
-  async function alternarStatus(uid, ativo) {
-    try {
-      await atualizarUsuario(uid, { ativo });
-      carregar();
-    } catch (err) {
-      setMsgLista({ texto: err.message, ok: false });
-    }
-  }
+  const alternarStatus = useAlternarStatus(carregar, setMsgLista);
 
   // Fecha o modal, mostra a confirmação na lista e recarrega
   function concluirModal(texto) {

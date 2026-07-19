@@ -194,7 +194,9 @@ router.post(
       // Whitelist de campos editáveis. Campos sensíveis (tipo, condominioID)
       // ficam de fora de propósito: aceitar o body inteiro permitiria a um
       // admin se promover a superadmin ou mover usuários de condomínio.
-      const CAMPOS_PERMITIDOS = ["nome", "email", "aptoID", "ativo"];
+      // "email" também fica de fora: é a identidade de login (mora no Firebase
+      // Auth) — editá-lo só aqui desincronizaria do credential real.
+      const CAMPOS_PERMITIDOS = ["nome", "aptoID", "ativo"];
       const atualizacao = {};
       for (const campo of CAMPOS_PERMITIDOS) {
         if (campo in dados) atualizacao[campo] = dados[campo];
@@ -224,12 +226,14 @@ router.post(
         }
       }
 
-      await db.ref(`usuarios/${uid}`).update(atualizacao);
-
       // Desativar precisa BARRAR o acesso de verdade, não só marcar no banco.
       // Espelhamos "ativo" no Firebase Auth (disabled): usuário desativado não
       // consegue mais logar (auth/user-disabled) e, com o revoke, a sessão
       // ativa cai quando o token expira (<=1h).
+      //
+      // Feito ANTES de gravar no DB: se o Auth falhar, o banco não é tocado e o
+      // estado fica consistente (em vez de "ativo:false" no DB com login ainda
+      // liberado no Auth).
       if ("ativo" in atualizacao) {
         const desativado = atualizacao.ativo === false;
         await admin.auth().updateUser(uid, { disabled: desativado });
@@ -237,6 +241,8 @@ router.post(
           await admin.auth().revokeRefreshTokens(uid);
         }
       }
+
+      await db.ref(`usuarios/${uid}`).update(atualizacao);
 
       res.json({
         sucesso: true,

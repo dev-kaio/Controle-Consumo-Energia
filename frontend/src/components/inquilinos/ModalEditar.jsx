@@ -8,9 +8,10 @@ import Modal from "../ui/Modal.jsx";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
 export default function ModalEditar({ uid, usuario, apartamentos, aoFechar, aoSalvar }) {
+  // E-mail não é editável: é a identidade de login (Firebase Auth). Só nome
+  // e apartamento passam pela edição.
   const [form, setForm] = useState({
     nome: usuario.nome || "",
-    email: usuario.email || "",
     aptoID: usuario.aptoID || "",
   });
   const [msg, setMsg] = useState(null);
@@ -22,7 +23,7 @@ export default function ModalEditar({ uid, usuario, apartamentos, aoFechar, aoSa
 
   async function aoEnviar(e) {
     e.preventDefault();
-    if (!form.nome || !form.email || !form.aptoID) {
+    if (!form.nome || !form.aptoID) {
       setMsg({ texto: "Preencha todos os campos!", ok: false });
       return;
     }
@@ -43,15 +44,6 @@ export default function ModalEditar({ uid, usuario, apartamentos, aoFechar, aoSa
             id="editarNome"
             value={form.nome}
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
-          />
-        </div>
-        <div className="campo">
-          <label htmlFor="editarEmail">Email</label>
-          <input
-            id="editarEmail"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
         </div>
         <div className="campo">
