@@ -125,6 +125,25 @@
   cursor: wait;
 }
 
+/* link discreto "Esqueci minha senha" abaixo do botão Entrar */
+.pagina-login .link-esqueci-senha {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.pagina-login .link-esqueci-senha:hover {
+  text-decoration: underline;
+}
+
 /* mensagem de erro/aviso do login */
 .pagina-login .mensagem-login {
   color: var(--color-danger);

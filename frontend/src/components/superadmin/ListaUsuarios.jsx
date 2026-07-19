@@ -3,7 +3,12 @@
 import { useState } from "react";
 import AccordionCondominio from "./AccordionCondominio.jsx";
 
-export default function ListaUsuarios({ usuarios, condominios }) {
+export default function ListaUsuarios({
+  usuarios,
+  condominios,
+  aoAlternarStatus,
+  aoAlterarSenha,
+}) {
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroCondo, setFiltroCondo] = useState("");
   const [abertos, setAbertos] = useState({}); // condoId -> true/false
@@ -85,6 +90,8 @@ export default function ListaUsuarios({ usuarios, condominios }) {
             alternar={() =>
               setAbertos((a) => ({ ...a, [condoId]: !a[condoId] }))
             }
+            aoAlternarStatus={aoAlternarStatus}
+            aoAlterarSenha={aoAlterarSenha}
           />
         ))}
       </div>

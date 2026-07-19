@@ -51,7 +51,6 @@
 .data-table .status-btn,
 .data-table .editar-btn,
 .data-table .senha-btn,
-.data-table .deletar-btn,
 .data-table .link-consumo {
   padding: 6px 10px;
   border-radius: 8px;
@@ -65,11 +64,6 @@
   text-decoration: none;
 }
 
-.data-table .deletar-btn {
-  color: var(--color-danger);
-  border-color: var(--color-danger);
-}
-
 .data-table .link-consumo {
   color: var(--color-accent);
   border-color: var(--color-accent);
@@ -79,6 +73,65 @@
 .data-table .editar-btn:hover,
 .data-table .senha-btn:hover {
   border-color: var(--color-accent);
+}
+
+/* Menu de ações (⚙) — usado na sanfona do superadmin.
+   O botão fica na linha; a lista é position:fixed (posicionada por JS em
+   MenuAcoes.jsx) pra escapar do overflow:hidden do .accordion-item. */
+.menu-acoes {
+  display: inline-block;
+}
+
+.menu-acoes-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.menu-acoes-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.menu-acoes-lista {
+  position: fixed;
+  width: 176px; /* precisa bater com LARGURA em MenuAcoes.jsx */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: var(--shadow-pop);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-acoes-lista > button,
+.menu-acoes-lista > a {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.menu-acoes-lista > button:hover,
+.menu-acoes-lista > a:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 
 /* =========================
@@ -162,7 +215,6 @@
   .data-table .status-btn,
   .data-table .editar-btn,
   .data-table .senha-btn,
-  .data-table .deletar-btn,
   .data-table .link-consumo {
     padding: 10px 12px;
   }

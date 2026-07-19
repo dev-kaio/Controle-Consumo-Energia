@@ -13,6 +13,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../auth/firebase.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import CampoSenha from "../components/ui/CampoSenha.jsx";
+import ModalResetSenha from "../components/ui/ModalResetSenha.jsx";
 import ThemeToggle from "../components/layout/ThemeToggle.jsx";
 
 export default function Login() {
@@ -23,6 +24,7 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [resetAberto, setResetAberto] = useState(false);
 
   // Já logado (ex: F5 na tela de login)? Direto pro dashboard.
   if (!carregando && perfil) return <Navigate to="/dashboard" replace />;
@@ -50,8 +52,10 @@ export default function Login() {
       // Token novo já com as claims recém-definidas
       await user.getIdToken(true);
 
-      if (p.tipo === "inquilino" && !p.ativo) {
-        setMensagem("Usuário inativo. Fale com o administrador.");
+      // Rede de segurança: um usuário desativado já é barrado antes daqui pelo
+      // Firebase (auth/user-disabled), mas se por algum motivo passar, não entra.
+      if (!p.ativo) {
+        setMensagem("Conta desativada. Fale com o administrador.");
         await sair();
         setEnviando(false);
         return;
@@ -61,7 +65,12 @@ export default function Login() {
       navegar("/dashboard", { replace: true });
     } catch (err) {
       console.error("Erro no login:", err);
-      setMensagem(err.message || "Ocorreu um erro, tente novamente.");
+      // Conta desativada = disabled no Firebase Auth.
+      const msg =
+        err.code === "auth/user-disabled"
+          ? "Conta desativada. Fale com o administrador."
+          : err.message || "Ocorreu um erro, tente novamente.";
+      setMensagem(msg);
       setEnviando(false);
     }
   }
@@ -101,8 +110,23 @@ export default function Login() {
           <button type="submit" disabled={enviando}>
             {enviando ? "Entrando…" : "Entrar"}
           </button>
+
+          <button
+            type="button"
+            className="link-esqueci-senha"
+            onClick={() => setResetAberto(true)}
+          >
+            Esqueci minha senha
+          </button>
         </form>
       </div>
+
+      {resetAberto && (
+        <ModalResetSenha
+          emailInicial={email}
+          aoFechar={() => setResetAberto(false)}
+        />
+      )}
 
       <ThemeToggle className="tema-flutuante" />
     </div>

@@ -63,6 +63,52 @@
   border-color: var(--color-accent);
 }
 
+/* CampoSenha (input com olhinho) usado fora do login — ex.: modal de nova
+   senha. No login, as regras .pagina-login mais específicas prevalecem. */
+.form-group {
+  position: relative; /* âncora do ícone do olho */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 40px 10px 12px; /* espaço à direita pro olho */
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.form-group .toggle-password {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background-color: transparent;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+}
+
 .btn-primary {
   padding: 10px 18px;
   border-radius: 10px;

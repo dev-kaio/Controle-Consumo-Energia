@@ -9,7 +9,6 @@ export default function TabelaInquilinos({
   aoAlternarStatus,
   aoEditar,
   aoAlterarSenha,
-  aoExcluir,
 }) {
   const entradas = Object.entries(inquilinos);
 
@@ -53,16 +52,9 @@ export default function TabelaInquilinos({
               <button
                 type="button"
                 className="senha-btn"
-                onClick={() => aoAlterarSenha(u)}
+                onClick={() => aoAlterarSenha(uid, u)}
               >
                 Alterar Senha
-              </button>
-              <button
-                type="button"
-                className="deletar-btn"
-                onClick={() => aoExcluir(uid)}
-              >
-                Deletar
               </button>
               <Link
                 className="link-consumo"

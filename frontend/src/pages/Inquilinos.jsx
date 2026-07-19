@@ -3,16 +3,12 @@
 // aberto; os componentes só exibem e disparam callbacks.
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
-import {
-  listarInquilinos,
-  atualizarUsuario,
-  deletarUsuario,
-} from "../api/usuarios.js";
+import { listarInquilinos, atualizarUsuario } from "../api/usuarios.js";
 import { listarApartamentos } from "../api/estrutura.js";
 import FormInquilino from "../components/inquilinos/FormInquilino.jsx";
 import TabelaInquilinos from "../components/inquilinos/TabelaInquilinos.jsx";
 import ModalEditar from "../components/inquilinos/ModalEditar.jsx";
-import ModalSenha from "../components/inquilinos/ModalSenha.jsx";
+import ModalNovaSenha from "../components/ui/ModalNovaSenha.jsx";
 import MsgFeedback from "../components/ui/MsgFeedback.jsx";
 import { Link } from "react-router-dom";
 
@@ -20,7 +16,7 @@ export default function Inquilinos() {
   const { role } = useAuth();
   const [inquilinos, setInquilinos] = useState({});
   const [apartamentos, setApartamentos] = useState({});
-  const [modal, setModal] = useState(null); // {tipo:"editar",uid,u} | {tipo:"senha",u}
+  const [modal, setModal] = useState(null); // {tipo:"editar",uid,u} | {tipo:"senha",uid,u}
   const [msgLista, setMsgLista] = useState(null);
 
   const carregar = useCallback(() => {
@@ -42,17 +38,6 @@ export default function Inquilinos() {
   async function alternarStatus(uid, ativo) {
     try {
       await atualizarUsuario(uid, { ativo });
-      carregar();
-    } catch (err) {
-      setMsgLista({ texto: err.message, ok: false });
-    }
-  }
-
-  async function excluir(uid) {
-    if (!confirm("Tem certeza que deseja excluir este inquilino?")) return;
-    try {
-      await deletarUsuario(uid);
-      setMsgLista({ texto: "Inquilino deletado!", ok: true });
       carregar();
     } catch (err) {
       setMsgLista({ texto: err.message, ok: false });
@@ -85,8 +70,7 @@ export default function Inquilinos() {
           inquilinos={inquilinos}
           aoAlternarStatus={alternarStatus}
           aoEditar={(uid, u) => setModal({ tipo: "editar", uid, u })}
-          aoAlterarSenha={(u) => setModal({ tipo: "senha", u })}
-          aoExcluir={excluir}
+          aoAlterarSenha={(uid, u) => setModal({ tipo: "senha", uid, u })}
         />
         <MsgFeedback msg={msgLista} />
       </div>
@@ -102,10 +86,11 @@ export default function Inquilinos() {
       )}
 
       {modal?.tipo === "senha" && (
-        <ModalSenha
-          emailInicial={modal.u.email}
+        <ModalNovaSenha
+          uid={modal.uid}
+          nome={modal.u.nome}
           aoFechar={() => setModal(null)}
-          aoEnviado={concluirModal}
+          aoSalvar={concluirModal}
         />
       )}
     </>

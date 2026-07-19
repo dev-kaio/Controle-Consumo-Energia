@@ -16,6 +16,8 @@ export function atualizarUsuario(uid, dados) {
   return apiPost("/usuarios/atualizar", { uid, dados });
 }
 
-export function deletarUsuario(uid) {
-  return apiPost("/usuarios/deletar", { uid });
+// Define a nova senha direto (só admin/superadmin, no escopo deles). O fluxo
+// de "esqueci minha senha" por e-mail fica no login, não aqui.
+export function alterarSenha(uid, novaSenha) {
+  return apiPost("/usuarios/senha", { uid, novaSenha });
 }

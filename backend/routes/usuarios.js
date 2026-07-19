@@ -226,6 +226,18 @@ router.post(
 
       await db.ref(`usuarios/${uid}`).update(atualizacao);
 
+      // Desativar precisa BARRAR o acesso de verdade, não só marcar no banco.
+      // Espelhamos "ativo" no Firebase Auth (disabled): usuário desativado não
+      // consegue mais logar (auth/user-disabled) e, com o revoke, a sessão
+      // ativa cai quando o token expira (<=1h).
+      if ("ativo" in atualizacao) {
+        const desativado = atualizacao.ativo === false;
+        await admin.auth().updateUser(uid, { disabled: desativado });
+        if (desativado) {
+          await admin.auth().revokeRefreshTokens(uid);
+        }
+      }
+
       res.json({
         sucesso: true,
       });
@@ -235,17 +247,32 @@ router.post(
   },
 );
 
-// Deletar inquilino
+// Alterar senha (admin e superadmin). Define a nova senha DIRETO no Firebase
+// Auth — não é e-mail de redefinição (esse fluxo self-service fica no login).
+// Escopo idêntico ao de atualizar: superadmin em qualquer não-superadmin;
+// admin só em inquilino do próprio condomínio.
+//
+// Deletar usuário deixou de existir de propósito: ninguém deleta, só desativa
+// (ver /atualizar com { ativo: false }).
 router.post(
-  "/deletar",
+  "/senha",
   authenticateToken,
   requireRole("admin", "superadmin"),
   async (req, res) => {
-    const { uid } = req.body;
+    const { uid, novaSenha } = req.body;
 
     try {
-      if (!uid) {
-        return res.status(400).json({ erro: "uid é obrigatório" });
+      if (!uid || !novaSenha) {
+        return res
+          .status(400)
+          .json({ erro: "uid e novaSenha são obrigatórios" });
+      }
+      // Firebase exige no mínimo 6 caracteres — validar aqui pra devolver
+      // uma mensagem clara em vez do erro cru do Admin SDK.
+      if (String(novaSenha).length < 6) {
+        return res
+          .status(400)
+          .json({ erro: "A senha deve ter pelo menos 6 caracteres" });
       }
 
       const acesso = await validarAcessoAoUsuario(req.user, uid);
@@ -253,16 +280,9 @@ router.post(
         return res.status(acesso.erro.status).json({ erro: acesso.erro.mensagem });
       }
 
-      // remove auth
-      await admin.auth().deleteUser(uid);
+      await admin.auth().updateUser(uid, { password: novaSenha });
 
-      // remove do banco (a relação morador↔apto vive só em usuarios.aptoID,
-      // então não há mais nada pra limpar em apartamentos/)
-      await db.ref(`usuarios/${uid}`).remove();
-
-      res.json({
-        sucesso: true,
-      });
+      res.json({ sucesso: true });
     } catch (error) {
       res.status(500).json({ erro: error.message });
     }
