@@ -19,7 +19,6 @@ export default function Header({ aoAbrirMenu }) {
       </button>
 
       <span className="brand">
-        <span className="bolt">⚡</span>
         <span className="brand-nome">Palm Energy</span>
       </span>
 
