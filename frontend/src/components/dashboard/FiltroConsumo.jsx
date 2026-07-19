@@ -31,8 +31,11 @@ export default function FiltroConsumo({
 }) {
   const [slot, setSlot] = useState(null);
   const [aberto, setAberto] = useState(false);
-  const [inicio, setInicio] = useState("");
-  const [fim, setFim] = useState("");
+  // Data é obrigatória; hora é opcional (vazia = dia inteiro).
+  const [dataInicio, setDataInicio] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [horaFim, setHoraFim] = useState("");
   const menuRef = useRef(null);
 
   // O slot só existe no DOM depois do primeiro render do layout —
@@ -97,31 +100,75 @@ export default function FiltroConsumo({
         </div>
 
         <div className="custom-range">
-          <label htmlFor="inicioFiltro">Início</label>
-          <input
-            type="datetime-local"
-            id="inicioFiltro"
-            value={inicio}
-            onChange={(e) => setInicio(e.target.value)}
-          />
-          <label htmlFor="fimFiltro">Fim</label>
-          <input
-            type="datetime-local"
-            id="fimFiltro"
-            value={fim}
-            onChange={(e) => setFim(e.target.value)}
-          />
-          <button
-            type="button"
-            className="btn-aplicar-intervalo"
-            onClick={() => {
-              if (!inicio || !fim) return;
-              aoEscolherIntervalo(inicio, fim);
-              setAberto(false);
-            }}
-          >
-            Aplicar intervalo
-          </button>
+          <label htmlFor="dataInicioFiltro">Início</label>
+          <div className="campo-data-hora">
+            <input
+              type="date"
+              lang="pt-BR"
+              id="dataInicioFiltro"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+            />
+            <input
+              type="time"
+              lang="pt-BR"
+              aria-label="Hora de início (opcional)"
+              placeholder="Hora (opcional)"
+              value={horaInicio}
+              onChange={(e) => setHoraInicio(e.target.value)}
+            />
+          </div>
+
+          <label htmlFor="dataFimFiltro">Fim</label>
+          <div className="campo-data-hora">
+            <input
+              type="date"
+              lang="pt-BR"
+              id="dataFimFiltro"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+            />
+            <input
+              type="time"
+              lang="pt-BR"
+              aria-label="Hora de fim (opcional)"
+              placeholder="Hora (opcional)"
+              value={horaFim}
+              onChange={(e) => setHoraFim(e.target.value)}
+            />
+          </div>
+
+          <div className="acoes-intervalo">
+            <button
+              type="button"
+              className="btn-aplicar-intervalo"
+              onClick={() => {
+                if (!dataInicio || !dataFim) return;
+                // Hora vazia → dia inteiro: início no começo, fim no fim do dia.
+                const inicio = `${dataInicio}T${horaInicio || "00:00"}`;
+                const fim = `${dataFim}T${horaFim || "23:59:59.999"}`;
+                aoEscolherIntervalo(inicio, fim);
+                setAberto(false);
+              }}
+            >
+              Aplicar intervalo
+            </button>
+            <button
+              type="button"
+              className="btn-limpar-intervalo"
+              onClick={() => {
+                // Zera os campos e volta pro filtro padrão ("Desde o Início").
+                setDataInicio("");
+                setHoraInicio("");
+                setDataFim("");
+                setHoraFim("");
+                aoEscolherFiltro("inicio");
+                setAberto(false);
+              }}
+            >
+              Limpar
+            </button>
+          </div>
         </div>
       </div>
     </div>,

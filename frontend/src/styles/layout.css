@@ -203,7 +203,23 @@
   color: var(--color-text-muted);
 }
 
-input[type="datetime-local"] {
+.campo-data-hora {
+  display: flex;
+  gap: 8px;
+}
+
+.campo-data-hora input[type="date"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.campo-data-hora input[type="time"] {
+  flex: 0 0 auto;
+}
+
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"] {
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid var(--color-border);
@@ -213,25 +229,49 @@ input[type="datetime-local"] {
   font-family: var(--font-body);
 }
 
-input[type="datetime-local"]:focus {
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus {
   outline: none;
   border-color: var(--color-accent);
 }
 
-.btn-aplicar-intervalo {
+.acoes-intervalo {
   margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-aplicar-intervalo,
+.btn-limpar-intervalo {
   padding: 10px;
   border-radius: 10px;
-  border: none;
-  background: var(--color-accent);
-  color: #ffffff;
   font-weight: 600;
   font-family: var(--font-body);
   cursor: pointer;
 }
 
+.btn-aplicar-intervalo {
+  flex: 1 1 auto;
+  border: none;
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
 .btn-aplicar-intervalo:hover {
   filter: brightness(1.1);
+}
+
+.btn-limpar-intervalo {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.btn-limpar-intervalo:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 
 /* =========================

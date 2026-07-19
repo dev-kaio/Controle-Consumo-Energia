@@ -124,7 +124,9 @@
   /* iOS dá zoom em input com fonte < 16px — no celular tudo vira 16px */
   .campo input,
   .campo select,
-  input[type="datetime-local"] {
+  input[type="datetime-local"],
+  input[type="date"],
+  input[type="time"] {
     font-size: 16px;
   }
 
