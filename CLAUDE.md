@@ -50,9 +50,10 @@ em `backend/routes/requires.js`.
   `docs/SEGURANCA.md` antes de mexer em `backend/routes/auth.js`, `backend/routes/requires.js`
   ou `backend/routes/firebase.js`.
 - **Contrato do frontend React**: tema = `useTema` + classe `dark` no
-  `<body>` + localStorage `tema` (única coisa que vive no localStorage —
-  perfil/role vêm do `AuthContext` via POST /auth/role, NUNCA do
-  localStorage). Sidebar/links por papel = `components/layout/Sidebar.jsx`.
+  `<body>` + localStorage `tema`. O localStorage guarda **só preferência
+  deste aparelho** — hoje duas chaves: `tema` e `tour_visto_v1` (já viu o
+  tutorial). Perfil/role vêm do `AuthContext` via POST /auth/role, NUNCA do
+  localStorage. Sidebar/links por papel = `components/layout/Sidebar.jsx`.
   Os seletores CSS de `frontend/src/styles/` são o design system — não
   renomear classe sem atualizar o style junto.
 - **IDs de apartamento** são compostos: `condominio-predio-numero`

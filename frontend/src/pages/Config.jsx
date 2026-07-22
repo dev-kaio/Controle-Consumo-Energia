@@ -5,6 +5,7 @@ import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../auth/firebase.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useTour } from "../components/tour/TourContext.jsx";
 import MsgFeedback from "../components/ui/MsgFeedback.jsx";
 
 const ROTULOS_TIPO = {
@@ -15,6 +16,7 @@ const ROTULOS_TIPO = {
 
 export default function Config() {
   const { usuario, perfil } = useAuth();
+  const { abrir: abrirTour } = useTour();
   const [emailReset, setEmailReset] = useState(usuario?.email || "");
   const [msg, setMsg] = useState(null);
 
@@ -89,6 +91,17 @@ export default function Config() {
           </button>
         </form>
         <MsgFeedback msg={msg} />
+      </div>
+
+      <div className="panel">
+        <h2>Tutorial</h2>
+        <p className="panel-desc">
+          Um passeio rápido pelas telas do sistema, explicando o que cada
+          parte faz.
+        </p>
+        <button type="button" className="btn-primary" onClick={abrirTour}>
+          Ver tutorial novamente
+        </button>
       </div>
 
       <div className="panel">

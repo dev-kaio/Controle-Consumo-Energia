@@ -25,6 +25,7 @@ import "./styles/forms.css";
 import "./styles/tables.css";
 import "./styles/modal.css";
 import "./styles/login.css";
+import "./styles/tour.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

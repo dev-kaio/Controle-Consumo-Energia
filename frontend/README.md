@@ -15,7 +15,10 @@ src/
 │   ├── dashboard/  filtro, gráfico, médias, cards de inquilino
 │   ├── inquilinos/ form, tabela e modais da gestão de inquilinos
 │   ├── estrutura/  os 5 painéis (condomínio, prédios, aptos, medidores, tarifas)
-│   └── superadmin/ form unificado + lista com accordions
+│   ├── superadmin/ form unificado + lista com accordions
+│   └── tour/       tutorial guiado: roteiro (dados), contexto e overlay.
+│                   Aponta pros elementos por `data-tour="..."` — se você
+│                   remover um desses atributos o passo é pulado calado.
 ├── api/          ← TODA conversa com o backend (1 arquivo por domínio).
 │                   http.js põe o token e padroniza erros.
 ├── auth/         ← Firebase (só autenticação!), AuthContext (sessão/perfil)
@@ -34,7 +37,8 @@ Regras de bolso:
 - Precisa falar com o backend? Cria/usa uma função em `api/` — nunca
   `fetch` solto em componente.
 - Dado de sessão (quem sou, papel, apto)? `useAuth()` — nada de
-  localStorage (só o tema vive lá).
+  localStorage. Lá só vive preferência do aparelho: `tema` e
+  `tour_visto_v1`.
 - Rota nova? `App.jsx` (dentro do `RequireRole` certo) + arquivo em
   `pages/`.
 - Estilo novo? Reaproveita as classes de `styles/` (`.panel`, `.campo`,

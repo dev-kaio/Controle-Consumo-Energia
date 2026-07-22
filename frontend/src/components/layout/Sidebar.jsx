@@ -5,9 +5,11 @@
 // Tocar fora fecha (essencial no celular) — o overlay invisível cuida disso.
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext.jsx";
+import { useTour } from "../tour/TourContext.jsx";
 
 export default function Sidebar({ aberta, fechar }) {
   const { role, sair } = useAuth();
+  const { abrir: abrirTour } = useTour();
 
   async function aoSair(e) {
     e.preventDefault();
@@ -45,6 +47,18 @@ export default function Sidebar({ aberta, fechar }) {
             </Link>
           </>
         )}
+
+        {/* Não navega: dispara o tour guiado na tela em que ele começa */}
+        <a
+          href="#tutorial"
+          onClick={(e) => {
+            e.preventDefault();
+            fechar();
+            abrirTour();
+          }}
+        >
+          Tutorial
+        </a>
 
         <Link to="/config" onClick={fechar}>
           Configurações
