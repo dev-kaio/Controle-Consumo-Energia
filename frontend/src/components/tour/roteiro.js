@@ -7,8 +7,6 @@
 //
 // Linguagem: síndico, não dev. Uma ideia por passo.
 
-export const CHAVE_TOUR = "tour_visto_v1";
-
 const TODOS = ["inquilino", "admin", "superadmin"];
 const GESTORES = ["admin", "superadmin"];
 const DONO = ["superadmin"];

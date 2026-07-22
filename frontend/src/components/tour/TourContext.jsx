@@ -5,11 +5,20 @@
 //
 // Sobre o localStorage: "já vi o tutorial" é preferência DESTE APARELHO, da
 // mesma natureza do tema — não é sessão nem papel (esses vêm sempre do
-// /auth/role, nunca daqui). São as duas únicas chaves do projeto.
+// /auth/role, nunca daqui). A lista de chaves mora em utils/preferencias.js,
+// que é quem garante que elas sobrevivam ao logout.
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { CHAVE_TOUR } from "./roteiro.js";
+import { CHAVE_TOUR } from "../../utils/preferencias.js";
 
 const ContextoTour = createContext(null);
+
+function marcarComoVisto() {
+  try {
+    localStorage.setItem(CHAVE_TOUR, "1");
+  } catch {
+    // navegador com storage bloqueado: o tour só reaparece, não quebra
+  }
+}
 
 export function useTour() {
   const contexto = useContext(ContextoTour);
@@ -22,19 +31,18 @@ export default function TourProvider({ children }) {
 
   const abrir = useCallback(() => setAtivo(true), []);
 
-  // Fechar (por conclusão, "Pular" ou Esc) marca como visto: quem já passou
-  // por aqui não é abordado de novo a cada login.
   const fechar = useCallback(() => {
     setAtivo(false);
-    try {
-      localStorage.setItem(CHAVE_TOUR, "1");
-    } catch {
-      // navegador com storage bloqueado: o tour só reaparece, não quebra
-    }
+    marcarComoVisto();
   }, []);
 
   // Primeira visita: abre sozinho, com uma folga pro primeiro render assentar
   // (o dashboard ainda está buscando dados quando o layout monta).
+  //
+  // A marca de "visto" é gravada na HORA em que ele abre, não quando fecha:
+  // quem largar o tutorial no meio (F5, fechou a aba) não deve ser abordado
+  // de novo no próximo login — foi mostrado, é o suficiente. Pra rever, tem
+  // o menu "Tutorial" e o botão em Configurações.
   useEffect(() => {
     let jaViu = true;
     try {
@@ -43,7 +51,10 @@ export default function TourProvider({ children }) {
       // sem storage não dá pra saber — não incomoda o usuário
     }
     if (jaViu) return;
-    const id = setTimeout(() => setAtivo(true), 800);
+    const id = setTimeout(() => {
+      setAtivo(true);
+      marcarComoVisto();
+    }, 800);
     return () => clearTimeout(id);
   }, []);
 

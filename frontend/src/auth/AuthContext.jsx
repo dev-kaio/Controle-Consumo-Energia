@@ -12,6 +12,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { auth, esperarUsuario, obterToken } from "./firebase.js";
+import { limparSessaoPreservandoPreferencias } from "../utils/preferencias.js";
 
 const AuthContext = createContext(null);
 
@@ -74,10 +75,9 @@ export function AuthProvider({ children }) {
   }
 
   async function sair() {
-    // Preserva só o tema — preferência visual não é dado de sessão
-    const tema = localStorage.getItem("tema");
-    localStorage.clear();
-    if (tema) localStorage.setItem("tema", tema);
+    // Zera o storage, menos as preferências do aparelho (tema, tutorial já
+    // visto) — a lista mora em utils/preferencias.js
+    limparSessaoPreservandoPreferencias();
 
     await firebaseSignOut(auth);
     setUsuario(null);
