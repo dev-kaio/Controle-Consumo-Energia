@@ -36,7 +36,7 @@ export default function PainelApartamentos({
   }
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="estrutura-apartamentos">
       <h2>Apartamentos</h2>
       <form className="form-linha" onSubmit={aoEnviar}>
         <div className="campo">

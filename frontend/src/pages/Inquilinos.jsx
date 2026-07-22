@@ -58,7 +58,7 @@ export default function Inquilinos() {
         <FormInquilino apartamentos={apartamentos} aoCriar={carregar} />
       )}
 
-      <div className="panel">
+      <div className="panel" data-tour="inquilinos-lista">
         <h2>Cadastrados</h2>
         <TabelaInquilinos
           inquilinos={inquilinos}

@@ -9,7 +9,7 @@ const BLOCOS = [
 
 export default function MediasConsumo({ medias, nomeFiltro }) {
   return (
-    <div className="media-consumo-container">
+    <div className="media-consumo-container" data-tour="medias">
       {BLOCOS.map(({ tipo, nome, cor }) => (
         <div key={tipo}>
           <h3>

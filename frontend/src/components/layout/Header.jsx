@@ -13,6 +13,7 @@ export default function Header({ aoAbrirMenu }) {
         type="button"
         className="menu-btn"
         title="Menu"
+        data-tour="menu"
         onClick={aoAbrirMenu}
       >
         ☰

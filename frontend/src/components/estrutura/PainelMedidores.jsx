@@ -25,7 +25,7 @@ export default function PainelMedidores({ apartamentos, dispositivos, aoCriar })
   }
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="estrutura-medidores">
       <h2>Medidores ESP32</h2>
       <p className="panel-desc">
         Cada medidor pertence a um apartamento e autentica com a chave

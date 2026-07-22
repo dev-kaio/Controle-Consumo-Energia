@@ -48,7 +48,7 @@ export default function PainelTarifas({ condominios }) {
   );
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="estrutura-tarifas">
       <h2>Tarifas (R$/kWh, com tributos)</h2>
       <form className="form-linha" onSubmit={aoEnviar}>
         <div className="campo">

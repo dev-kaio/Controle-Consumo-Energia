@@ -36,7 +36,7 @@ export default function ListaUsuarios({
   }
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="superadmin-usuarios">
       <h2>Usuários por condomínio</h2>
       <div className="form-linha">
         <div className="campo">

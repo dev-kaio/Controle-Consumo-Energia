@@ -9,6 +9,7 @@ export default function ThemeToggle({ className = "theme-toggle" }) {
       type="button"
       className={className}
       title="Alternar tema"
+      data-tour="tema"
       onClick={alternar}
     >
       {escuro ? "☀️" : "🌙"}

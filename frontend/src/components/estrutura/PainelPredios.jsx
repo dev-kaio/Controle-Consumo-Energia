@@ -23,7 +23,7 @@ export default function PainelPredios({ condominios, souSuperadmin, aoCriar }) {
   }
 
   return (
-    <div className="panel">
+    <div className="panel" data-tour="estrutura-predios">
       <h2>Prédios</h2>
       <form className="form-linha" onSubmit={aoEnviar}>
         {souSuperadmin && (

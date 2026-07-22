@@ -55,7 +55,7 @@ export default function Dashboard() {
 
       <MediasConsumo medias={dados.medias} nomeFiltro={dados.nomeFiltro} />
 
-      <div className="chart-card">
+      <div className="chart-card" data-tour="grafico">
         <div className="chart-header">
           <h2>Balanço energético</h2>
           {souGestor && !aptoID && (

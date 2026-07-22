@@ -63,6 +63,7 @@ export default function FiltroConsumo({
       <button
         type="button"
         className="filter-btn"
+        data-tour="filtro"
         onClick={() => setAberto((v) => !v)}
       >
         Filtrar ▾
