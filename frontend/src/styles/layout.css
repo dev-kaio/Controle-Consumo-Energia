@@ -122,6 +122,27 @@
 ========================= */
 .filter-container {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* seletor de apartamento (só gestor) — casa com o botão Filtrar */
+.select-apto {
+  font-size: 14px;
+  max-width: 220px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.select-apto:hover {
+  border-color: var(--color-accent);
 }
 
 .filter-menu {

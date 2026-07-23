@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import useConsumo from "../hooks/useConsumo.js";
 import FiltroConsumo from "../components/dashboard/FiltroConsumo.jsx";
+import SelectApto from "../components/dashboard/SelectApto.jsx";
 import KpiTopo from "../components/dashboard/KpiTopo.jsx";
 import MediasConsumo from "../components/dashboard/MediasConsumo.jsx";
 import GraficoConsumo from "../components/dashboard/GraficoConsumo.jsx";
@@ -45,6 +46,8 @@ export default function Dashboard() {
 
   return (
     <>
+      <SelectApto />
+
       <FiltroConsumo
         tiposSelecionados={tipos}
         aoEscolherFiltro={(filtro) => setConsulta({ filtro })}
