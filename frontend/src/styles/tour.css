@@ -1,0 +1,107 @@
+/* ==================================================================
+   TOUR GUIADO — overlay do tutorial (components/tour/Tour.jsx)
+   Fica acima de tudo, inclusive dos modais (z-index 1100 em modal.css).
+================================================================== */
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  /* o overlay não intercepta cliques; só o balão volta a interceptar */
+  pointer-events: none;
+}
+
+/* Passo sem alvo: escurece a tela inteira */
+.tour-fundo {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 12, 20, 0.62);
+}
+
+/* Passo com alvo: a sombra gigante escurece TUDO menos este retângulo */
+.tour-recorte {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(8, 12, 20, 0.62);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0;
+}
+
+.tour-balao {
+  position: fixed;
+  pointer-events: auto;
+  box-sizing: border-box;
+  padding: 18px 20px 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+}
+
+.tour-balao:focus {
+  outline: none;
+}
+
+.tour-contador {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tour-balao h2 {
+  margin: 6px 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+.tour-balao p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.tour-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.tour-espaco {
+  flex: 1;
+}
+
+.tour-pular,
+.tour-voltar {
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tour-voltar {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.tour-pular:hover,
+.tour-voltar:hover {
+  background: var(--color-surface-alt);
+}
+
+/* O .btn-primary do balão é menor que o dos formulários */
+.tour-acoes .btn-primary {
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  width: auto;
+}

@@ -1,0 +1,328 @@
+/* ==================================================================
+   PALM ENERGY — dashboard: KPIs, gauge, gráfico, médias e cards
+   Usado pelos componentes de components/dashboard/.
+   (ids do app antigo viraram classes: .grafico-container,
+    .inquilino-container, .btn-trocar-disposicao)
+================================================================== */
+
+/* =========================
+   KPI CARDS
+========================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 120px;
+}
+
+.kpi-card .kpi-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpi-card .kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  background: var(--color-accent-soft);
+}
+
+.kpi-card--autoconsumo .kpi-icon {
+  background: var(--color-autoconsumo-soft);
+}
+
+.kpi-card--geracao .kpi-icon {
+  background: var(--color-geracao-soft);
+}
+
+.kpi-card .kpi-value {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.kpi-card--consumo .kpi-value {
+  color: var(--color-accent);
+}
+
+.kpi-card--autoconsumo .kpi-value {
+  color: var(--color-autoconsumo);
+}
+
+.kpi-card--geracao .kpi-value {
+  color: var(--color-geracao);
+}
+
+.kpi-card .kpi-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Medidor mudo / falha de carga: o hint precisa gritar, senão passa por
+   "está tudo bem, o consumo é zero mesmo". */
+.kpi-card .kpi-hint--alerta {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.kpi-card .kpi-link {
+  font-size: 12px;
+  color: var(--color-accent);
+  text-decoration: none;
+  margin-top: auto;
+}
+
+.kpi-card .kpi-link:hover {
+  text-decoration: underline;
+}
+
+/* --- card de potência instantânea --- */
+.kpi-card--potencia .kpi-value {
+  color: var(--color-geracao);
+}
+
+/* --- anel de progresso ---
+   RESERVADO, sem uso hoje: o card de potência mostra o número puro porque
+   anel de porcentagem exige um teto (potência contratada) que o modelo de
+   dados ainda não tem. Quando `apartamentos/{id}.potenciaContratada` existir,
+   é só voltar a montar o SVG — a matemática está no comentário do .gauge-fill.
+   Ver docs/DESIGN-SYSTEM.md. */
+.kpi-card--gauge {
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+}
+
+.gauge {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+}
+
+.gauge svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* progresso começa no topo */
+}
+
+.gauge .gauge-track {
+  fill: none;
+  stroke: var(--color-surface-alt);
+  stroke-width: 9;
+}
+
+.gauge .gauge-fill {
+  fill: none;
+  stroke: var(--color-geracao);
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+/* =========================
+   GRÁFICO
+========================= */
+.chart-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+}
+
+.chart-card .chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.chart-card .chart-header h2 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.grafico-container {
+  width: 100%;
+  height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grafico-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.btn-trocar-disposicao {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-trocar-disposicao:hover {
+  border-color: var(--color-accent);
+}
+
+/* =========================
+   MÉDIAS
+========================= */
+.media-consumo-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.media-consumo-container > div {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px 20px;
+}
+
+.media-consumo-container h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.media-consumo-container p {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* =========================
+   CARDS DE INQUILINO (visão admin)
+========================= */
+.inquilino-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+.tenant-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tenant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-pop);
+}
+
+.tenant-card .tenant-apto {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tenant-card .tenant-nome {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+
+.tenant-card .tenant-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  padding: 5px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.tenant-card .tenant-valor {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tenant-card .tenant-valor--consumo {
+  color: var(--color-accent);
+}
+
+.tenant-card .tenant-valor--autoconsumo {
+  color: var(--color-autoconsumo);
+}
+
+.tenant-card .tenant-valor--geracao {
+  color: var(--color-geracao);
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 900px) {
+  .media-consumo-container {
+    grid-template-columns: 1fr;
+  }
+
+  .grafico-container {
+    height: 380px;
+  }
+}
+
+@media (max-width: 700px) {
+  .chart-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grafico-container {
+    height: 300px;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 22px;
+  }
+
+  .kpi-card--gauge {
+    flex-direction: row; /* gauge ao lado do número cabe bem até 320px */
+    gap: 14px;
+  }
+
+  .gauge {
+    width: 68px;
+    height: 68px;
+  }
+}

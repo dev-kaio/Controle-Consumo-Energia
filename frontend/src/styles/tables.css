@@ -1,0 +1,243 @@
+/* ==================================================================
+   PALM ENERGY — tabelas, badges e accordions
+   .data-table é a tabela padrão de todas as listas; .accordion-* é a
+   lista de condomínios do superadmin.
+================================================================== */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:hover td {
+  background: var(--color-surface-alt);
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-autoconsumo-soft);
+  color: var(--color-autoconsumo);
+}
+
+.badge--off {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+/* Botões de ação nas linhas da tabela de inquilinos */
+.data-table .status-btn,
+.data-table .editar-btn,
+.data-table .senha-btn,
+.data-table .link-consumo {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.data-table .link-consumo {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.data-table .status-btn:hover,
+.data-table .editar-btn:hover,
+.data-table .senha-btn:hover {
+  border-color: var(--color-accent);
+}
+
+/* Feedback tátil no toque (tap-highlight nativo desligado em base.css) */
+.data-table .status-btn:active,
+.data-table .editar-btn:active,
+.data-table .senha-btn:active,
+.data-table .link-consumo:active {
+  background: var(--color-accent-soft);
+}
+
+/* Menu de ações (⚙) — usado na sanfona do superadmin.
+   O botão fica na linha; a lista é position:fixed (posicionada por JS em
+   MenuAcoes.jsx) pra escapar do overflow:hidden do .accordion-item. */
+.menu-acoes {
+  display: inline-block;
+}
+
+.menu-acoes-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.menu-acoes-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.menu-acoes-lista {
+  position: fixed;
+  width: 176px; /* precisa bater com LARGURA em MenuAcoes.jsx */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: var(--shadow-pop);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-acoes-lista > button,
+.menu-acoes-lista > a {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.menu-acoes-lista > button:hover,
+.menu-acoes-lista > a:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* =========================
+   ACCORDION (lista de condomínios do superadmin)
+========================= */
+.accordion-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.accordion-item + .accordion-item {
+  margin-top: 14px;
+}
+
+.accordion-header {
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+}
+
+.accordion-header:hover {
+  background: var(--color-surface-alt);
+}
+
+.accordion-header .condo-nome {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.accordion-header .condo-info {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.accordion-header .arrow {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.accordion-content {
+  display: none;
+  padding: 0 20px 16px;
+}
+
+/* No React a abertura é estado → classe .aberto */
+.accordion-content.aberto {
+  display: block;
+}
+
+/* linha de admin destacada na tabela do superadmin */
+/* Apartamento sem leitura no fechamento: fica na lista (sumir esconderia
+   medidor quebrado do síndico), mas marcado pra não passar por conta zerada. */
+.data-table tr.linha-alerta td {
+  background: rgba(185, 28, 28, 0.06);
+}
+
+.data-table .texto-alerta {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.data-table tr.linha-admin td {
+  background: var(--color-accent-soft);
+  font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 700px) {
+  /* Tabelas nunca espremem as colunas: rolagem horizontal dentro
+     do próprio card */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th,
+  .data-table td {
+    white-space: nowrap;
+  }
+
+  /* Alvos de toque ≥ 44px nos botões de ação da tabela */
+  .data-table .status-btn,
+  .data-table .editar-btn,
+  .data-table .senha-btn,
+  .data-table .link-consumo {
+    padding: 10px 12px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

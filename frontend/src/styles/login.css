@@ -1,0 +1,173 @@
+/* ==================================================================
+   PALM ENERGY — página de login (pages/Login.jsx)
+   Tudo escopado sob .pagina-login: num SPA todos os CSS carregam
+   juntos, então seletores globais (body, h2, input...) vazariam
+   pras outras telas. O visual é o mesmo do style.css antigo.
+================================================================== */
+
+.pagina-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Marca acima do card */
+.pagina-login .container-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  max-width: 380px;
+  margin-bottom: 20px;
+}
+
+.pagina-login .container-title .bolt {
+  color: var(--color-geracao);
+}
+
+.pagina-login .container-title .tagline {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Card de login */
+.pagina-login .container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.pagina-login h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin-bottom: 1.2rem;
+}
+
+.pagina-login .form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+  position: relative; /* para o ícone do olho */
+}
+
+.pagina-login label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.pagina-login input[type="text"],
+.pagina-login input[type="password"],
+.pagina-login input[type="email"] {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 0.85rem; /* espaço pro olho */
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px; /* nunca menor que 16px: iOS dá zoom no foco */
+}
+
+.pagina-login input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.pagina-login .toggle-password {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border: none;
+  background-color: transparent;
+}
+
+.pagina-login button[type="submit"] {
+  width: 100%;
+  padding: 0.8rem;
+  background: var(--color-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+
+.pagina-login button[type="submit"]:hover {
+  filter: brightness(1.1);
+}
+
+.pagina-login button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* link discreto "Esqueci minha senha" abaixo do botão Entrar */
+.pagina-login .link-esqueci-senha {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.pagina-login .link-esqueci-senha:hover {
+  text-decoration: underline;
+}
+
+/* mensagem de erro/aviso do login */
+.pagina-login .mensagem-login {
+  color: var(--color-danger);
+  font-size: 13px;
+  min-height: 18px;
+  margin-bottom: 4px;
+}
+
+/* Botão de tema flutuante (página sem header) */
+.pagina-login .tema-flutuante {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.pagina-login .tema-flutuante:hover {
+  border-color: var(--color-accent);
+}
