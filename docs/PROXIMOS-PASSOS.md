@@ -1,8 +1,9 @@
 # Próximos passos (consolidado)
 
-> Atualizado em 2026-07-18, depois da migração completa do frontend pra React
-> (branch `tarifas`). Legenda de prioridade: 🔴 bloqueia produção · 🟡 importante
-> pro produto · 🟢 melhoria / nice-to-have.
+> Atualizado em 2026-07-22, depois de fechar os KPIs, a fatura, o fechamento de
+> competência, as mensagens de erro e a Estrutura em abas (branch `tarifas`).
+> Legenda de prioridade: 🔴 bloqueia produção · 🟡 importante pro produto ·
+> 🟢 melhoria / nice-to-have.
 
 ## Onde o sistema está hoje (o que já é sólido)
 
@@ -17,6 +18,15 @@ Pra não reabrir o que já foi fechado:
 - ✅ **Todo dado passa pelo backend** — o frontend usa o Firebase só pra login
   (não lê mais o RTDB direto de lugar nenhum).
 - ✅ Bugs de segurança de `innerHTML`/XSS corrigidos; `package.json` limpo.
+- ✅ **Os dois KPIs do dashboard** mostram dado real (potência instantânea e
+  valor da conta). O anel de progresso foi removido de propósito — ver
+  `docs/DESIGN-SYSTEM.md`.
+- ✅ **Fatura imprimível** (`/fatura`) e **fechamento de competência**
+  (`/fechamento`, com export CSV).
+- ✅ **Mensagens de erro** em linguagem de síndico
+  (`frontend/src/utils/mensagensErro.js`).
+- ✅ **Estrutura em abas**, com busca, agrupamento por prédio e seletor de
+  apartamento em cascata — aguenta ~1000 apartamentos.
 
 ---
 
@@ -49,26 +59,18 @@ primeiro checklist a fechar antes de qualquer cliente real**:
 
 ## 🟡 Funcionalidades que faltam pro produto ficar "completo"
 
-### Dashboard — os dois KPIs ainda são placeholders
-
-- [ ] **Card "Valor da Conta"**: `GET /financeiro?apartamentoId=&competencia=` já
-      calcula tudo no backend, mas **o frontend não chama essa rota** (confirmado:
-      não há fetch pra `/financeiro` em `frontend/src/`). Falta:
-      criar `api/financeiro.js` + o prefixo `/financeiro` no proxy do
-      `vite.config.js` + preencher o card em `KpiPlaceholders.jsx`.
-- [ ] **Card "Potência Atual"** (gauge): pegar a leitura **mais recente** de
-      `potencia` do apto. Precisa de um endpoint "última leitura" (hoje só existe
-      série histórica) e o cálculo do arco SVG
-      (`strokeDashoffset = circunferência × (1 - percentual)`).
-
 ### Financeiro / faturamento
 
-- [ ] Gerar/exportar a **fatura** de um apto num mês (PDF ou tela imprimível) —
-      é o entregável que o síndico realmente usa
 - [ ] Decidir se cadastro de tarifa continua **exclusivo do superadmin** ou passa
       a ser por `admin` de cada condomínio
-- [ ] Fechamento de competência: um lugar que lista "conta de todos os aptos do
-      condomínio no mês X" (hoje o cálculo é 1 a 1)
+- [ ] **Potência contratada por apartamento**: sem esse campo o card de potência
+      mostra só o número absoluto. Com ele dá pra voltar o anel de progresso (o
+      CSS `.gauge` está reservado) e alertar quem está perto do limite do
+      disjuntor.
+- [ ] **Fechamento é recalculado, não congelado** (decisão consciente): corrigir
+      uma tarifa muda retroativamente uma conta já entregue ao morador. Se isso
+      virar problema contábil, o caminho é persistir
+      `fechamentos/{condo}/{AAAA-MM}` com os valores do dia do fechamento.
 
 ---
 
@@ -79,9 +81,11 @@ primeiro checklist a fechar antes de qualquer cliente real**:
       Inclui: instalar o PWA no celular, testar **offline**, e confirmar que quem
       tinha o app antigo instalado recebe o service worker novo
       (limitação conhecida: o headless de automação não valida CacheStorage).
-- [ ] **Ampliar os testes** — hoje só as funções puras de `utils/` têm teste
-      (`node --test`). Falta cobrir as rotas do backend (auth, escopo por papel,
-      cálculo de tarifa) com testes de integração.
+- [ ] **Testes de integração das rotas** — as funções puras estão cobertas
+      (escopo por papel, cálculo de fatura, CSV, mensagens de erro: 87 testes
+      entre backend e frontend, todos sem rede). Falta o nível de cima: subir o
+      Express com um Firebase de mentira e exercitar as rotas de ponta a ponta,
+      incluindo o middleware de token.
 - [ ] **CI** — rodar `npm test` (backend + frontend) automaticamente a cada push
       no GitHub, pra não quebrar sem perceber.
 
@@ -93,11 +97,19 @@ primeiro checklist a fechar antes de qualquer cliente real**:
       (`condominio-predio-numero`, ex. `sol-blocoA-101`). Verificar se não sobrou
       registro legado fora do padrão no banco (aptos que não batem com nenhuma
       leitura passam despercebidos).
-- [ ] **Confirmar o intervalo de envio da ESP**: o código atual manda a cada
-      1 min; anotações antigas falam em 5 min. Definir qual é o certo.
+- [ ] **Firmware da ESP32** — tem lista própria em `docs/FIRMWARE.md`:
+      intervalo de envio (1 min vs 5 min), buffer que descarta amostra em
+      silêncio, timestamp de 1970 entrando no banco, integração de energia
+      que assume loop perfeito, e a troca da simulação por Modbus real.
+      Tratado como frente separada.
 - [ ] **Separação em dois repositórios**: `backend/` e `frontend/` estão prontos
       pra virar repos separados. Quando fizer, o backend deixa de servir o
       `frontend/dist` e entra **CORS** no lugar (a única ligação vira HTTP).
+- [ ] **Escala além de 1 condomínio grande**: `GET /estrutura/apartamentos` lê o
+      nó `apartamentos` INTEIRO e filtra em JS. Com 1000 aptos num condomínio dá
+      ~100 KB e passa; com 50 condomínios de 1000 vira problema. A correção é
+      `.indexOn: ["condominioID"]` nas regras do Firebase (item do gate de
+      produção) + `orderByChild("condominioID").equalTo(...)` no lugar do scan.
 
 ---
 
@@ -114,10 +126,25 @@ primeiro checklist a fechar antes de qualquer cliente real**:
 
 ## Ordem sugerida (se for tocar em sequência)
 
-1. Fechar os **dois KPIs do dashboard** (Valor da Conta + Potência) — dá a
-   sensação de "produto completo" e usa backend que já existe.
-2. **Fatura exportável** — o entregável de verdade pro cliente.
-3. **Testes de backend + CI** — antes de crescer a base de código.
-4. **Gate de produção** (chaves + HTTPS + regras Firebase) — logo antes do
+1. **Validar no navegador de verdade** o que foi construído — é a única coisa
+   que nunca foi feita e vale mais que qualquer item novo. Inclui rodar o tour
+   inteiro como admin (com abas na Estrutura, ele tem que continuar completo) e
+   imprimir uma fatura no tema escuro.
+2. **Testes de integração das rotas + CI** — antes de crescer mais a base.
+3. **Gate de produção** (chaves + HTTPS + regras Firebase) — logo antes do
    primeiro cliente real.
+4. **Firmware** (`docs/FIRMWARE.md`) — casado com o gate, porque o HTTPS da ESP
+   é item dos dois.
 5. **Manual do cliente** + **deploy**.
+
+### Massa de teste
+
+`npm run seed -- --confirmo` recria 6 apartamentos com 7 dias de leitura.
+Pra exercitar escala (lista da Estrutura, seletor em cascata, fechamento):
+
+```
+npm run seed -- --confirmo --aptos=1000
+```
+
+Gera 1000 aptos em 3 prédios, com ~15% deliberadamente **sem leitura** — é o
+que faz a coluna "sem leitura" do fechamento aparecer.

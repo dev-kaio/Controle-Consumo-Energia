@@ -117,20 +117,20 @@ Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 
 ## Firmware ESP32 (`firmware/esp.cpp`)
 
-- Leitura Modbus: hoje **substituída por simulação** para testes de
-  integração (potência/corrente/energia geradas por `random()`).
-- Buffer circular: `MAX_SAMPLES = 6`, uma amostra a cada 10s, envio a cada
-  `SEND_INTERVAL = 60000` ms (1 min) — isso diverge de uma referência
-  antiga de "5 min" que pode aparecer em anotações mais velhas; o código
-  atual manda a cada 1 min. Confirmar qual é o comportamento desejado antes
-  de assumir um dos dois.
-- Identidade: o firmware carrega `espId` + `espChave` (gerada no cadastro
-  do dispositivo) e manda nos headers `x-esp-id`/`x-api-key`. Não sabe de
-  apartamento — o backend resolve pelo nó `dispositivos/{espId}`.
-- `HTTPClient` usa `http://` puro (sem TLS). Aceitável em rede doméstica de
-  teste; **precisa virar HTTPS antes de qualquer deploy real** (AWS ou
-  outro), senão a key e os dados trafegam sem criptografia.
-- Buffer local só é limpo após receber HTTP 200 do backend (retry-safe).
+O firmware tem documento próprio: **`docs/FIRMWARE.md`** — é o único pedaço
+do sistema ainda em estado de base incompleta, com lista própria de
+problemas conhecidos e decisões em aberto.
+
+O que importa saber daqui:
+
+- Manda lotes de leituras via `POST /esp/dados`, se identificando com
+  `x-esp-id` + `x-api-key`. **Não sabe de apartamento** — o backend resolve
+  pelo nó `dispositivos/{espId}`.
+- Amostra a cada 10s, envia a cada 1 min (esse intervalo ainda não está
+  decidido — ver `docs/FIRMWARE.md`).
+- A leitura Modbus **ainda é simulada** (`random()`); o caminho ESP →
+  backend → Firebase é real.
+- `http://` puro, sem TLS — item do gate de produção.
 
 ## Mapa de rotas do backend
 
@@ -141,7 +141,8 @@ Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 | `/superadmin/usuarios` | GET | `requireRole("superadmin")` | Lista usuários com campos sensíveis removidos |
 | `/superadmin/condominios` | GET | `requireRole("superadmin")` | Lista condomínios |
 | `/superadmin/atualizar` | POST/PUT | `requireRole("superadmin")` | Atualiza usuário (bloqueia setar `tipo: superadmin` por aqui) |
-| `/firebase/consumo` \| `/autoconsumo` \| `/geracao` | GET | `authenticateToken` (inquilino só o próprio apto; admin só o próprio condomínio) | Séries de leitura por tipo, filtradas por período (lê só as partições mensais necessárias) |
+| `/firebase/consumo` \| `/autoconsumo` \| `/geracao` | GET | `authenticateToken` + `resolverAptosAlvo` | Séries de leitura por tipo, filtradas por período (lê só as partições mensais necessárias). **Não devolve `potencia`/`corrente`** — só `timestamp` e `valorKWh` |
+| `/firebase/ultima-leitura` | GET | `authenticateToken` + `resolverAptosAlvo` | Leitura mais recente de UM apto, com `potencia`/`corrente`. Alimenta o KPI de potência. Lê o mês corrente com `limitToLast(5)`, caindo pro anterior se vazio |
 | `/usuarios/listar` | GET | admin/superadmin | Lista inquilinos (admin: só do seu condomínio) |
 | `/usuarios/atualizar` \| `/deletar` | POST | admin/superadmin | Whitelist de campos; admin limitado a inquilinos do próprio condomínio |
 | `/estrutura/condominios` | POST superadmin / GET admin+superadmin | claims | Onboarding de condomínio; listagem escopada |
@@ -151,7 +152,21 @@ Ver `docs/TARIFAS-FINANCEIRO.md` para detalhes e os testes que validam isso.
 | `/esp/dados` | POST | headers `x-esp-id` + `x-api-key` (chave do dispositivo) | Recebe lote de leituras da ESP32 e grava na partição mensal |
 | `/tarifas` | POST | `requireRole("superadmin")` | Cria/atualiza tarifa de um condomínio/competência |
 | `/tarifas/:condominioID` | GET | `requireRole("superadmin")` | Lista tarifas cadastradas de um condomínio |
-| `/financeiro` | GET | `authenticateToken` (inquilino só vê o próprio apto) | Calcula TUSD/TE/IP-CIP/total de um apto numa competência |
+| `/financeiro` | GET | `authenticateToken` (inquilino só vê o próprio apto) | Calcula TUSD/TE/IP-CIP/total de um apto numa competência, mais os nomes de condomínio/prédio e a janela de leituras (a fatura precisa) |
+| `/financeiro/fechamento` | GET | admin/superadmin (admin só o próprio condomínio) | A conta de TODOS os aptos do condomínio num mês. Recalcula na hora, não grava nada. Lê tarifa/condomínio/moradores UMA vez e processa os aptos em lotes de 25 |
+
+### Onde mora a regra, e por que
+
+- **Controle de acesso a leituras**: `utils/escopoUtils.js#resolverAptosAlvo`.
+  Estava embutido no handler de `/firebase/consumo`; virou util quando a rota
+  de última leitura passou a precisar da mesma decisão. Duas cópias de regra
+  de escopo é como se reintroduz um vazamento sem ninguém perceber — por isso
+  tem teste próprio em `tests/escopo.test.js`.
+- **Cálculo da conta**: `utils/faturaUtils.js#calcularFatura`. Um lugar só,
+  usado pelo KPI do dashboard, pela fatura imprimível e pelo fechamento — se
+  fossem três cópias, a fatura entregue ao morador acabaria divergindo do
+  relatório do síndico. Aceita `{apartamento, condominio, tarifa}` prontos:
+  no fechamento de 1000 aptos isso corta ~2000 leituras do Firebase.
 
 ## Frontend — SPA React
 

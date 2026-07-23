@@ -55,20 +55,44 @@ compartilhadas por todas as telas, login incluso.
 - `.tenant-card` — card de inquilino na visão do admin (substituiu estilos
   inline que existiam em `criarCardInquilino` no `grafico.js`)
 
-## O que é placeholder (estrutura pronta, dado ainda não plugado)
+## Os KPIs do topo (não são mais placeholder)
 
-- **Card "Potência Atual"** (`#gaugePotenciaFill`, `#valorPotenciaAtual`,
-  `#statusPotenciaAtual`) — hoje mostra "—" / "Aguardando dado do medidor".
-  Pra plugar dado real: pegar a leitura mais recente de
-  `leituras/apto_{id}/consumo` e usar o campo `potencia` (já existe nos
-  dados, só falta um endpoint/lógica pra pegar "a leitura mais recente" em
-  vez de série histórica). Comentário no HTML explica a matemática do
-  círculo (`stroke-dashoffset = circunferência × (1 - percentual)`).
-- **Card "Valor da Conta"** (`#valorContaAtual`, `#competenciaContaAtual`)
-  — hoje mostra "R$ —,--". Já tem pra onde ir: é exatamente o que
-  `GET /financeiro?apartamentoId=&competencia=` calcula (ver
-  `docs/TARIFAS-FINANCEIRO.md`). Só falta o fetch no `grafico.js` (ou um
-  script próprio) chamando essa rota e preenchendo o card.
+`components/dashboard/KpiTopo.jsx` — os dois cards mostram dado real.
+
+- **Card "Potência atual"** — leitura mais recente via
+  `GET /firebase/ultima-leitura?aptoID=`, revalidada a cada 60s (mesma
+  cadência de envio da ESP). Mostra o número em W/kW e a idade da leitura.
+  Passou de 10 min sem leitura, o valor some e o hint vira alerta
+  (`.kpi-hint--alerta`): medidor mudo não é consumo zero.
+- **Card "Valor da conta"** — `GET /financeiro?apartamentoId=&competencia=`
+  (ver `docs/TARIFAS-FINANCEIRO.md`), competência = mês corrente em UTC.
+  Sem tarifa cadastrada é 404, e o card trata como **estado, não erro** —
+  num condomínio novo isso é o normal, então não leva cor de alerta.
+- Os dois números são **por apartamento**. Gestor sem `?aptoID=` na URL vê
+  "escolha um apartamento": somar mil aptos custaria mil leituras do Firebase
+  a cada abertura do dashboard. Total do condomínio fica no Fechamento.
+
+### O anel (`.gauge`) está reservado, sem uso
+
+O CSS continua em `dashboard.css` mas nenhum componente monta o SVG. Anel de
+progresso é porcentagem, e porcentagem precisa de um teto — "potência
+contratada" não existe no modelo de dados, e chutar um valor fixo daria uma
+barra que mente pra apto grande e pra apto pequeno. Quando
+`apartamentos/{id}.potenciaContratada` existir, é só voltar a desenhar: a
+matemática é `stroke-dashoffset = circunferência × (1 - percentual)`.
+
+## Componentes novos de escala
+
+- `.abas` / `.aba` / `.aba--ativa` (`components/ui/Abas.jsx`) — a Estrutura
+  virou abas porque com mil apartamentos a página empilhada não se usa. Só a
+  aba ativa é renderizada; a ativa vem da URL (`?aba=`), nunca do localStorage.
+- `.campo--busca`, `.contador-lista`, `.lista-vazia`, `.btn-mostrar-mais` —
+  o conjunto que faz uma lista grande continuar utilizável.
+- `.data-table tr.linha-alerta` / `.texto-alerta` — apartamento sem leitura
+  no fechamento. Fica na lista de propósito: sumir com a linha esconderia
+  medidor quebrado do síndico.
+- `.fatura*` (`styles/fatura.css`) — documento imprimível. O bloco
+  `@media print` força preto-no-branco; o tema escuro não vai pro papel.
 
 ## O que já é 100% funcional (não é placeholder)
 
