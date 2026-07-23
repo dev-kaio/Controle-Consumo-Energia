@@ -6,7 +6,8 @@ const db = admin.database();
 
 const { authenticateToken } = require("./requires");
 const { validarAptoId } = require("../utils/idUtils");
-const { mesesNoIntervalo } = require("../utils/mesUtils");
+const { mesesNoIntervalo, mesDaData, mesAnterior } = require("../utils/mesUtils");
+const { resolverAptosAlvo } = require("../utils/escopoUtils");
 
 function calcularIntervalo(filtro) {
   const agora = new Date();
@@ -84,21 +85,6 @@ async function lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim) {
   return resultado;
 }
 
-// Lista os IDs de apartamento visíveis para o usuário:
-// - superadmin: todos
-// - admin: apenas os do próprio condomínio
-async function listarAptosVisiveis(usuario) {
-  const snapshot = await db.ref("apartamentos").once("value");
-  const apartamentos = snapshot.val() || {};
-
-  return Object.entries(apartamentos)
-    .filter(([, apto]) => {
-      if (usuario.role === "superadmin") return true;
-      return apto.condominioID === usuario.condominioID;
-    })
-    .map(([aptoID]) => aptoID);
-}
-
 // Cria o handler de /consumo, /autoconsumo e /geracao — a lógica é idêntica,
 // só muda o tipo de dado lido em leituras/{apto}/{tipoDado}.
 function criarHandlerDeLeitura(tipoDado) {
@@ -108,8 +94,6 @@ function criarHandlerDeLeitura(tipoDado) {
       // O frontend historicamente manda ora "apartamentoId", ora "aptoID" —
       // aceitamos os dois para não quebrar chamadas existentes.
       const aptoQuery = req.query.apartamentoId || req.query.aptoID || null;
-      const { role, condominioID } = req.user;
-      const aptoToken = req.user.apartamentoId || null;
 
       if (aptoQuery && !validarAptoId(aptoQuery)) {
         return res.status(400).json({ erro: "aptoID inválido" });
@@ -130,40 +114,14 @@ function criarHandlerDeLeitura(tipoDado) {
         return res.status(400).json({ erro: "Parâmetros inválidos" });
       }
 
-      // ---- Controle de acesso por papel ----
-      let aptosAlvo;
-
-      if (role === "inquilino") {
-        // Inquilino só vê o próprio apartamento, sempre.
-        if (!aptoToken) {
-          return res
-            .status(403)
-            .json({ erro: "Usuário sem apartamento vinculado" });
-        }
-        if (aptoQuery && aptoQuery !== aptoToken) {
-          return res.status(403).json({ erro: "Acesso negado" });
-        }
-        aptosAlvo = [aptoToken];
-      } else if (aptoQuery) {
-        // Admin pediu um apartamento específico: precisa ser do condomínio dele.
-        if (role !== "superadmin") {
-          const aptoSnap = await db
-            .ref(`apartamentos/${aptoQuery}`)
-            .once("value");
-          const aptoData = aptoSnap.val();
-          if (!aptoData || aptoData.condominioID !== condominioID) {
-            return res.status(403).json({ erro: "Acesso negado" });
-          }
-        }
-        aptosAlvo = [aptoQuery];
-      } else {
-        // Sem apartamento: admin recebe todos os do seu condomínio,
-        // superadmin recebe todos do sistema.
-        aptosAlvo = await listarAptosVisiveis(req.user);
+      // ---- Controle de acesso por papel (utils/escopoUtils.js) ----
+      const alvo = await resolverAptosAlvo(db, req.user, aptoQuery);
+      if (alvo.erro) {
+        return res.status(alvo.status).json({ erro: alvo.erro });
       }
 
       const porApto = await Promise.all(
-        aptosAlvo.map((aptoId) =>
+        alvo.aptos.map((aptoId) =>
           lerLeiturasDoApto(aptoId, tipoDado, dataInicio, dataFim),
         ),
       );
@@ -183,5 +141,92 @@ router.get(
   criarHandlerDeLeitura("autoconsumo"),
 );
 router.get("/geracao", authenticateToken, criarHandlerDeLeitura("geracao"));
+
+/* ==========================
+   ÚLTIMA LEITURA (potência instantânea do dashboard)
+========================== */
+
+// INVARIANTE DE QUE ESTA ROTA DEPENDE: as chaves de leitura são push ids do
+// Firebase, que são cronológicos por construção. Quem grava usa push()
+// (routes/espsync.js) e o seed também — se algum dia alguém inventar um
+// esquema de chave próprio, cuidado: orderByKey é LEXICOGRÁFICO, e numa
+// numeração ingênua "l99" vem depois de "l335". Já aconteceu com o seed:
+// o dashboard mostrava uma leitura de 5 dias atrás como potência "atual".
+//
+// Quantos registros do fim do mês baixar pra achar o mais recente. O último
+// inserido quase sempre é o mais novo — "quase" porque um lote atrasado da
+// ESP (wifi voltou) entra fora de ordem. Pegar 5 e escolher pelo timestamp
+// cobre isso e continua custando uma fração do que seria baixar o mês
+// inteiro (dezenas de milhares de registros).
+const LEITURAS_DE_SOBRA = 5;
+
+async function ultimaLeituraDoMes(aptoId, mes) {
+  const snap = await db
+    .ref(`leituras/${aptoId}/consumo/${mes}`)
+    .orderByKey()
+    .limitToLast(LEITURAS_DE_SOBRA)
+    .once("value");
+
+  const registros = snap.val();
+  if (!registros) return null;
+
+  const ordenadas = Object.values(registros)
+    .filter((r) => r && r.timestamp)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  return ordenadas[0] || null;
+}
+
+// Leitura mais recente de UM apartamento — alimenta o card de potência.
+// A potência já é gravada por routes/espsync.js desde sempre; o handler de
+// série histórica (lerLeiturasDoApto) é que não a devolve, porque só monta
+// {timestamp, valorKWh}. Por isso a rota separada em vez de um filtro.
+router.get("/ultima-leitura", authenticateToken, async (req, res) => {
+  try {
+    const aptoQuery = req.query.apartamentoId || req.query.aptoID || null;
+
+    if (aptoQuery && !validarAptoId(aptoQuery)) {
+      return res.status(400).json({ erro: "aptoID inválido" });
+    }
+
+    const alvo = await resolverAptosAlvo(db, req.user, aptoQuery);
+    if (alvo.erro) {
+      return res.status(alvo.status).json({ erro: alvo.erro });
+    }
+
+    // Um apartamento por vez, de propósito: somar a potência de mil aptos
+    // custaria mil leituras a cada abertura do dashboard. Total do condomínio
+    // é assunto do fechamento, que roda sob demanda.
+    if (alvo.aptos.length !== 1) {
+      return res.status(400).json({ erro: "Apartamento é obrigatório" });
+    }
+
+    const aptoID = alvo.aptos[0];
+
+    // Virada de mês: no dia 1 o nó novo ainda está vazio por alguns minutos,
+    // então cai pro mês anterior em vez de dizer "sem leitura".
+    const mes = mesDaData(new Date());
+    const leitura =
+      (await ultimaLeituraDoMes(aptoID, mes)) ||
+      (await ultimaLeituraDoMes(aptoID, mesAnterior(mes)));
+
+    if (!leitura) {
+      return res.json({ aptoID, timestamp: null });
+    }
+
+    // O frontend decide se o dado está velho demais pelo timestamp — o
+    // backend não esconde leitura antiga, só entrega o que tem.
+    res.json({
+      aptoID,
+      timestamp: leitura.timestamp,
+      potencia: leitura.potencia ?? null,
+      corrente: leitura.corrente ?? null,
+      valorKWh: leitura.valorKWh ?? null,
+    });
+  } catch (error) {
+    console.error("Erro em /ultima-leitura:", error);
+    res.status(500).json({ erro: "Erro ao buscar dados" });
+  }
+});
 
 module.exports = router;
