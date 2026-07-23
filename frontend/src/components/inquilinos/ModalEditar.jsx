@@ -4,6 +4,7 @@
 // valor qualquer e o salvar trocaria o apto sem querer.
 import { useState } from "react";
 import { atualizarUsuario } from "../../api/usuarios.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import Modal from "../ui/Modal.jsx";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
@@ -31,7 +32,8 @@ export default function ModalEditar({ uid, usuario, apartamentos, aoFechar, aoSa
       await atualizarUsuario(uid, form);
       aoSalvar("Inquilino atualizado!");
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao atualizar inquilino:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 

@@ -12,6 +12,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../auth/firebase.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { mensagemAmigavel } from "../utils/mensagensErro.js";
 import CampoSenha from "../components/ui/CampoSenha.jsx";
 import ModalResetSenha from "../components/ui/ModalResetSenha.jsx";
 import ThemeToggle from "../components/layout/ThemeToggle.jsx";
@@ -44,8 +45,13 @@ export default function Login() {
         headers: { Authorization: `Bearer ${await user.getIdToken()}` },
       });
       if (!resp.ok) {
-        const err = await resp.json().catch(() => null);
-        throw new Error(err?.error || "Erro ao validar acesso");
+        const corpo = await resp.json().catch(() => null);
+        // Mesmo formato de erro do api/http.js (mensagem + status) pro
+        // mensagemAmigavel conseguir traduzir. Este fetch é cru de propósito:
+        // o token ainda não tem as claims, então não passa pelo api/.
+        const err = new Error(corpo?.error || "Erro ao validar acesso");
+        err.status = resp.status;
+        throw err;
       }
       const { perfil: p } = await resp.json();
 
@@ -65,12 +71,10 @@ export default function Login() {
       navegar("/dashboard", { replace: true });
     } catch (err) {
       console.error("Erro no login:", err);
-      // Conta desativada = disabled no Firebase Auth.
-      const msg =
-        err.code === "auth/user-disabled"
-          ? "Conta desativada. Fale com o administrador."
-          : err.message || "Ocorreu um erro, tente novamente.";
-      setMensagem(msg);
+      // Conta desativada, credencial errada, rede fora — todos os casos
+      // moram no utils/mensagensErro.js (inclusive a regra de não revelar
+      // se o e-mail existe).
+      setMensagem(mensagemAmigavel(err));
       setEnviando(false);
     }
   }
@@ -78,9 +82,9 @@ export default function Login() {
   return (
     <div className="pagina-login">
       <div className="container-title">
-        <span className="bolt">⚡</span> Palm Energy
+         Palm Energy
         <span className="tagline">
-          Monitoramento de energia do seu condomínio
+          Controle de energia na palma da sua mão
         </span>
       </div>
 

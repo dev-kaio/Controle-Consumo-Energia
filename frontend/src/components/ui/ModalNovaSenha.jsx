@@ -6,6 +6,7 @@ import Modal from "./Modal.jsx";
 import CampoSenha from "./CampoSenha.jsx";
 import MsgFeedback from "./MsgFeedback.jsx";
 import { alterarSenha } from "../../api/usuarios.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 
 export default function ModalNovaSenha({ uid, nome, aoFechar, aoSalvar }) {
   const [senha, setSenha] = useState("");
@@ -28,7 +29,8 @@ export default function ModalNovaSenha({ uid, nome, aoFechar, aoSalvar }) {
       await alterarSenha(uid, senha);
       aoSalvar("Senha alterada!");
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao alterar senha:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
       setEnviando(false);
     }
   }

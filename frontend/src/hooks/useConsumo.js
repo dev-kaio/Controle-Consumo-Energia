@@ -10,6 +10,7 @@
 // nunca sobrescreve a nova.
 import { useEffect, useState } from "react";
 import { buscarLeiturasPorTipo } from "../api/consumo.js";
+import { mensagemAmigavel } from "../utils/mensagensErro.js";
 import {
   agruparPorPeriodo,
   alinharSeries,
@@ -65,12 +66,18 @@ export default function useConsumo(consultaObj, tiposObj) {
       if (consulta.aptoID) params.aptoID = consulta.aptoID;
 
       try {
-        const dadosBrutos = await buscarLeiturasPorTipo(
+        const { porTipo: dadosBrutos, falhas } = await buscarLeiturasPorTipo(
           tiposSelecionados,
           params,
           controlador.signal,
         );
         if (controlador.signal.aborted) return;
+
+        // Falhou um tipo só? o gráfico segue com os outros, sem alarde.
+        // Falharam todos? não há nada pra desenhar — aí o usuário precisa
+        // saber por quê, senão lê a tela vazia como "não tenho consumo".
+        const tudoFalhou =
+          falhas.length > 0 && falhas.length === tiposSelecionados.length;
 
         // Agrega cada tipo e alinha tudo num eixo comum
         const mapas = {};
@@ -94,12 +101,12 @@ export default function useConsumo(consultaObj, tiposObj) {
           agrupamento,
           nomeFiltro,
           carregando: false,
-          erro: null,
+          erro: tudoFalhou ? mensagemAmigavel(falhas[0]) : null,
         });
       } catch (err) {
         if (controlador.signal.aborted) return;
         console.error("Erro ao carregar consumo:", err);
-        setEstado((e) => ({ ...e, carregando: false, erro: err.message }));
+        setEstado((e) => ({ ...e, carregando: false, erro: mensagemAmigavel(err) }));
       }
     }
 

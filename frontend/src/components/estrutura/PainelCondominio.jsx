@@ -1,6 +1,7 @@
 // Cadastro de condomínio — só superadmin enxerga (Estrutura.jsx decide).
 import { useState } from "react";
 import { criarCondominio } from "../../api/estrutura.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
 const FORM_VAZIO = { id: "", nome: "", localizacao: "" };
@@ -17,7 +18,8 @@ export default function PainelCondominio({ aoCriar }) {
       setForm(FORM_VAZIO);
       aoCriar();
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao criar condomínio:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 

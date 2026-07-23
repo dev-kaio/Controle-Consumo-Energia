@@ -2,6 +2,7 @@
 // admin cria sempre no dele (o backend resolve pelo token).
 import { useState } from "react";
 import { criarPredio } from "../../api/estrutura.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
 export default function PainelPredios({ condominios, souSuperadmin, aoCriar }) {
@@ -18,7 +19,8 @@ export default function PainelPredios({ condominios, souSuperadmin, aoCriar }) {
       setForm({ id: "", nome: "", condominioID: form.condominioID });
       aoCriar();
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao criar prédio:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 

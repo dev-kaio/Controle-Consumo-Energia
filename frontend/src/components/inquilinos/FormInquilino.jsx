@@ -2,6 +2,7 @@
 // painel dele, que escolhe o condomínio).
 import { useState } from "react";
 import { criarInquilino } from "../../api/usuarios.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
 const FORM_VAZIO = { nome: "", email: "", senha: "", aptoID: "" };
@@ -29,7 +30,8 @@ export default function FormInquilino({ apartamentos, aoCriar }) {
       setForm(FORM_VAZIO);
       aoCriar();
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao criar inquilino:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 

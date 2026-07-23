@@ -12,18 +12,26 @@ export async function buscarLeituras(tipo, params, signal) {
 // Busca os tipos selecionados em paralelo. Um tipo que falhar vira
 // lista vazia (o gráfico continua com os outros — igual ao app antigo).
 // O signal cancela as requisições quando o filtro muda no meio delas.
+//
+// Devolve `{ porTipo, falhas }`: as falhas vão junto porque quem chama
+// precisa distinguir "um tipo caiu" de "TUDO caiu" — no segundo caso não
+// existe gráfico nenhum pra mostrar e ficar calado engana o usuário.
 export async function buscarLeiturasPorTipo(tipos, params, signal) {
   const resultados = await Promise.all(
     tipos.map(async (tipo) => {
       try {
-        return [tipo, await buscarLeituras(tipo, params, signal)];
+        return { tipo, leituras: await buscarLeituras(tipo, params, signal) };
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(`Erro ao buscar ${tipo}:`, err);
         }
-        return [tipo, []];
+        return { tipo, leituras: [], err };
       }
     }),
   );
-  return Object.fromEntries(resultados);
+
+  return {
+    porTipo: Object.fromEntries(resultados.map((r) => [r.tipo, r.leituras])),
+    falhas: resultados.filter((r) => r.err).map((r) => r.err),
+  };
 }

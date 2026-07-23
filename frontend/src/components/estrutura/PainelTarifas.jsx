@@ -4,6 +4,7 @@
 // Na tela o IP-CIP é % (ex: 4); no banco é fração (0.04).
 import { useEffect, useState } from "react";
 import { listarTarifas, salvarTarifa } from "../../api/estrutura.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
 
 export default function PainelTarifas({ condominios }) {
@@ -22,7 +23,10 @@ export default function PainelTarifas({ condominios }) {
     if (!condoId) return;
     listarTarifas(condoId)
       .then(setTarifas)
-      .catch((err) => setMsg({ texto: err.message, ok: false }));
+      .catch((err) => {
+        console.error("Erro ao listar tarifas:", err);
+        setMsg({ texto: mensagemAmigavel(err), ok: false });
+      });
   }, [condoId]);
 
   async function aoEnviar(e) {
@@ -38,7 +42,8 @@ export default function PainelTarifas({ condominios }) {
       setMsg({ texto: "Tarifa salva!", ok: true });
       setTarifas(await listarTarifas(condoId));
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao salvar tarifa:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 

@@ -7,6 +7,7 @@
 //   <button onClick={() => alternarStatus(uid, !u.ativo)} />
 import { useCallback } from "react";
 import { atualizarUsuario } from "../api/usuarios.js";
+import { mensagemAmigavel } from "../utils/mensagensErro.js";
 
 export default function useAlternarStatus(recarregar, setMsg) {
   return useCallback(
@@ -15,7 +16,8 @@ export default function useAlternarStatus(recarregar, setMsg) {
         await atualizarUsuario(uid, { ativo });
         recarregar();
       } catch (err) {
-        setMsg({ texto: err.message, ok: false });
+        console.error("Erro ao alternar status:", err);
+        setMsg({ texto: mensagemAmigavel(err), ok: false });
       }
     },
     [recarregar, setMsg],
