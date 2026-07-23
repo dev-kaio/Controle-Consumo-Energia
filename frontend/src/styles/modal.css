@@ -55,4 +55,18 @@
   .modal-conteudo {
     padding: 20px 18px;
   }
+
+  /* Botão de ação em largura total: mais fácil de acertar com o polegar */
+  .modal-conteudo .btn-primary {
+    width: 100%;
+    padding: 13px;
+  }
+
+  /* Alvo de toque confortável no "fechar" (era só o glifo) */
+  .modal .fechar {
+    top: 8px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+  }
 }

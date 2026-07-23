@@ -75,6 +75,14 @@
   border-color: var(--color-accent);
 }
 
+/* Feedback tátil no toque (tap-highlight nativo desligado em base.css) */
+.data-table .status-btn:active,
+.data-table .editar-btn:active,
+.data-table .senha-btn:active,
+.data-table .link-consumo:active {
+  background: var(--color-accent-soft);
+}
+
 /* Menu de ações (⚙) — usado na sanfona do superadmin.
    O botão fica na linha; a lista é position:fixed (posicionada por JS em
    MenuAcoes.jsx) pra escapar do overflow:hidden do .accordion-item. */
@@ -228,5 +236,8 @@
   .data-table .senha-btn,
   .data-table .link-consumo {
     padding: 10px 12px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }

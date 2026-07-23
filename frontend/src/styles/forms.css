@@ -210,6 +210,13 @@
   filter: brightness(1.1);
 }
 
+/* Retorno tátil no celular: o tap-highlight nativo está desligado
+   (base.css), então o :active dá o feedback de que o toque pegou. */
+.btn-primary:active {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;

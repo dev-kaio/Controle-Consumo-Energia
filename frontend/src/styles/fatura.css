@@ -116,6 +116,31 @@
 }
 
 /* =========================
+   RESPONSIVO (tela)
+   No papel a fatura é larga; no celular ela precisa respirar sem estourar.
+========================= */
+@media (max-width: 700px) {
+  .fatura {
+    padding: 18px;
+  }
+
+  /* Cabeçalho empilha: competência vai pra baixo e alinha à esquerda,
+     em vez de brigar por espaço com o título. */
+  .fatura-cabecalho {
+    flex-direction: column;
+  }
+
+  .fatura-competencia {
+    text-align: left;
+  }
+
+  /* Ações (imprimir/voltar) quebram linha em vez de espremer */
+  .fatura-acoes {
+    flex-wrap: wrap;
+  }
+}
+
+/* =========================
    IMPRESSÃO
    O tema escuro NÃO pode ir pro papel: gastaria toner e sairia
    ilegível. Aqui tudo volta a preto no branco, e some o que é
@@ -124,6 +149,7 @@
 @media print {
   .app-header,
   .sidebar,
+  .bottom-nav,
   .fatura-acoes,
   .tour {
     display: none !important;
