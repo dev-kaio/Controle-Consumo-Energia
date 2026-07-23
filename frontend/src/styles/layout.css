@@ -308,6 +308,51 @@ input[type="time"]:focus {
 }
 
 /* =========================
+   BARRA DE NAVEGAÇÃO INFERIOR (só mobile)
+   Via rápida dos destinos principais no alcance do polegar. Escondida no
+   desktop — o CSS a liga só no @media 700px. z abaixo dos modais (1100).
+========================= */
+.bottom-nav {
+  display: none; /* ligado no mobile, ver @media (max-width: 700px) */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 940;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-accent);
+}
+
+.bottom-nav-glyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bottom-nav-item:active {
+  background: var(--color-surface-alt);
+}
+
+/* =========================
    RESPONSIVO + ÁREA SEGURA (notch)
    O sistema é usado principalmente no CELULAR — mobile não é exceção,
    é o caso principal. Três degraus: 900px (tablet), 700px (celular),
@@ -333,6 +378,29 @@ input[type="time"]:focus {
   .sidebar {
     width: min(280px, 82vw);
   }
+
+  /* A barra de abas só existe no celular */
+  .bottom-nav {
+    display: flex;
+  }
+
+  /* Folga pra barra + área segura: senão o último card fica escondido
+     atrás dela. 52px (altura) + 14px de respiro. */
+  .dashboard {
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+
+  /* Alvos de toque ≥ 44px na casca (só as tabelas garantiam antes) */
+  .menu-btn,
+  .filter-btn,
+  .theme-toggle,
+  .select-apto {
+    min-height: 44px;
+  }
+
+  .sidebar a {
+    padding: 16px 22px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -344,6 +412,16 @@ input[type="time"]:focus {
 
   .app-header .brand .brand-nome {
     display: none; /* só o raio ⚡ em telas mínimas */
+  }
+
+  /* Header apertado: menu + marca + select + Filtrar + tema disputam a
+     largura. O select encolhe (o nº do apto, que é o que importa, continua
+     visível; o nome corta com reticências) pra nada estourar na horizontal. */
+  .select-apto {
+    max-width: 120px;
+    min-width: 0;
+    flex-shrink: 1;
+    text-overflow: ellipsis;
   }
 
   .filter-menu {

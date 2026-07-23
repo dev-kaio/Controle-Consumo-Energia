@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header.jsx";
 import Sidebar from "./Sidebar.jsx";
+import BottomNav from "./BottomNav.jsx";
 import TourProvider from "../tour/TourContext.jsx";
 import Tour from "../tour/Tour.jsx";
 
@@ -21,6 +22,7 @@ export default function AppLayout() {
       <main className="dashboard">
         <Outlet />
       </main>
+      <BottomNav />
       <Tour />
     </TourProvider>
   );
