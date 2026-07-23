@@ -12,6 +12,90 @@
   padding: 20px 24px;
 }
 
+/* =========================
+   ABAS (components/ui/Abas.jsx)
+   Rola na horizontal no celular em vez de quebrar linha: fila de abas
+   em duas linhas confunde qual está ativa.
+========================= */
+.abas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.aba {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+
+.aba:hover {
+  color: var(--color-text);
+}
+
+.aba--ativa {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* =========================
+   LISTAS GRANDES
+   Busca + contador + "mostrar mais": o conjunto que faz uma lista de mil
+   apartamentos continuar utilizável (ver PainelApartamentos.jsx).
+========================= */
+.campo--busca {
+  flex: 1 1 240px;
+}
+
+.contador-lista {
+  align-self: flex-end;
+  padding-bottom: 10px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.lista-vazia {
+  padding: 20px 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.btn-mostrar-mais {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.btn-mostrar-mais:hover {
+  border-color: var(--color-accent);
+}
+
 .panel h2 {
   font-family: var(--font-display);
   font-size: 17px;

@@ -1,15 +1,32 @@
 // Cadastro e lista de medidores ESP32.
 // A CHAVE do medidor só existe na resposta do cadastro — mostramos uma
 // única vez no chave-box; depois de sair da página, era.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { criarDispositivo } from "../../api/estrutura.js";
+import { mensagemAmigavel } from "../../utils/mensagensErro.js";
 import MsgFeedback from "../ui/MsgFeedback.jsx";
+import SeletorApartamento from "../ui/SeletorApartamento.jsx";
 
 export default function PainelMedidores({ apartamentos, dispositivos, aoCriar }) {
   const [espId, setEspId] = useState("");
   const [aptoID, setAptoID] = useState("");
   const [chaveGerada, setChaveGerada] = useState(null);
   const [msg, setMsg] = useState(null);
+  const [busca, setBusca] = useState("");
+
+  // Mesma escala da lista de apartamentos: um medidor por apto significa
+  // mil linhas num condomínio grande.
+  const listados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return Object.entries(dispositivos)
+      .filter(
+        ([id, disp]) =>
+          !termo ||
+          id.toLowerCase().includes(termo) ||
+          String(disp.aptoID || "").toLowerCase().includes(termo),
+      )
+      .sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true }));
+  }, [dispositivos, busca]);
 
   async function aoEnviar(e) {
     e.preventDefault();
@@ -20,7 +37,8 @@ export default function PainelMedidores({ apartamentos, dispositivos, aoCriar })
       setEspId("");
       aoCriar();
     } catch (err) {
-      setMsg({ texto: err.message, ok: false });
+      console.error("Erro ao criar medidor:", err);
+      setMsg({ texto: mensagemAmigavel(err), ok: false });
     }
   }
 
@@ -41,21 +59,13 @@ export default function PainelMedidores({ apartamentos, dispositivos, aoCriar })
             onChange={(e) => setEspId(e.target.value)}
           />
         </div>
-        <div className="campo">
-          <label htmlFor="dispApto">Apartamento</label>
-          <select
-            id="dispApto"
-            value={aptoID}
-            onChange={(e) => setAptoID(e.target.value)}
-          >
-            <option value="">Selecione…</option>
-            {Object.keys(apartamentos).map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SeletorApartamento
+          id="dispApto"
+          apartamentos={apartamentos}
+          valor={aptoID}
+          aoEscolher={setAptoID}
+          mostrarCondominio
+        />
         <button type="submit" className="btn-primary">
           Cadastrar medidor
         </button>
@@ -70,28 +80,51 @@ export default function PainelMedidores({ apartamentos, dispositivos, aoCriar })
         </div>
       )}
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Medidor</th>
-            <th>Apartamento</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(dispositivos).map(([id, disp]) => (
-            <tr key={id}>
-              <td>{id}</td>
-              <td>{disp.aptoID}</td>
-              <td>
-                <span className={disp.ativo ? "badge" : "badge badge--off"}>
-                  {disp.ativo ? "Ativo" : "Revogado"}
-                </span>
-              </td>
+      <div className="form-linha">
+        <div className="campo campo--busca">
+          <label htmlFor="dispBusca">Buscar medidor</label>
+          <input
+            id="dispBusca"
+            placeholder="esp001 ou blocoA-101"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+        <span className="contador-lista">
+          {listados.length} de {Object.keys(dispositivos).length}
+        </span>
+      </div>
+
+      {listados.length === 0 ? (
+        <p className="lista-vazia">
+          {busca.trim()
+            ? "Nenhum medidor com esse identificador."
+            : "Nenhum medidor cadastrado ainda."}
+        </p>
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Medidor</th>
+              <th>Apartamento</th>
+              <th>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {listados.map(([id, disp]) => (
+              <tr key={id}>
+                <td>{id}</td>
+                <td>{disp.aptoID}</td>
+                <td>
+                  <span className={disp.ativo ? "badge" : "badge badge--off"}>
+                    {disp.ativo ? "Ativo" : "Revogado"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
