@@ -68,7 +68,9 @@ em `backend/routes/requires.js`.
 ## Documentação detalhada
 
 - `docs/ARQUITETURA.md` — modelo de dados completo do Firebase, rotas do
-  backend, comportamento do firmware ESP32
+  backend, visão geral do sistema
+- `docs/FIRMWARE.md` — ESP32: o que o código faz hoje, contrato do
+  `POST /esp/dados`, problemas conhecidos e decisões em aberto
 - `docs/SEGURANCA.md` — auditoria de segurança: o que foi achado, o que já
   foi corrigido, o que ainda está pendente
 - `docs/TARIFAS-FINANCEIRO.md` — como tarifa de energia funciona no Brasil,
