@@ -5,6 +5,10 @@
 // Passo sem `alvo` = balão centralizado. Passo cujo alvo não existe na
 // tela é PULADO pelo Tour.jsx — o tour encurta, nunca trava.
 //
+// `aba` é OBRIGATÓRIO em passo de tela com abas (hoje só /estrutura): como
+// só a aba ativa é renderizada, sem isso o alvo não existe no DOM e o passo
+// some sem avisar ninguém.
+//
 // Linguagem: síndico, não dev. Uma ideia por passo.
 
 const TODOS = ["inquilino", "admin", "superadmin"];
@@ -50,6 +54,17 @@ const PASSOS = [
       "Também dá pra escolher o que aparece no gráfico.",
   },
   {
+    id: "kpis",
+    rota: "/dashboard",
+    alvo: "kpis",
+    papeis: TODOS,
+    titulo: "Os números do momento",
+    texto:
+      "A potência é o quanto está sendo consumido agora, atualizada de minuto " +
+      "em minuto pelo medidor. Ao lado, quanto a conta do mês já somou até " +
+      "aqui.",
+  },
+  {
     id: "medias",
     rota: "/dashboard",
     alvo: "medias",
@@ -84,8 +99,20 @@ const PASSOS = [
       "continua guardado.",
   },
   {
+    id: "fechamento",
+    rota: "/fechamento",
+    alvo: "fechamento",
+    papeis: GESTORES,
+    titulo: "A conta do mês inteiro",
+    texto:
+      "Escolha o mês e gere a conta de todos os apartamentos de uma vez. Dá " +
+      "pra baixar em planilha e abrir a fatura de cada morador. Apartamento " +
+      "sem leitura aparece marcado — é medidor pra conferir.",
+  },
+  {
     id: "estrutura-predios",
     rota: "/estrutura",
+    aba: "predios",
     alvo: "estrutura-predios",
     papeis: GESTORES,
     titulo: "Como o condomínio é montado",
@@ -96,6 +123,7 @@ const PASSOS = [
   {
     id: "estrutura-apartamentos",
     rota: "/estrutura",
+    aba: "apartamentos",
     alvo: "estrutura-apartamentos",
     papeis: GESTORES,
     titulo: "Os apartamentos",
@@ -106,6 +134,7 @@ const PASSOS = [
   {
     id: "estrutura-medidores",
     rota: "/estrutura",
+    aba: "medidores",
     alvo: "estrutura-medidores",
     papeis: GESTORES,
     titulo: "Os medidores",
@@ -116,6 +145,7 @@ const PASSOS = [
   {
     id: "estrutura-tarifas",
     rota: "/estrutura",
+    aba: "tarifas",
     alvo: "estrutura-tarifas",
     papeis: DONO,
     titulo: "As tarifas",

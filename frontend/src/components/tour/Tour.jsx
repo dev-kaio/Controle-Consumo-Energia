@@ -42,7 +42,7 @@ export default function Tour() {
   const { ativo, fechar } = useTour();
   const { role } = useAuth();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   const passos = useMemo(() => roteiroDoPapel(role), [role]);
   const [indice, setIndice] = useState(0);
@@ -75,9 +75,18 @@ export default function Tour() {
       return;
     }
 
-    // Tela errada? navega; este efeito roda de novo quando o pathname muda.
-    if (passo.rota && passo.rota !== pathname) {
-      navigate(passo.rota);
+    // Tela errada? navega; este efeito roda de novo quando a URL muda.
+    //
+    // O passo pode exigir uma ABA específica (a Estrutura só renderiza a aba
+    // ativa — ver components/ui/Abas.jsx). Comparamos SÓ o que o passo
+    // declara: passo sem `aba` ignora a query, senão um passo do /dashboard
+    // arrancaria o ?aptoID= da URL ao "corrigir" a rota.
+    const abaAtual = new URLSearchParams(search).get("aba");
+    const rotaErrada = passo.rota && passo.rota !== pathname;
+    const abaErrada = passo.aba && passo.aba !== abaAtual;
+
+    if (rotaErrada || abaErrada) {
+      navigate(passo.aba ? `${passo.rota}?aba=${passo.aba}` : passo.rota);
       return;
     }
 
@@ -112,7 +121,7 @@ export default function Tour() {
     return () => {
       cancelado = true;
     };
-  }, [passo, pathname, navigate, avancar]);
+  }, [passo, pathname, search, navigate, avancar]);
 
   // Laço de medição (ver comentário do topo)
   useEffect(() => {
