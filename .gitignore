@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+
+# Credenciais e configuração local — NUNCA commitar.
+# Use .env.example como modelo.
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/
+
+# Exports do banco (contêm dados de usuários)
+*rtdb-export*.json
+
+# Saídas geradas
+graphify-out/
+__pycache__/
+.gstack/
