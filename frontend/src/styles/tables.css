@@ -189,6 +189,17 @@
 }
 
 /* linha de admin destacada na tabela do superadmin */
+/* Apartamento sem leitura no fechamento: fica na lista (sumir esconderia
+   medidor quebrado do síndico), mas marcado pra não passar por conta zerada. */
+.data-table tr.linha-alerta td {
+  background: rgba(185, 28, 28, 0.06);
+}
+
+.data-table .texto-alerta {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
 .data-table tr.linha-admin td {
   background: var(--color-accent-soft);
   font-weight: 600;

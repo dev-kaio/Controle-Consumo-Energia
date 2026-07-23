@@ -26,6 +26,7 @@ import "./styles/tables.css";
 import "./styles/modal.css";
 import "./styles/login.css";
 import "./styles/tour.css";
+import "./styles/fatura.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

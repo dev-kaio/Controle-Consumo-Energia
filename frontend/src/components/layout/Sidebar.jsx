@@ -45,6 +45,9 @@ export default function Sidebar({ aberta, fechar }) {
             <Link to="/estrutura" onClick={fechar}>
               Estrutura
             </Link>
+            <Link to="/fechamento" onClick={fechar}>
+              Fechamento
+            </Link>
           </>
         )}
 
