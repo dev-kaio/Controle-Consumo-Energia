@@ -1,0 +1,8 @@
+# Dependências
+node_modules/
+
+# Credenciais e configuração local — NUNCA commitar.
+# Use .env.example como modelo.
+.env
+.env.*
+!.env.example
