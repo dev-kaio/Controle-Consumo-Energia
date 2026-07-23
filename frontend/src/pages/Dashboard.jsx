@@ -9,20 +9,25 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import useConsumo from "../hooks/useConsumo.js";
 import FiltroConsumo from "../components/dashboard/FiltroConsumo.jsx";
-import KpiPlaceholders from "../components/dashboard/KpiPlaceholders.jsx";
+import KpiTopo from "../components/dashboard/KpiTopo.jsx";
 import MediasConsumo from "../components/dashboard/MediasConsumo.jsx";
 import GraficoConsumo from "../components/dashboard/GraficoConsumo.jsx";
 import CardsInquilinos from "../components/dashboard/CardsInquilinos.jsx";
 import { aptoSemCondominio } from "../utils/formatos.js";
 
 export default function Dashboard() {
-  const { role } = useAuth();
+  const { role, perfil } = useAuth();
   const souGestor = role === "admin" || role === "superadmin";
 
   // ?aptoID= na URL tem prioridade absoluta (admin vindo da lista de
   // inquilinos); o backend valida se ele pode ver esse apto.
   const [buscaURL] = useSearchParams();
   const aptoID = buscaURL.get("aptoID") || undefined;
+
+  // Apartamento dos KPIs (potência e conta são números POR APARTAMENTO).
+  // O inquilino não carrega aptoID na URL — o dele vem do perfil. Isto é só
+  // pra saber o que pedir; quem decide se pode é o backend (escopoUtils.js).
+  const aptoAlvo = souGestor ? aptoID : perfil?.aptoID || undefined;
 
   const [consulta, setConsulta] = useState({ filtro: "inicio" });
   const [tipos, setTipos] = useState(["consumo", "autoconsumo", "geracao"]);
@@ -51,7 +56,7 @@ export default function Dashboard() {
         {aptoID ? `Apto ${aptoSemCondominio(aptoID)}` : "Dashboard"}
       </span>
 
-      <KpiPlaceholders />
+      <KpiTopo aptoID={aptoAlvo} souGestor={souGestor} />
 
       <MediasConsumo medias={dados.medias} nomeFiltro={dados.nomeFiltro} />
 
@@ -71,11 +76,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {dados.erro && (
-          <p className="msg-feedback erro">
-            Não foi possível carregar os dados: {dados.erro}
-          </p>
-        )}
+        {dados.erro && <p className="msg-feedback erro">{dados.erro}</p>}
 
         {visao === "grafico" ? (
           <GraficoConsumo

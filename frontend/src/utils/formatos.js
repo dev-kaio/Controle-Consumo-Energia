@@ -41,3 +41,53 @@ export const FILTROS = {
 export function aptoSemCondominio(aptoID) {
   return (aptoID || "—").split("-").slice(1).join("-") || aptoID || "—";
 }
+
+// "2026-07" → "07/2026" (a competência é chave no banco, não texto de tela)
+export function competenciaLegivel(competencia) {
+  if (!/^\d{4}-\d{2}$/.test(competencia || "")) return competencia || "—";
+  const [ano, mes] = competencia.split("-");
+  return `${mes}/${ano}`;
+}
+
+export function formatarReais(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+// Potência instantânea da ESP, que chega sempre em watts. Vira kW a partir
+// de 1000 porque "1,24 kW" se lê melhor que "1240 W" — abaixo disso o watt
+// inteiro é mais honesto que "0,35 kW".
+export function formatarPotencia(watts) {
+  if (watts == null || Number.isNaN(Number(watts))) return "—";
+  const w = Number(watts);
+  if (Math.abs(w) < 1000) return `${Math.round(w)} W`;
+  return `${(w / 1000).toFixed(2).replace(".", ",")} kW`;
+}
+
+// A ESP manda de minuto em minuto. Passou disto sem leitura nova, não é
+// "consumo zero" — é medidor mudo, e o dashboard tem que dizer isso.
+export const LEITURA_VELHA_MS = 10 * 60 * 1000;
+
+// "há 40 s", "há 3 min", "há 2 h". `agora` entra por parâmetro pra dar
+// pra testar sem depender do relógio.
+export function idadeRelativa(timestamp, agora = Date.now()) {
+  if (!timestamp) return null;
+  const ms = agora - new Date(timestamp).getTime();
+  if (Number.isNaN(ms)) return null;
+  if (ms < 0) return "agora"; // relógio da ESP adiantado
+
+  const segundos = Math.floor(ms / 1000);
+  if (segundos < 10) return "agora";
+  if (segundos < 60) return `há ${segundos} s`;
+
+  const minutos = Math.floor(segundos / 60);
+  if (minutos < 60) return `há ${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `há ${horas} h`;
+
+  const dias = Math.floor(horas / 24);
+  return `há ${dias} ${dias === 1 ? "dia" : "dias"}`;
+}

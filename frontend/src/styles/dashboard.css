@@ -79,7 +79,35 @@
   color: var(--color-text-muted);
 }
 
-/* --- card do gauge de potência --- */
+/* Medidor mudo / falha de carga: o hint precisa gritar, senão passa por
+   "está tudo bem, o consumo é zero mesmo". */
+.kpi-card .kpi-hint--alerta {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.kpi-card .kpi-link {
+  font-size: 12px;
+  color: var(--color-accent);
+  text-decoration: none;
+  margin-top: auto;
+}
+
+.kpi-card .kpi-link:hover {
+  text-decoration: underline;
+}
+
+/* --- card de potência instantânea --- */
+.kpi-card--potencia .kpi-value {
+  color: var(--color-geracao);
+}
+
+/* --- anel de progresso ---
+   RESERVADO, sem uso hoje: o card de potência mostra o número puro porque
+   anel de porcentagem exige um teto (potência contratada) que o modelo de
+   dados ainda não tem. Quando `apartamentos/{id}.potenciaContratada` existir,
+   é só voltar a montar o SVG — a matemática está no comentário do .gauge-fill.
+   Ver docs/DESIGN-SYSTEM.md. */
 .kpi-card--gauge {
   flex-direction: row;
   align-items: center;
