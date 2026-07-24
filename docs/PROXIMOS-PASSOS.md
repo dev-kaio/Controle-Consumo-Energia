@@ -48,10 +48,25 @@ primeiro checklist a fechar antes de qualquer cliente real**:
 ### Comunicação segura
 
 - [ ] Migrar a comunicação da ESP32 de `http://` pra **HTTPS** (hoje a chave e as
-      leituras trafegam sem criptografia — inaceitável fora da rede de teste)
+      leituras trafegam sem criptografia — inaceitável fora da rede de teste).
+      O firmware já fala HTTPS, mas com `setInsecure()` (não valida o cert). O
+      plano executável de **TLS validado + OTA + watchdog** está em
+      `docs/FIRMWARE-GATE-PROD.md` — chamar antes de ir pra prod.
 - [ ] Revisar/versionar as **regras de segurança do Firebase** — agora que o
       frontend não lê o RTDB direto, dá pra fechar as regras de leitura (só o
       Admin SDK do backend acessa)
+
+### Volume de dados no Firebase
+
+- [ ] **Agregar as leituras por hora** antes de qualquer ESP real gravar 24/7.
+      Hoje `espsync.js` dá um `push()` por amostra de 10s = 8.640 registros/dia
+      por apartamento: 200 inquilinos estouram o free tier (1 GB) em **~3 dias**,
+      e 5 aptos em ~4 meses. Agregado por hora são ~26 MB/mês pros mesmos 200.
+      Plano executável (modelo de dados, arquivos a mexer, tradeoffs) em
+      `docs/AGREGACAO-LEITURAS.md`. **Migração é irreversível** — fechar antes
+      do primeiro cliente pagante, porque depois o dado cru não volta.
+- [ ] **Alerta de orçamento** no Google Cloud, junto com a migração acima. No
+      plano Spark estourar a cota não cobra: o banco **para de responder**.
 
 ---
 
@@ -103,6 +118,9 @@ primeiro checklist a fechar antes de qualquer cliente real**:
       ~100 KB e passa; com 50 condomínios de 1000 vira problema. A correção é
       `.indexOn: ["condominioID"]` nas regras do Firebase (item do gate de
       produção) + `orderByChild("condominioID").equalTo(...)` no lugar do scan.
+- [ ] **Retenção de leituras**: o RTDB não tem TTL. Depois da agregação
+      (`docs/AGREGACAO-LEITURAS.md`) fica faltando o job que apaga a janela de
+      dado cru de 7 dias — sem ele o problema volta pela porta dos fundos.
 
 ---
 
@@ -127,6 +145,10 @@ primeiro checklist a fechar antes de qualquer cliente real**:
    primeiro cliente real.
 4. **Firmware** (`docs/FIRMWARE.md`) — casado com o gate, porque o HTTPS da ESP
    é item dos dois.
+4b. **Agregação das leituras** (`docs/AGREGACAO-LEITURAS.md`) — junto com o
+   firmware, e obrigatoriamente **antes** de deixar ESP real gravando 24/7. Não
+   depende dos itens acima; o que trava é o inverso (deixar dado cru acumular
+   torna a migração mais cara e o free tier some em dias).
 5. **Manual do cliente** + **deploy**.
 
 ### Massa de teste

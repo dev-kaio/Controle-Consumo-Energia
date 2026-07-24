@@ -1,10 +1,9 @@
 # Firmware ESP32 (`firmware/esp.cpp`)
 
-> Documento separado porque o firmware é o único pedaço do sistema que ainda
-> é **base incompleta** — o resto (backend, frontend) está em estado de
-> produto. Aqui mora o que o código faz hoje, o contrato que ele já cumpre
-> com o backend, e a lista de coisas a resolver antes de encostar num
-> medidor real. Levantado em 2026-07-22.
+> Documento do firmware da ESP32: o que o código faz, o contrato que cumpre com
+> o backend, e o que ainda falta antes de campo. Levantado em 2026-07-22,
+> atualizado em 2026-07-23 quando a simulação virou **leitura Modbus real** e
+> os problemas de robustez #1, #2, #3 e #5 foram corrigidos.
 
 ## O papel da ESP em uma frase
 
@@ -21,41 +20,66 @@ Tudo acontece no `loop()`, em três cadências empilhadas:
 
 | Intervalo | Constante | O que faz |
 |---|---|---|
-| 1 s | `READ_INTERVAL` | lê a potência instantânea (W) e integra o acumulado de energia |
+| 1 s | `READ_INTERVAL` | lê corrente, potência e energia acumulada do medidor via Modbus |
 | 10 s | `SAMPLE_INTERVAL` | congela uma amostra no buffer |
 | 60 s | `SEND_INTERVAL` | POST do lote pro backend |
 
-A integração de energia é `energiaKwh += (potenciaWatts * 1.0) / 3600000.0`
-— potência em watts × 1 segundo, convertido pra kWh (1 W·s = 1/3.600.000 kWh).
+A energia **não é mais integrada na ESP** — vem acumulada do próprio medidor
+(registrador `etc1`), que conta sozinho e não zera quando a ESP reinicia. Isso
+eliminou o antigo problema #3 (integração dependente do timing do loop).
 
-### A leitura é simulada
+### A leitura é Modbus real (RS485)
 
-Não existe Modbus no código ainda. `potenciaWatts` começa em 100.0 e caminha
-por `random(-5, 10) * 0.1` a cada segundo (viés positivo de propósito, pra
-subir devagar). A corrente é derivada, não medida: `potenciaWatts / 220.0`.
+O medidor é lido por Modbus RTU sobre RS485 (transceiver MAX485), com
+`ModbusMaster` + `SoftwareSerial`. A cada 1 s o `loop()` lê três registradores
+(input registers, 2 words = float32, high word primeiro):
 
-Isso é suficiente pra exercitar o caminho ESP → backend → Firebase → gráfico
-de ponta a ponta, que é pra isso que existe.
+| Variável | Registrador | Grandeza |
+|---|---|---|
+| `correnteA` | `0x0006` (a11) | corrente fase 1 (A) |
+| `potenciaWatts` | `0x000C` (w11) | potência ativa (W) |
+| `energiaKwh` | `0x0048` (etc1) | energia total consumida — medidor entrega em **Wh**, dividido por 1000 |
 
-### O buffer
+Parâmetros: `MODBUS_ADDR 11`, pino DE/RE do MAX485 em `MODBUS_DIR_PIN 18`,
+`SoftwareSerial(15, 4)` (RO, DI), baud 9600. O mapa completo do medidor
+(tensão/corrente/potência por fase, energia consumida e gerada) está em
+`espElvis/src/dados.h` no projeto PlatformIO de origem.
+
+> Esses parâmetros vieram do projeto `espElvis`, que rodou no medidor real.
+> **Confirmar endereço, pinos e baud contra o medidor de destino** antes de
+> instalar em campo — medidor diferente = mapa de registradores diferente.
+
+Se uma leitura Modbus falha, `readModbusFloat()` devolve `NAN` e loga o código
+de erro no serial. O tratamento do `NaN` acontece na hora de amostrar (ver
+abaixo).
+
+### O buffer (ring buffer)
 
 ```c
-#define MAX_SAMPLES 6
+#define MAX_SAMPLES 30
 float bufferKwh[MAX_SAMPLES];
 float bufferPotencia[MAX_SAMPLES];
 float bufferCorrente[MAX_SAMPLES];
 String bufferTimestamps[MAX_SAMPLES];
-int bufferIndex = 0;
+int bufferHead = 0;   // próxima escrita
+int bufferCount = 0;  // amostras válidas no buffer
 ```
 
-Quatro arrays paralelos indexados por `bufferIndex`. O índice só volta a zero
-quando o POST devolve **HTTP 200** — se o envio falha, o lote fica guardado e
-vai junto na próxima tentativa.
+Quatro arrays paralelos em anel. `MAX_SAMPLES 30` × 10 s = **5 minutos de
+folga** — bem mais que um ciclo de envio (60 s), pra aguentar wifi fora sem
+buraco na série. Quando enche, **sobrescreve a amostra mais antiga** (não
+descarta a nova): como `valor` é o kWh acumulado do medidor, a leitura mais
+recente é sempre a mais valiosa. O buffer só é limpo (`bufferCount = 0`) quando
+o POST devolve **HTTP 200** — se o envio falha, o lote fica guardado e vai
+junto na próxima tentativa.
 
-> **Correção de doc antiga:** já foi descrito como "buffer circular". Não é.
-> É um buffer linear que **para de aceitar** quando enche (`if (bufferIndex <
-> MAX_SAMPLES)`), em vez de sobrescrever o mais velho. Ver o problema #1
-> abaixo.
+Uma amostra só entra no buffer se passar em dois filtros:
+
+- **hora válida** — se o NTP ainda não sincronizou, `getTimestampISO()` devolve
+  string vazia e a amostra é ignorada (nada de timestamp 1970 no banco);
+- **energia numérica** — se a leitura de energia (`valor`) veio `NaN`, a amostra
+  é descartada (o backend exige que `valor` seja número). `potencia`/`corrente`
+  em `NaN` não bloqueiam: vão como `null` no JSON.
 
 ### O que ela manda
 
@@ -68,12 +92,12 @@ Content-Type:  application/json
 {
   "leituras": [
     {
-      "timestamp": "2026-07-22T14:03:10Z",   // ISO 8601, UTC
+      "timestamp": "2026-07-23T14:03:10Z",   // ISO 8601, UTC
       "valor":     12.4831,                   // kWh ACUMULADO (não é delta!)
-      "potencia":  347.2,                     // W, instantânea
-      "corrente":  1.58                       // A, instantânea
+      "potencia":  347.2,                     // W, instantânea (ou null)
+      "corrente":  1.58                       // A, instantânea (ou null)
     }
-    // ... até 6 itens
+    // ... até MAX_SAMPLES itens
   ]
 }
 ```
@@ -95,87 +119,47 @@ quantos passaram, mas o firmware hoje só olha o status 200 e ignora o `N`.
 
 ### `valor` é cumulativo — a implicação
 
-`energiaKwh` vive em RAM e nunca zera sozinho; só volta a ~0 quando a ESP
-reinicia (queda de energia, queda de wifi, flash novo). Por isso o consumo de
-um período **não é** "última leitura menos primeira" — um reinício no meio
-derruba o valor e a conta dá errado, às vezes negativa.
+`energiaKwh` agora vem do medidor, que **não zera** quando a ESP reinicia — o
+que era o pior caso do modelo antigo (integração em RAM). Ainda assim, o
+consumo de um período **não é** "última leitura menos primeira": trocar o
+medidor ou zerar o acumulado dele derruba o valor, e a conta ingênua daria
+negativa.
 
-Quem resolve isso é `backend/utils/consumoUtils.js#calcularKwhFaturado`,
-somando deltas positivos e tratando queda como reinício. Detalhes em
-`docs/TARIFAS-FINANCEIRO.md`.
+Quem trata isso é `backend/utils/consumoUtils.js#calcularKwhFaturado`, somando
+deltas positivos e tratando queda como reinício. Com a energia vindo do
+medidor, esse tratamento vira **rede de segurança** (raro disparar) em vez de
+caminho quente. Detalhes em `docs/TARIFAS-FINANCEIRO.md`.
+
+### Reconexão de wifi
+
+`setup()` bloqueia no boot até conectar. No `loop()`, `manterWifi()` checa a
+conexão de forma não-bloqueante e, se caiu, tenta reconectar a cada 10 s
+(`WIFI_RETRY_INTERVAL`) sem travar os timers de Modbus/amostra. Enquanto
+offline, as amostras continuam entrando no ring buffer e sobem no próximo 200.
 
 ---
 
-## Problemas conhecidos (a tratar)
+## Problemas conhecidos
 
-### 1. O buffer não tem folga, e perde dado em silêncio
+### Resolvidos em 2026-07-23
 
-6 amostras × 10 s = exatamente 60 s. O envio também é a cada 60 s. Zero
-margem.
+- **#1 buffer sem folga / perda silenciosa** → agora é ring buffer de 30
+  amostras (5 min de folga) que sobrescreve a mais antiga em vez de descartar a
+  nova.
+- **#2 timestamp 1970** → a ESP não amostra sem hora válida do NTP. *(O lado do
+  backend — rejeitar timestamp absurdo — continua pendente, ver abaixo.)*
+- **#3 integração dependente do timing** → energia vem acumulada do medidor, não
+  é mais integrada na ESP.
+- **#5 wifi não reconectava** → `manterWifi()` reconecta no `loop()`.
 
-O agravante é o comportamento quando enche: a linha 143 é
-`if (bufferIndex < MAX_SAMPLES)`, ou seja, com o buffer cheio a amostra nova
-é **jogada fora sem aviso**. Como o índice só zera com HTTP 200, qualquer
-falha de rede vira buraco na série — wifi fora por 5 minutos = 5 minutos sem
-nenhum ponto, mesmo com a ESP funcionando perfeitamente o tempo todo.
-
-O total faturado se recupera (porque `valor` é cumulativo — a próxima leitura
-que chegar já traz a energia do período perdido embutida), mas o **gráfico** e
-a **potência instantânea** ficam cegos no intervalo.
-
-Caminhos possíveis: aumentar `MAX_SAMPLES` pra dar folga real de vários
-ciclos; virar buffer circular de verdade (sobrescrever o mais velho é melhor
-que descartar o mais novo); ou os dois.
-
-### 2. Timestamp de 1970 entra no banco
-
-```c
-if (!getLocalTime(&timeinfo)) {
-  return "1970-01-01T00:00:00Z";
-}
-```
-
-Se o NTP ainda não sincronizou (normal nos primeiros segundos após o boot, ou
-se o `pool.ntp.org` estiver inacessível), a amostra sai carimbada com a época
-Unix. O backend aceita: `mesDaData()` devolve `"1970-01"` e a leitura é
-gravada em `leituras/{apto}/consumo/1970-01/`.
-
-Resultado: um nó de mês fantasma que nunca aparece em consulta nenhuma
-(nenhum filtro cobre 1970) mas fica lá pra sempre. Pior, se cair no meio de
-uma série, envenena o cálculo de delta.
-
-Dois lados a resolver: a ESP não deveria amostrar antes de ter hora válida, e
-o backend não deveria aceitar timestamp absurdo.
-
-### 3. A integração de energia assume que o loop é perfeito
-
-`energiaKwh += (potenciaWatts * 1.0) / 3600000.0` chuta 1,0 segundo fixo em
-vez de usar o tempo real decorrido (`now - lastReadTime`).
-
-Com a leitura simulada isso não importa — o `loop()` roda milhares de vezes
-por segundo e o timer dispara pontual. Mas o `http.POST()` **bloqueia**, e uma
-leitura Modbus real também bloqueia. Todo tempo gasto ali vira energia não
-contabilizada: o intervalo real passa a ser 1,4 s e a conta segue somando como
-se fosse 1,0 s. Subfaturamento sistemático, sempre pro mesmo lado.
-
-Vira problema de verdade quando o Modbus entrar.
-
-### 4. `http://` puro, sem TLS
+### 4. `http://` puro, sem TLS *(pendente)*
 
 `HTTPClient` sem certificado. A chave do dispositivo e todas as leituras
 trafegam em texto claro. Tolerável em rede doméstica de teste; **inaceitável
 antes de qualquer cliente real** — é item do gate de produção em
 `docs/PROXIMOS-PASSOS.md`.
 
-### 5. Wifi cai e nunca reconecta
-
-O `setup()` trava num `while (WiFi.status() != WL_CONNECTED)` até conectar, o
-que resolve o boot. Mas se a rede cair depois, o `loop()` só verifica
-`WiFi.status()` dentro do `enviarParaBackend()` e desiste (`return`). Não há
-tentativa de reconexão em lugar nenhum — a ESP fica acumulando amostras (que
-o problema #1 vai descartar) até alguém tirar da tomada.
-
-### 6. `serverUrl` e credenciais hardcoded
+### 6. `serverUrl` e credenciais hardcoded *(pendente)*
 
 IP fixo (`192.168.0.6`), `ssid`/`password` vazios no repositório, e
 `espChave` com placeholder literal. Funciona pra bancada, mas não sobrevive a
@@ -183,20 +167,33 @@ mudança de rede nem a mais de uma unidade em campo. Provisionamento (portal
 de configuração, ou pelo menos mDNS pro backend) é assunto de quando existir
 mais de uma ESP.
 
+### Backend: aceitar timestamp absurdo *(pendente, complementa o #2)*
+
+A ESP não manda mais 1970, mas `espsync.js`/`mesDaData()` ainda aceitariam um
+timestamp fora da faixa se viesse de qualquer fonte. Defesa em profundidade:
+rejeitar no backend datas absurdas (muito no passado/futuro).
+
 ---
 
-## Decisões em aberto
+## Decisões
 
-### Qual é o intervalo de envio certo?
+### Resolvidas
+
+- **Fonte da energia acumulada** → vem **do medidor** (`etc1`), não mais
+  integrada na ESP. Fecha as duas últimas linhas da antiga lista "o que falta
+  pra virar firmware de verdade" (Modbus RTU + energia do medidor), e torna
+  desnecessário persistir `energiaKwh` em NVS/flash.
+
+### Em aberto
+
+#### Qual é o intervalo de envio certo?
 
 O código manda a cada **1 minuto**. Anotações mais antigas do projeto falam em
 **5 minutos**. Não foi decidido qual vale — e a diferença é grande no volume
-de dados (1 min = ~43k leituras/mês/apto; 5 min = ~8,6k).
+de dados (1 min = ~43k leituras/mês/apto; 5 min = ~8,6k). Se o envio for pra 5
+min, o `MAX_SAMPLES 30` já dá folga confortável (5 min a 10 s por amostra).
 
-Vale casar isso com a decisão de `MAX_SAMPLES` do problema #1: intervalo maior
-de envio pede buffer proporcionalmente maior, não o mesmo 6.
-
-### `potencia` e `corrente` não chegam no frontend
+#### `potencia` e `corrente` não chegam no frontend
 
 Não é bug do firmware — é onde o dado dele morre. `espsync.js` grava os dois
 campos corretamente, mas `backend/routes/firebase.js` (função
@@ -209,14 +206,21 @@ Ou seja: o dado de potência **já existe no banco desde sempre**, o card
 qualquer conversa sobre "mostrar a potência que vem da ESP" esbarra nisso
 primeiro.
 
-### O que falta pra virar firmware de verdade
+---
 
-- Substituir a simulação por leitura **Modbus RTU** do medidor real
-- Definir o mapa de registradores do medidor escolhido (qual endereço é
-  potência ativa, qual é energia acumulada, qual é corrente)
-- Decidir se a energia acumulada vem **do medidor** (que já conta, e não zera
-  quando a ESP reinicia) ou continua sendo integrada na ESP. Se vier do
-  medidor, o tratamento de reinício do `calcularKwhFaturado` fica só como
-  rede de segurança
-- Persistir `energiaKwh` em NVS/flash pra sobreviver a reboot, caso a
-  integração continue na ESP
+## Como compilar / flashar
+
+O `firmware/` do repo tem só o `esp.cpp` — **não há `platformio.ini`** aqui. Pra
+buildar e gravar, o `esp.cpp` precisa entrar num projeto PlatformIO com as libs:
+
+```ini
+lib_deps =
+    bblanchon/ArduinoJson
+    4-20ma/ModbusMaster
+    plerup/EspSoftwareSerial
+```
+
+O projeto de origem (`espElvis`) já tem esse setup. Verificação ponta a ponta:
+`pio run` (compila), `pio device monitor` a 115200 (ver `A: / W: / kWh:` reais
+e o JSON do lote), e o log do backend `ESP <id> → <aptoID>: N leituras
+gravadas`.

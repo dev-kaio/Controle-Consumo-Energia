@@ -32,6 +32,12 @@ const db = admin.database();
 
 const SENHA_PADRAO = "palm123";
 
+// Chave FIXA do esp001, pro teste com hardware real (ESP → ngrok → backend).
+// As demais são aleatórias a cada seed; esta é conhecida e estável pra poder
+// gravar no firmware uma vez e não quebrar o teste a cada reseed. Tem que ser
+// idêntica a `espChave` no firmware/esp.cpp. NÃO usar em produção.
+const CHAVE_ESP_TESTE = "e5910b3d0f1c4a7b8d2e6f90a1b2c3d4e5f60718293a4b5c";
+
 // --aptos=N ligado? Vale a massa de escala em vez da lista fixa.
 const QTD_ESCALA = (() => {
   const arg = process.argv.find((a) => a.startsWith("--aptos="));
@@ -237,6 +243,9 @@ async function main() {
     aptoID,
     chave: crypto.randomBytes(24).toString("hex"),
   }));
+
+  // esp001 ganha a chave fixa de teste (as outras seguem aleatórias)
+  if (chaves[0]) chaves[0].chave = CHAVE_ESP_TESTE;
 
   const loteDisp = {};
   for (const d of chaves) {
